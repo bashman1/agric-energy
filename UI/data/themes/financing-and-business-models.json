@@ -1,0 +1,15 @@
+{
+  "id": "financing-and-business-models",
+  "slug": "financing-and-business-models",
+  "name": "Financing and Business Models",
+  "icon": "💰",
+  "summary": "Understanding how agri-energy investments are financed and structured — from pay-as-you-go solar, lease-to-own, co-operative enterprise, to green finance instruments.",
+  "description": "Financing and business models are central to whether agri-energy solutions reach farmers at scale or remain limited to project-based pilots. This thematic area explores the range of financial instruments, ownership structures, and commercial models being used to deploy agri-energy in Uganda. Key models include pay-as-you-go (PAYGO) solar for smallholder equipment, lease-to-own for larger systems, cooperative enterprise ownership, public-private partnerships, and blended finance from development banks and grant programmes. The theme also covers agricultural value chain finance and how energy investments can be embedded within broader commodity finance arrangements.",
+  "whyItMatters": "One of the biggest barriers to agri-energy adoption is upfront capital cost. Without appropriate financing mechanisms, even highly relevant technologies remain out of reach for most farmers and rural enterprises. Understanding which business models and financing instruments are working — and under what conditions — is essential for scaling agri-energy beyond donor-funded projects.",
+  "relatedTechnologyIds": ["solar-water-pumping", "solar-powered-milling", "solar-cold-storage"],
+  "relatedProjectIds": ["project-002", "project-004", "project-008"],
+  "relatedResourceIds": ["agro-processing-business-model-guide", "productive-use-energy-policy-brief"],
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-10-20T09:00:00.000Z"
+}

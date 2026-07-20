@@ -1,0 +1,16 @@
+{
+  "id": "uganda-agri-energy-landscape-2024",
+  "slug": "uganda-agri-energy-landscape-2024",
+  "title": "Uganda Agri-Energy Landscape Assessment 2024",
+  "type": "Report",
+  "summary": "A comprehensive assessment of the agri-energy sector in Uganda, covering the technology deployment landscape, key actors, financing trends, and recommendations for national coordination.",
+  "description": "This report provides the most current national assessment of Uganda's agri-energy sector, mapping energy use across agricultural value chains, documenting technology deployment patterns, identifying key institutional actors, and analysing financing mechanisms in use. The report was prepared by the NREP Secretariat with support from development partners and draws on field data from across Uganda's four regions. Key findings include: solar pumping has emerged as the dominant agri-energy technology in terms of deployment scale; post-harvest energy solutions remain significantly underfunded relative to on-farm production energy; the dairy and horticulture value chains show the strongest commercial attraction for private sector agri-energy investment; and gender-disaggregated data collection on agri-energy access remains very weak across the sector. The report provides recommendations for Phase 1 of the national Agri-Energy Desk platform and for the next five years of sector programming.",
+  "fileUrl": "",
+  "externalUrl": "https://www.nrep.go.ug/publications/agri-energy-landscape-2024",
+  "themeIds": ["technologies-and-innovations", "research-and-evidence", "policy-and-regulation"],
+  "technologyIds": ["solar-water-pumping", "biogas-digesters", "solar-cold-storage"],
+  "publicationDate": "2024-03-01",
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-11-01T08:00:00.000Z"
+}

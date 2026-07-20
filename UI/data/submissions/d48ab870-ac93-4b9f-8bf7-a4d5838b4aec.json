@@ -1,0 +1,14 @@
+{
+  "submissionType": "General Enquiry",
+  "name": "Test Submitter",
+  "organisation": "NREP Uganda",
+  "email": "test@nrep.go.ug",
+  "subject": "Phase 2 Verification Test",
+  "message": "This tests the contact form end-to-end submission system.",
+  "id": "d48ab870-ac93-4b9f-8bf7-a4d5838b4aec",
+  "status": "new",
+  "emailStatus": "not_sent",
+  "adminNotes": "testing admin notes",
+  "submittedAt": "2026-03-08T21:18:12.103Z",
+  "updatedAt": "2026-03-08T21:29:37.146Z"
+}

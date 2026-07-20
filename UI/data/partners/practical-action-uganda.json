@@ -1,0 +1,31 @@
+{
+  "id": "practical-action-uganda",
+  "slug": "practical-action-uganda",
+  "name": "Ministry of Energy and Mineral Development",
+  "type": "Government Institution",
+  "summary": "The mandate of the Ministry of Energy and Mineral Development (MEMD) is “To Establish, promote the Development, Strategically Manage and Safeguard the Rational and Sustainable Exploitation and Utilization of Energy and Mineral Resources for Social and Economic Development\".",
+  "description": "The Ministry of Energy and Mineral Development (MEMD) is a cabinet-level government body in Uganda mandated to establish, promote, and strategically manage the sustainable exploitation of the country’s energy and mineral resources for social and economic development.",
+  "website": "https://memd.go.ug/",
+  "email": "info@energy.go.ug",
+  "phone": "+256 41 4344 414",
+  "logo": "https://nrep.ug/wp-content/uploads/2023/06/MEMD_Logo-FIN-1-1.png",
+  "regions": [
+    "Northern",
+    "Western",
+    "Central",
+    "Eastern"
+  ],
+  "districtCoverage": [],
+  "technologyIds": [],
+  "themeIds": [
+    "policy-and-regulation"
+  ],
+  "projectIds": [
+    "project-003",
+    "project-005",
+    "project-007"
+  ],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2026-03-11T06:07:20.416Z"
+}

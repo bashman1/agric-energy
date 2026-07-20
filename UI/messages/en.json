@@ -1,0 +1,90 @@
+{
+  "Brand": {
+    "name": "Agri-Energy Desk",
+    "tagline": "National Platform",
+    "footerTagline": "Uganda National Platform"
+  },
+  "Nav": {
+    "label": "Main navigation",
+    "mobileLabel": "Mobile navigation",
+    "projects": "Projects",
+    "technologies": "Technologies",
+    "partners": "Partners",
+    "resources": "Resources",
+    "events": "Events",
+    "opportunities": "Opportunities",
+    "news": "News",
+    "tenders": "Tenders",
+    "map": "Map",
+    "about": "About",
+    "partnerPortal": "Partner Portal",
+    "submitInfo": "Submit Info",
+    "openMenu": "Open main menu",
+    "closeMenu": "Close main menu",
+    "skipToContent": "Skip to main content"
+  },
+  "Search": {
+    "label": "Search",
+    "placeholder": "Search projects, technologies, resources…",
+    "pagePlaceholder": "Search projects, technologies, resources, events, opportunities…",
+    "submit": "Search",
+    "heading": "Find anything on the Agri-Energy Desk",
+    "suggestionsLabel": "Search suggestions",
+    "loading": "Searching…",
+    "noSuggestions": "No suggestions found",
+    "emptyPrompt": "Type at least 2 characters to search across all content.",
+    "noResultsTitle": "No results for “{query}”",
+    "noResultsHint": "Try a broader term or browse by section below.",
+    "resultCount": "{count, plural, one {# result} other {# results}}",
+    "forQuery": "for “{query}”",
+    "ranked": "ranked by relevance",
+    "filterByType": "Filter results by type",
+    "all": "All",
+    "seeAll": "See all {count} →"
+  },
+  "Types": {
+    "projects": "Projects",
+    "technologies": "Technologies",
+    "themes": "Themes",
+    "resources": "Resources",
+    "partners": "Partners",
+    "events": "Events",
+    "opportunities": "Opportunities",
+    "posts": "News",
+    "policies": "Policies"
+  },
+  "Language": {
+    "label": "Language",
+    "change": "Change language"
+  },
+  "Footer": {
+    "label": "Site footer",
+    "description": "Uganda's national digital platform for agri-energy knowledge, project visibility, stakeholder coordination, and evidence-based planning. Managed by the National Renewable Energy Platform (NREP) Secretariat.",
+    "prototypeNotice": "⚠️ This is a Phase 1 prototype — content is sample data for demonstration purposes.",
+    "platform": "Platform",
+    "projects": "Projects",
+    "technologies": "Technologies",
+    "partners": "Partners",
+    "resources": "Resources",
+    "about": "About",
+    "themes": "Thematic Areas",
+    "mapView": "Map View",
+    "news": "News",
+    "tenders": "Tenders",
+    "openData": "Open Data",
+    "accessibility": "Accessibility",
+    "aboutLink": "About Agri-Energy",
+    "contact": "Contact Us",
+    "submitInformation": "Submit Information",
+    "adminPortal": "Admin Portal",
+    "copyright": "© {year} Agri-Energy Desk — National Renewable Energy Platform (NREP), Uganda.",
+    "builtWith": "Phase 1 Prototype — Powered by Next.js"
+  },
+  "Common": {
+    "loading": "Loading…",
+    "noResults": "No results found.",
+    "error": "Something went wrong. Please try again.",
+    "close": "Close",
+    "readMore": "Read more"
+  }
+}

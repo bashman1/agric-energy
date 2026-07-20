@@ -1,0 +1,42 @@
+{
+  "id": "maaif",
+  "slug": "maaif",
+  "name": "Ministry of Agriculture, Animal Industry and Fisheries (MAAIF)",
+  "type": "Government Institution",
+  "summary": "Uganda's lead government ministry for agricultural policy, extension, and sector coordination, a key government partner in agri-energy programming.",
+  "description": "The Ministry of Agriculture, Animal Industry and Fisheries (MAAIF) is the principal government institution responsible for Uganda's agricultural sector. MAAIF provides the policy framework for agricultural development, coordinates extension services, manages agricultural research institutions, and oversees agricultural sector investments. In the agri-energy space, MAAIF is a key institutional partner for projects across irrigation, post-harvest handling, mechanisation, and value addition. The National Agricultural Advisory Services (NAADS) arm of the Ministry provides extension links to farming communities.",
+  "website": "https://www.agriculture.go.ug",
+  "email": "info@agriculture.go.ug",
+  "phone": "+256 414 320 004",
+  "logo": "http://agriculture.go.ug/wp-content/uploads/2019/05/header-bg.png",
+  "regions": [
+    "Central",
+    "Eastern",
+    "Northern",
+    "Western"
+  ],
+  "districtCoverage": [
+    "Kampala",
+    "Wakiso",
+    "Jinja",
+    "Gulu",
+    "Mbarara"
+  ],
+  "technologyIds": [
+    "solar-water-pumping",
+    "drip-irrigation"
+  ],
+  "themeIds": [
+    "productive-use-of-energy",
+    "policy-and-regulation",
+    "value-chain-applications"
+  ],
+  "projectIds": [
+    "project-001",
+    "project-004",
+    "project-006"
+  ],
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-10-15T09:00:00.000Z"
+}

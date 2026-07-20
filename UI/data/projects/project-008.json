@@ -1,0 +1,50 @@
+{
+  "id": "project-008",
+  "slug": "project-008",
+  "title": "Solar Water Pumping for Aquaculture — Kayunga District",
+  "summary": "Solar-powered water circulation systems for 3 fish ponds improving water quality and fish yields for aquaculture farmers in Kayunga District, Central Uganda.",
+  "description": "Aquaculture in Kayunga District is constrained by poor water quality in seasonal fish ponds and inadequate aeration for intensive production. This project installed solar-powered water circulation and aeration systems at 3 aquaculture sites operated by fish farmer cooperatives. The systems include submersible circulation pumps, paddle-wheel aerators, and water quality sensors with remote monitoring. Fish yields at pilot sites increased by 35% in the first production cycle compared to control ponds. Training of fish farmers covered system operation, water quality management, feed rationing, and record keeping.",
+  "region": "Central Uganda",
+  "district": "Kayunga District",
+  "regions": [
+    "Central Uganda"
+  ],
+  "districts": [
+    "Kayunga District"
+  ],
+  "locationNote": "3 aquaculture cooperative sites, Kayunga District",
+  "coordinates": {
+    "lat": 0.7053,
+    "lng": 32.8891
+  },
+  "implementingPartnerIds": [
+    "nrep",
+    "maaif"
+  ],
+  "fundingPartner": "World Bank — Uganda Agri-Business Development Project",
+  "budget": 95000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": 180,
+  "technologyIds": [
+    "solar-water-pumping"
+  ],
+  "themeIds": [
+    "productive-use-of-energy",
+    "food-security"
+  ],
+  "valueChain": "Fish/Aquaculture",
+  "beneficiaries": [
+    "Fish Farmers",
+    "Aquaculture Cooperatives"
+  ],
+  "status": "Active",
+  "startDate": "2023-09",
+  "endDate": "2026-08",
+  "outcomes": "3 aquaculture sites with solar aeration; 35% fish yield increase; water quality sensors installed; 180 fish farmers with improved production.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-10-15T11:00:00.000Z"
+}

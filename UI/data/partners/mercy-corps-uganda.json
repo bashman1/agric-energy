@@ -1,0 +1,38 @@
+{
+  "id": "mercy-corps-uganda",
+  "slug": "mercy-corps-uganda",
+  "name": "Mercy Corps Uganda",
+  "type": "International NGO",
+  "summary": "Global humanitarian and development organisation with Uganda programmes focusing on food security, market systems, agricultural enterprise, and climate resilience.",
+  "description": "Mercy Corps operates in Uganda with programmes addressing food security, agricultural market systems, climate resilience, youth employment, and financial inclusion. In the agri-energy space, Mercy Corps has worked on solar milling enterprises, agri-market hubs, and energy access for post-harvest management. Their market systems approach (USAID Feed the Future) focuses on systemic change rather than direct service delivery, engaging private sector actors, financial institutions, and government to create enabling environments for agri-energy adoption at scale.",
+  "website": "https://www.mercycorps.org/where-we-work/uganda",
+  "email": "uganda@mercycorps.org",
+  "phone": "+256 414 344 996",
+  "logo": "https://nrep.ug/wp-content/uploads/2025/10/MERCY-CORPS.png",
+  "regions": [
+    "Northern",
+    "Eastern"
+  ],
+  "districtCoverage": [
+    "Gulu",
+    "Kitgum",
+    "Soroti",
+    "Lira",
+    "Mbale"
+  ],
+  "technologyIds": [
+    "solar-powered-milling",
+    "solar-water-pumping"
+  ],
+  "themeIds": [
+    "productive-use-of-energy",
+    "financing-and-business-models",
+    "value-chain-applications"
+  ],
+  "projectIds": [
+    "project-004"
+  ],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2026-03-11T05:59:25.791Z"
+}

@@ -1,0 +1,49 @@
+{
+  "id": "solar-water-pumping",
+  "slug": "solar-water-pumping",
+  "name": "Solar Water Pumping",
+  "category": "Solar Energy",
+  "summary": "Photovoltaic-powered water pumping systems that replace diesel or manual pumping for irrigation, livestock watering, and rural water supply.",
+  "description": "Solar water pumping systems use photovoltaic (PV) panels to generate electricity that drives submersible or surface-mounted water pumps. The technology eliminates the need for diesel fuel or grid electricity, dramatically reducing operating costs over time. Systems range in scale from small (<1 kW) units for individual farmers or community water points, to large multi-kW arrays feeding irrigation distribution networks for hundreds of acres. In agri-energy applications, solar pumping is most commonly used for gravity-fed drip and sprinkler irrigation, livestock watering troughs, and community water supply in off-grid settings. System components include PV panels, a pump controller (MPPT or PWM), the pump unit, and often a storage tank to buffer supply. Direct pumping (pump runs during daylight, tank fills for use at night) is the simplest configuration. Battery-buffered systems allow pumping at any time but increase capital cost.",
+  "applications": [
+    "Smallholder irrigation (drip, sprinkler, furrow)",
+    "Community and school water supply",
+    "Livestock watering in pastoral areas",
+    "Greenhouse and nursery irrigation",
+    "Aquaculture water supply"
+  ],
+  "benefits": [
+    "Eliminates diesel fuel operating costs after installation",
+    "Low maintenance compared to diesel pumps",
+    "Works in remote off-grid locations",
+    "Scalable — from 0.5 kW individual systems to 100+ kW schemes",
+    "Long service life (20+ years for PV panels)",
+    "Climate-friendly zero-emission operation"
+  ],
+  "limitations": [
+    "Higher upfront capital cost than diesel pumps",
+    "Output depends on solar irradiance (reduced on cloudy days)",
+    "Requires adequate water source (river, borehole, dam)",
+    "Pump controller and pump components require periodic servicing",
+    "Sizing must account for peak demand and seasonal variation"
+  ],
+  "operationalNotes": [
+    "Size PV array based on peak water demand and local irradiance data",
+    "Include a storage tank (0.5 to 1 day supply) to buffer cloudy day output",
+    "Use MPPT controllers for best energy conversion efficiency",
+    "Ensure borehole yield testing before installation",
+    "Establish a water user group with a clear cost-recovery plan"
+  ],
+  "maintenanceNotes": [
+    "Clean PV panels weekly (especially in dry dusty conditions)",
+    "Inspect pump unit and rising main annually",
+    "Check electrical connections and cable glands each season",
+    "Service pump motor every 2–3 years",
+    "Keep a spare set of fuses and cable connectors on site"
+  ],
+  "relatedProjectIds": ["project-001", "project-005", "project-008"],
+  "relatedResourceIds": ["solar-pumping-practical-guide", "uganda-agri-energy-landscape-2024"],
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-11-01T08:00:00.000Z"
+}

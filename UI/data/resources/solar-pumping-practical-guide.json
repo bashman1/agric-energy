@@ -1,0 +1,16 @@
+{
+  "id": "solar-pumping-practical-guide",
+  "slug": "solar-pumping-practical-guide",
+  "title": "Solar Water Pumping: A Practical Guide for Uganda",
+  "type": "Practical Guide",
+  "summary": "Step-by-step guidance for planning, sizing, procuring, installing, and managing solar water pumping systems for agricultural use in Uganda.",
+  "description": "This practical guide is designed for agricultural extension workers, project managers, farmer group leaders, and agri-energy investors seeking to deploy solar water pumping systems in Uganda. The guide covers system design principles including solar irradiance data for Uganda's regions, pump sizing methodology, borehole yield requirements, and tank sizing. It also covers procurement considerations — including quality assurance and after-sales support — installation guidance, water user group establishment, and cost-recovery modelling. Worked examples from solar irrigation projects in Uganda are included throughout. The guide was developed based on field experience from multiple solar pumping deployments across the country and has been validated by technical reviewers from NREP and implementing partners.",
+  "fileUrl": "",
+  "externalUrl": "https://www.nrep.go.ug/resources/solar-pumping-guide",
+  "themeIds": ["technologies-and-innovations", "productive-use-of-energy"],
+  "technologyIds": ["solar-water-pumping", "drip-irrigation"],
+  "publicationDate": "2023-06-01",
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-10-01T09:00:00.000Z"
+}

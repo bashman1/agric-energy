@@ -1,0 +1,48 @@
+{
+  "id": "solar-cold-storage",
+  "slug": "solar-cold-storage",
+  "name": "Solar Cold Rooms and Refrigeration",
+  "category": "Cold Chain & Storage",
+  "summary": "Solar-powered refrigeration and cold storage units that extend the shelf life of perishable agricultural commodities, reducing post-harvest losses in off-grid locations.",
+  "description": "Solar-powered cold rooms and refrigeration units use photovoltaic energy to run compressor-based refrigeration or evaporative cooling systems, enabling temperature-controlled storage of perishable products in areas without grid electricity. In Uganda's agri-energy context, solar cold rooms are deployed along agricultural value chains for dairy, fish, horticulture, and other perishable produce. Capacities range from small portable cold boxes (50–200 kg) to stand-alone insulated cold rooms (0.5 to 10 tonnes). The technology is critical for reducing post-harvest losses — estimated at 30–40% for perishables in Uganda — by extending the marketing window for farmers. Solar cold rooms are increasingly offered as pay-per-use services by agri-enterprises and cooperatives, creating sustainable business models that aggregate the produce of many smallholders.",
+  "applications": [
+    "Dairy milk cooling at collection points",
+    "Fish storage at landing sites and markets",
+    "Vegetable and fruit cooling for horticulture exporters",
+    "Pharmaceutical storage in rural health facilities",
+    "Seed storage for seed enterprises and agro-dealers"
+  ],
+  "benefits": [
+    "Dramatically reduces post-harvest losses for perishable produce",
+    "Extends marketing window, enabling farmers to sell at better prices",
+    "Works in remote off-grid areas with no utility supply",
+    "Pay-per-use model enables shared cost recovery",
+    "Reduces food waste and improves food security"
+  ],
+  "limitations": [
+    "High capital cost, especially for larger units",
+    "Thermal insulation quality is critical — poor insulation undermines performance",
+    "Cooling performance depends on solar irradiance and ambient temperature",
+    "Requires trained operator and preventive maintenance",
+    "Logistics (transport to and from cold room) also need to be addressed"
+  ],
+  "operationalNotes": [
+    "Place cold room in a shaded, ventilated structure to reduce heat load",
+    "Pre-cool produce before placing in cold room to avoid overloading the system",
+    "Operate on a booking/scheduling system for shared facilities",
+    "Keep detailed logs of temperature readings, especially for food safety",
+    "Charge a usage fee that covers maintenance and operator costs"
+  ],
+  "maintenanceNotes": [
+    "Inspect refrigerant circuit and compressor every 6 months",
+    "Clean condenser coils monthly to maintain efficiency",
+    "Check door seals and insulation quarterly",
+    "Service DC compressor motor annually",
+    "Keep a spare fuse and thermostat control unit on site"
+  ],
+  "relatedProjectIds": ["project-002", "project-005", "project-007"],
+  "relatedResourceIds": ["post-harvest-loss-reduction-brief", "cold-chain-case-study-dairy"],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-08-10T09:00:00.000Z"
+}

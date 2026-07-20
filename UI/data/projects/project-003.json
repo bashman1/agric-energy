@@ -1,0 +1,50 @@
+{
+  "id": "project-003",
+  "slug": "project-003",
+  "title": "Mini-Grid for Post-Harvest Processing — Kabale District",
+  "summary": "A 30 kW solar mini-grid powering post-harvest processing equipment for Irish potato and bean farmers in Kabale District, Western Uganda.",
+  "description": "Kabale District is Uganda's major Irish potato and legume growing zone in the highland area. Post-harvest losses due to lack of processing and storage energy were estimated at 35%. This project installed a 30 kW solar mini-grid at the Kabale District Farmers' Cooperative Union premises, providing reliable power for potato washing, grading, and cold storage equipment, as well as bean threshers and packaging machinery. The mini-grid also supplies electricity to an adjacent health centre and school, providing broader community benefit. A community energy committee manages tariff collection and basic maintenance.",
+  "region": "Western Uganda",
+  "district": "Kabale District",
+  "regions": [
+    "Western Uganda"
+  ],
+  "districts": [
+    "Kabale District"
+  ],
+  "locationNote": "Kabale District Farmers' Cooperative Union premises, highland area",
+  "coordinates": {
+    "lat": -1.2491,
+    "lng": 29.9895
+  },
+  "implementingPartnerIds": [
+    "nrep",
+    "maaif"
+  ],
+  "fundingPartner": "African Development Bank (AfDB)",
+  "budget": 420000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": 400,
+  "technologyIds": [
+    "solar-mini-grids"
+  ],
+  "themeIds": [
+    "productive-use-of-energy",
+    "post-harvest-value-addition"
+  ],
+  "valueChain": "Irish Potato",
+  "beneficiaries": [
+    "Farmer Cooperatives",
+    "Processing Enterprises"
+  ],
+  "status": "Completed",
+  "startDate": "2020-09",
+  "endDate": "2023-08",
+  "outcomes": "Post-harvest losses reduced by 28%; 400 farmers connected to processing services; health centre and school electrified; energy committee operational.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": false,
+  "published": true,
+  "updatedAt": "2023-09-15T12:00:00.000Z"
+}

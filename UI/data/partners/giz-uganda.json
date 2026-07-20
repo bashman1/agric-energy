@@ -1,0 +1,40 @@
+{
+  "id": "giz-uganda",
+  "slug": "giz-uganda",
+  "name": "GIZ Uganda — Deutsche Gesellschaft für Internationale Zusammenarbeit",
+  "type": "International NGO",
+  "summary": "German development agency implementing renewable energy, agricultural, and rural development programmes across Uganda with strong agri-energy portfolio.",
+  "description": "GIZ Uganda implements technical cooperation programs on behalf of the German Federal Ministry for Economic Cooperation and Development (BMZ). GIZ's portfolio in Uganda includes renewable energy policy support, rural electrification, agri-energy value chain projects, and private sector development. In the agri-energy sphere, GIZ has been active in solar-powered irrigation, energy access for agricultural enterprises, and private sector market development. GIZ programmes often combine technical assistance with investment facilitation and policy dialogue, making them a strong partner for systemic agri-energy work.",
+  "website": "https://www.giz.de/en/worldwide/360.html",
+  "email": "giz-uganda@giz.de",
+  "phone": "+256 41 4258 523",
+  "logo": "https://nrep.ug/wp-content/uploads/2023/06/gizUg-1.png",
+  "regions": [
+    "Central",
+    "Eastern",
+    "Western"
+  ],
+  "districtCoverage": [
+    "Kampala",
+    "Mbarara",
+    "Kayunga",
+    "Jinja"
+  ],
+  "technologyIds": [
+    "solar-water-pumping",
+    "solar-cold-storage",
+    "drip-irrigation"
+  ],
+  "themeIds": [
+    "financing-and-business-models",
+    "productive-use-of-energy",
+    "value-chain-applications"
+  ],
+  "projectIds": [
+    "project-002",
+    "project-008"
+  ],
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-10-20T10:00:00.000Z"
+}

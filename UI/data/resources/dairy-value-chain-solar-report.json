@@ -1,0 +1,16 @@
+{
+  "id": "dairy-value-chain-solar-report",
+  "slug": "dairy-value-chain-solar-report",
+  "title": "Solar Energy in Uganda's Dairy Value Chain: Case Studies from Western Uganda",
+  "type": "Case Study",
+  "summary": "Compilation of case studies documenting how solar cold rooms and solar-powered processing are transforming the dairy value chain in Western Uganda.",
+  "description": "This case study collection documents three solar agri-energy interventions in Uganda's dairy value chain: a solar bulk milk cooler at a cooperative collection centre in Mbarara; a solar-powered pasteurisation and packaging unit in Ntungamo; and a solar-powered milk ATM system in Ibanda. Each case study covers the motivation for the investment, system specifications, cost and revenue data, key operational lessons, and measurable outcomes for farmers. The compilation demonstrates how solar energy is creating value chain transformation in dairy — from reducing milk losses to enabling new market channels and improving farmer income. The cases are intended to demonstrate business viability and encourage replication by other cooperatives and dairy enterprises.",
+  "fileUrl": "",
+  "externalUrl": "https://www.heifer.org/resources/dairy-solar-uganda",
+  "themeIds": ["value-chain-applications", "productive-use-of-energy", "research-and-evidence"],
+  "technologyIds": ["solar-cold-storage", "solar-powered-processing"],
+  "publicationDate": "2023-07-01",
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-04-01T09:00:00.000Z"
+}

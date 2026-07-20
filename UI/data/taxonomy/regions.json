@@ -1,0 +1,6 @@
+[
+  { "id": "r-north", "slug": "northern", "name": "Northern", "code": "UGA-N", "boundaryId": "adm1-northern", "featured": true },
+  { "id": "r-east",  "slug": "eastern",  "name": "Eastern",  "code": "UGA-E", "boundaryId": "adm1-eastern",  "featured": true },
+  { "id": "r-central","slug": "central", "name": "Central",  "code": "UGA-C", "boundaryId": "adm1-central",  "featured": true },
+  { "id": "r-west",  "slug": "western",  "name": "Western",  "code": "UGA-W", "boundaryId": "adm1-western",  "featured": true }
+]

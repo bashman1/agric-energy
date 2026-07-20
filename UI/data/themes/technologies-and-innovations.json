@@ -1,0 +1,15 @@
+{
+  "id": "technologies-and-innovations",
+  "slug": "technologies-and-innovations",
+  "name": "Technologies and Innovations",
+  "icon": "⚡",
+  "summary": "Exploring the range of agri-energy technologies deployed in Uganda — from solar pumping and biogas to hybrid systems and digital tools.",
+  "description": "This thematic area covers the full spectrum of agri-energy technology solutions available and in use in Uganda. It encompasses energy generation technologies (solar PV, biogas, wind), energy conversion and application equipment (pumps, motors, processing machinery), energy storage systems (batteries, thermal storage), and digital technologies supporting smart agriculture. Uganda's agri-energy technology landscape is rapidly evolving, with solar photovoltaics becoming increasingly cost-competitive and applicable across multiple value chains. This section provides deep-dive information on individual technologies, comparative assessments, and evidence from field deployments in Uganda.",
+  "whyItMatters": "Access to appropriate agri-energy technologies is the fundamental enabler of productive agriculture. Understanding what technologies are available, how they work, and where they have been successfully deployed in Uganda is essential for farmers, investors, policymakers, and implementing organisations making technology adoption and investment decisions.",
+  "relatedTechnologyIds": ["solar-water-pumping", "biogas-digesters", "solar-powered-milling", "solar-cold-storage", "solar-powered-processing", "solar-drying", "drip-irrigation", "improved-biomass-systems"],
+  "relatedProjectIds": ["project-001", "project-003", "project-008"],
+  "relatedResourceIds": ["uganda-agri-energy-landscape-2024", "solar-pumping-practical-guide"],
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-11-01T08:00:00.000Z"
+}

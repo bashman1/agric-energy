@@ -1,0 +1,51 @@
+{
+  "id": "project-005",
+  "slug": "project-005",
+  "title": "Agrivoltaic Pilot — Adjumani Refugee Settlement",
+  "summary": "A dual-use agrivoltaic installation combining solar energy generation with shade-tolerant crop production in Adjumani Refugee Settlement, Northern Uganda.",
+  "description": "This pilot demonstrates agrivoltaic technology — where solar panels are elevated on structures that simultaneously support crop production underneath. In Adjumani Refugee Settlement, an area of 2 hectares was equipped with elevated bifacial solar panels at 2.5m height, with shade-tolerant crops (sweet potato, leafy vegetables, and legumes) grown beneath. The 40 kW installation supplies power to a processing and community services facility. Crop yield monitoring and soil health analysis are being conducted alongside energy production measurements to build the evidence base for scaling agrivoltaics in Uganda's refugee and host community agricultural zones.",
+  "region": "Northern Uganda",
+  "district": "Adjumani District",
+  "regions": [
+    "Northern Uganda"
+  ],
+  "districts": [
+    "Adjumani District"
+  ],
+  "locationNote": "Adjumani Refugee Settlement, West Nile sub-region",
+  "coordinates": {
+    "lat": 3.3747,
+    "lng": 31.7948
+  },
+  "implementingPartnerIds": [
+    "unhcr-uga",
+    "nrep"
+  ],
+  "fundingPartner": "UNHCR Innovation Fund",
+  "budget": 310000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": null,
+  "technologyIds": [
+    "agrivoltaics"
+  ],
+  "themeIds": [
+    "technologies-and-innovations",
+    "food-security",
+    "climate-resilience"
+  ],
+  "valueChain": "Vegetables",
+  "beneficiaries": [
+    "Refugee Households",
+    "Host Community Farmers"
+  ],
+  "status": "Active",
+  "startDate": "2024-01",
+  "endDate": "2026-12",
+  "outcomes": "40 kW solar operational; 2 ha under agrivoltaic production; ongoing crop and energy yield monitoring; evidence brief in preparation.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": false,
+  "published": true,
+  "updatedAt": "2026-03-09T19:28:51.371Z"
+}

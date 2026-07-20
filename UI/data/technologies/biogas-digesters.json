@@ -1,0 +1,49 @@
+{
+  "id": "biogas-digesters",
+  "slug": "biogas-digesters",
+  "name": "Biogas Digesters",
+  "category": "Biogas / Biomass",
+  "summary": "Anaerobic digesters that convert organic waste (manure, crop residues) into biogas for cooking and lighting, with nutrient-rich slurry as a by-product for soil fertility.",
+  "description": "Biogas digesters use anaerobic digestion to break down organic materials — primarily livestock manure, food waste, or agricultural residues — in a sealed chamber. The process produces biogas (typically 60–70% methane) used for cooking, lighting, and potentially electricity generation. The digested slurry remaining after gas production is rich in nitrogen, phosphorus, and potassium, making it an effective organic fertiliser. In Uganda, two main designs are used: fixed-dome (brick-built, lower maintenance) and floating-drum (metal drum, easier gas pressure management). Household digesters typically range from 4 m³ to 10 m³, requiring 15–30 kg of manure per day. Community or institutional digesters can be 50 m³ or larger. Biogas is particularly well-suited to farming households with livestock, enabling a closed-loop agri-energy system where manure generates fuel and enriched slurry.",
+  "applications": [
+    "Household and community cooking energy",
+    "Farm lighting (gas lamp or converted to electricity)",
+    "Agro-processing (small heating applications)",
+    "Bio-slurry as organic fertiliser for crops",
+    "Schools, health centres, and institutional kitchens"
+  ],
+  "benefits": [
+    "Provides clean cooking fuel, reducing firewood and charcoal use",
+    "Nutrient-rich bio-slurry improves soil health and crop yields",
+    "Reduces indoor air pollution and associated health risks",
+    "Reduces time and cost of firewood collection",
+    "Closed-loop system — waste generates productive energy and fertiliser",
+    "Long lifespan for fixed-dome designs (15–20 years)"
+  ],
+  "limitations": [
+    "Requires access to daily supply of livestock manure",
+    "Performance dependent on temperature (less effective in cold highland areas)",
+    "Initial construction cost can be high for smallholders",
+    "Requires regular feeding and maintenance to sustain gas production",
+    "Gas pressure can fluctuate depending on design type"
+  ],
+  "operationalNotes": [
+    "Maintain correct water-to-manure ratio (1:1) for optimum digestion",
+    "Feed the digester daily with consistent quantities of manure",
+    "Ensure digester is fully sealed — gas leaks reduce output",
+    "Allow a 4–6 week initial charging period before expecting gas",
+    "Mix hot water into the slurry in cold highland areas to maintain temperature"
+  ],
+  "maintenanceNotes": [
+    "Inspect inlet and outlet pipes quarterly for blockages",
+    "Desludge the digester every 2–3 years to remove accumulated solids",
+    "Check gas pipe connections and stove burner nozzles annually",
+    "Repaint exterior surfaces of drum-type digesters to prevent rusting",
+    "Retrain household members annually on correct operation"
+  ],
+  "relatedProjectIds": ["project-003"],
+  "relatedResourceIds": ["biogas-programme-report-2023"],
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-10-15T10:00:00.000Z"
+}

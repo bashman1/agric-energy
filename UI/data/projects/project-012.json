@@ -1,0 +1,54 @@
+{
+  "id": "project-012",
+  "slug": "project-012",
+  "title": "Solar Coffee Wet Milling — Kasese, Fort Portal & Bushenyi",
+  "summary": "Solar-powered coffee wet processing mills across three Districts in Western Uganda to improve Robusta coffee quality and access specialty export markets.",
+  "description": "Uganda's Robusta coffee sector is concentrated in Western Uganda yet struggles to compete on quality with fully-washed Arabica from neighboring countries. This project established solar-powered wet milling facilities at 3 cooperative washing stations in Kasese, Fort Portal, and Bushenyi Districts. Solar power drives pulping machines, fermentation monitoring sensors, and solar dryers. Cooperative members received training in wet processing, fermentation management, and cupping-based quality scoring. Market linkages were established with 2 specialty coffee exporters.",
+  "region": "Western Uganda",
+  "district": "Kasese District",
+  "regions": [
+    "Western Uganda"
+  ],
+  "districts": [
+    "Kasese District",
+    "Kabarole District",
+    "Bushenyi District"
+  ],
+  "locationNote": "Covers Kasese, Fort Portal (Kabarole), and Bushenyi Districts — Western Uganda coffee belt",
+  "coordinates": {
+    "lat": 0.1833,
+    "lng": 30.0796
+  },
+  "implementingPartnerIds": [
+    "nrep",
+    "ucda"
+  ],
+  "fundingPartner": "International Coffee Organization (ICO) — Coffee & Climate Initiative",
+  "budget": 480000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": null,
+  "technologyIds": [
+    "solar-drying",
+    "solar-mini-grids"
+  ],
+  "themeIds": [
+    "post-harvest-value-addition",
+    "productive-use-of-energy",
+    "market-access"
+  ],
+  "valueChain": "Coffee",
+  "beneficiaries": [
+    "Coffee Farmers",
+    "Farmer Cooperatives"
+  ],
+  "status": "Pipeline",
+  "startDate": "2025-06",
+  "endDate": "2028-05",
+  "outcomes": "Procurement and design phase; 3 sites identified and community mobilisation underway; partnerships with 2 specialty exporters confirmed.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": false,
+  "published": true,
+  "updatedAt": "2025-03-01T10:00:00.000Z"
+}

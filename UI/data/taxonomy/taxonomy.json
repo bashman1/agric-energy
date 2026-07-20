@@ -1,0 +1,98 @@
+{
+  "districts": [
+    { "id": "d-01", "name": "Kampala", "slug": "kampala" },
+    { "id": "d-02", "name": "Wakiso", "slug": "wakiso" },
+    { "id": "d-03", "name": "Mukono", "slug": "mukono" },
+    { "id": "d-04", "name": "Jinja", "slug": "jinja" },
+    { "id": "d-05", "name": "Mbale", "slug": "mbale" },
+    { "id": "d-06", "name": "Soroti", "slug": "soroti" },
+    { "id": "d-07", "name": "Lira", "slug": "lira" },
+    { "id": "d-08", "name": "Gulu", "slug": "gulu" },
+    { "id": "d-09", "name": "Arua", "slug": "arua" },
+    { "id": "d-10", "name": "Mbarara", "slug": "mbarara" },
+    { "id": "d-11", "name": "Kasese", "slug": "kasese" },
+    { "id": "d-12", "name": "Fort Portal (Kabarole)", "slug": "fort-portal" },
+    { "id": "d-13", "name": "Hoima", "slug": "hoima" },
+    { "id": "d-14", "name": "Masindi", "slug": "masindi" },
+    { "id": "d-15", "name": "Kabale", "slug": "kabale" },
+    { "id": "d-16", "name": "Kisoro", "slug": "kisoro" },
+    { "id": "d-17", "name": "Masaka", "slug": "masaka" },
+    { "id": "d-18", "name": "Rakai", "slug": "rakai" },
+    { "id": "d-19", "name": "Iganga", "slug": "iganga" },
+    { "id": "d-20", "name": "Tororo", "slug": "tororo" },
+    { "id": "d-21", "name": "Adjumani", "slug": "adjumani" },
+    { "id": "d-22", "name": "Kitgum", "slug": "kitgum" },
+    { "id": "d-23", "name": "Kayunga", "slug": "kayunga" },
+    { "id": "d-24", "name": "Ntungamo", "slug": "ntungamo" },
+    { "id": "d-25", "name": "Bushenyi", "slug": "bushenyi" }
+  ],
+  "regions": [
+    { "id": "r-01", "name": "Central", "slug": "central" },
+    { "id": "r-02", "name": "Eastern", "slug": "eastern" },
+    { "id": "r-03", "name": "Northern", "slug": "northern" },
+    { "id": "r-04", "name": "Western", "slug": "western" }
+  ],
+  "valueChains": [
+    { "id": "vc-01", "name": "Maize", "slug": "maize" },
+    { "id": "vc-02", "name": "Rice", "slug": "rice" },
+    { "id": "vc-03", "name": "Coffee", "slug": "coffee" },
+    { "id": "vc-04", "name": "Dairy", "slug": "dairy" },
+    { "id": "vc-05", "name": "Fish", "slug": "fish" },
+    { "id": "vc-06", "name": "Vegetables", "slug": "vegetables" },
+    { "id": "vc-07", "name": "Fruits", "slug": "fruits" },
+    { "id": "vc-08", "name": "Cassava", "slug": "cassava" },
+    { "id": "vc-09", "name": "Beans", "slug": "beans" },
+    { "id": "vc-10", "name": "Sunflower", "slug": "sunflower" },
+    { "id": "vc-11", "name": "Poultry", "slug": "poultry" },
+    { "id": "vc-12", "name": "Horticulture", "slug": "horticulture" },
+    { "id": "vc-13", "name": "Sugar Cane", "slug": "sugar-cane" },
+    { "id": "vc-14", "name": "Multi-value chain", "slug": "multi-value-chain" }
+  ],
+  "projectStatuses": [
+    { "id": "ps-01", "name": "Active", "slug": "active" },
+    { "id": "ps-02", "name": "Completed", "slug": "completed" },
+    { "id": "ps-03", "name": "Pipeline", "slug": "pipeline" },
+    { "id": "ps-04", "name": "Suspended", "slug": "suspended" }
+  ],
+  "resourceTypes": [
+    { "id": "rt-01", "name": "Report", "slug": "report" },
+    { "id": "rt-02", "name": "Policy Brief", "slug": "policy-brief" },
+    { "id": "rt-03", "name": "Case Study", "slug": "case-study" },
+    { "id": "rt-04", "name": "Practical Guide", "slug": "practical-guide" },
+    { "id": "rt-05", "name": "Dataset", "slug": "dataset" },
+    { "id": "rt-06", "name": "Video", "slug": "video" },
+    { "id": "rt-07", "name": "Presentation", "slug": "presentation" },
+    { "id": "rt-08", "name": "Research Paper", "slug": "research-paper" },
+    { "id": "rt-09", "name": "Training Material", "slug": "training-material" }
+  ],
+  "partnerTypes": [
+    { "id": "pt-01", "name": "Government Institution", "slug": "government-institution" },
+    { "id": "pt-02", "name": "International NGO", "slug": "international-ngo" },
+    { "id": "pt-03", "name": "Local NGO", "slug": "local-ngo" },
+    { "id": "pt-04", "name": "Development Bank / Donor", "slug": "development-bank-donor" },
+    { "id": "pt-05", "name": "Private Sector / Technology Provider", "slug": "private-sector" },
+    { "id": "pt-06", "name": "Research / Academic Institution", "slug": "research-academic" },
+    { "id": "pt-07", "name": "Farmer Organisation", "slug": "farmer-organisation" },
+    { "id": "pt-08", "name": "UN Agency", "slug": "un-agency" }
+  ],
+  "technologyCategories": [
+    { "id": "tc-01", "name": "Solar Energy", "slug": "solar-energy" },
+    { "id": "tc-02", "name": "Biogas / Biomass", "slug": "biogas-biomass" },
+    { "id": "tc-03", "name": "Irrigation Systems", "slug": "irrigation-systems" },
+    { "id": "tc-04", "name": "Post-Harvest & Processing", "slug": "post-harvest-processing" },
+    { "id": "tc-05", "name": "Cold Chain & Storage", "slug": "cold-chain-storage" },
+    { "id": "tc-06", "name": "Wind Energy", "slug": "wind-energy" },
+    { "id": "tc-07", "name": "Hybrid Systems", "slug": "hybrid-systems" },
+    { "id": "tc-08", "name": "Digital & ICT Tools", "slug": "digital-ict" }
+  ],
+  "beneficiaryTags": [
+    { "id": "bt-01", "name": "Smallholder Farmers", "slug": "smallholder-farmers" },
+    { "id": "bt-02", "name": "Women Farmers", "slug": "women-farmers" },
+    { "id": "bt-03", "name": "Youth in Agriculture", "slug": "youth-in-agriculture" },
+    { "id": "bt-04", "name": "Agri-Enterprises & SMEs", "slug": "agri-enterprises-smes" },
+    { "id": "bt-05", "name": "Cooperatives", "slug": "cooperatives" },
+    { "id": "bt-06", "name": "Refugees & Host Communities", "slug": "refugees-host-communities" },
+    { "id": "bt-07", "name": "Rural Communities", "slug": "rural-communities" },
+    { "id": "bt-08", "name": "Pastoralists", "slug": "pastoralists" }
+  ]
+}

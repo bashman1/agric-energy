@@ -1,0 +1,15 @@
+{
+  "id": "policy-and-regulation",
+  "slug": "policy-and-regulation",
+  "name": "Policy and Regulation",
+  "icon": "📋",
+  "summary": "Uganda's policy, regulatory, and institutional framework for agri-energy — from national energy policy to sector-specific regulations, standards, and incentive mechanisms.",
+  "description": "Effective agri-energy deployment depends significantly on an enabling policy and regulatory environment. This thematic area examines Uganda's national and sector-level policies relevant to agri-energy, including the National Energy Policy, the Renewable Energy Feed-in Tariff (REFiT) framework, agricultural machinery standards, import duty concessions for energy equipment, and coordination between the energy, agriculture, and water sectors. It also covers the institutional landscape — ERA, UEDCL, MAAIF, NREP — and how their mandates relate to agri-energy. Policy briefs and evidence documents are curated in this section to support sector practitioners engaging with policy processes.",
+  "whyItMatters": "Policy and regulatory barriers — including high import duties on solar equipment, lack of quality standards, unclear roles between energy and agriculture ministries, and poor access to formal credit for agri-energy — are among the factors limiting scale. Addressing these barriers requires evidence-based advocacy and policy engagement that this platform seeks to support.",
+  "relatedTechnologyIds": [],
+  "relatedProjectIds": [],
+  "relatedResourceIds": ["productive-use-energy-policy-brief", "climate-smart-agri-energy-brief"],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-08-01T10:00:00.000Z"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "climate-resilience",
+  "slug": "climate-resilience",
+  "name": "Climate Resilience and Sustainability",
+  "icon": "🌍",
+  "summary": "How agri-energy investments contribute to climate adaptation and mitigation in Uganda's agricultural sector, building farmer resilience and reducing emissions.",
+  "description": "Climate change is profoundly affecting Uganda's agriculture through erratic rainfall, prolonged droughts, flooding, shifting seasons, and increased pest and disease pressure. Agri-energy plays a dual role in climate resilience: first as an adaptation measure by enabling irrigation, improved food storage, and reduced climate risk; and second as a mitigation measure by replacing fossil fuels and reducing deforestation from firewood collection. This thematic area explores both dimensions, documenting how agri-energy interventions build farmer resilience to climate shocks, preserve ecosystems, reduce greenhouse gas emissions, and support Uganda's climate commitments under the Paris Agreement and the NDC framework.",
+  "whyItMatters": "Agriculture in Uganda is predominantly rainfed and therefore highly vulnerable to climate variability. Agri-energy investments that enable irrigation, improved storage, and clean energy supply are also investments in climate adaptation. Without incorporating climate resilience into agri-energy programming, gains from technology adoption can quickly be reversed by climate shocks.",
+  "relatedTechnologyIds": ["solar-water-pumping", "biogas-digesters", "improved-biomass-systems", "drip-irrigation"],
+  "relatedProjectIds": ["project-001", "project-003", "project-005", "project-007"],
+  "relatedResourceIds": ["climate-smart-agri-energy-brief", "uganda-agri-energy-landscape-2024"],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-09-15T10:00:00.000Z"
+}

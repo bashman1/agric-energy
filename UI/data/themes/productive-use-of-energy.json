@@ -1,0 +1,15 @@
+{
+  "id": "productive-use-of-energy",
+  "slug": "productive-use-of-energy",
+  "name": "Productive Use of Energy",
+  "icon": "🌾",
+  "summary": "How clean energy is being used to directly increase agricultural productivity, income, and food security across Uganda's farming value chains.",
+  "description": "Productive use of energy (PUE) refers specifically to the application of energy — particularly renewable energy — to activities that generate economic returns. In agriculture, PUE encompasses energy for irrigation, food processing, cold storage, milling, poultry incubation, aquaculture, and other income-generating activities. Moving beyond energy for lighting and phone charging to productive agricultural use is a paradigm shift in the clean energy sector that unlocks much greater development impact. This thematic area documents PUE applications across Uganda, examines which use cases are achieving strong uptake and economic returns, and provides practical evidence on the income, employment, and food security impacts of PUE investments.",
+  "whyItMatters": "The economic impact of agri-energy goes far beyond simple energy access. When energy is applied directly to agricultural production and processing, it can multiply farm incomes, reduce post-harvest losses, and transform subsistence agriculture into commercially viable enterprise. Understanding productive use cases is therefore central to justifying and designing agri-energy investments.",
+  "relatedTechnologyIds": ["solar-water-pumping", "solar-powered-milling", "solar-cold-storage", "solar-powered-processing"],
+  "relatedProjectIds": ["project-001", "project-002", "project-004", "project-005", "project-006", "project-008"],
+  "relatedResourceIds": ["productive-use-energy-policy-brief", "solar-milling-enterprise-guide"],
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-11-01T09:00:00.000Z"
+}

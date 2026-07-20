@@ -1,0 +1,20 @@
+{
+  "id": "era-uganda",
+  "slug": "era-uganda",
+  "name": "Electricity Regulatory Authority (ERA)",
+  "type": "Government Institution",
+  "summary": "Uganda's national electricity regulator, responsible for licensing, standards, tariffs, and regulatory oversight of electricity generation, transmission, distribution and sale.",
+  "description": "The Electricity Regulatory Authority (ERA) is Uganda's statutory body responsible for regulating the generation, transmission, distribution, sale, export, and import of electrical energy. ERA issues generation licenses, distribution licenses, and technical standard certifications. In the agri-energy space, ERA's regulatory frameworks affect mini-grid operators, off-grid solar developers, and biogas-to-electricity systems. ERA is increasingly engaged in developing regulatory frameworks for off-grid and productive use of energy, which is critical for enabling scale deployment of agri-energy solutions in rural Uganda.",
+  "website": "https://www.era.go.ug",
+  "email": "info@era.go.ug",
+  "phone": "+256 414 350 000",
+  "logo": "",
+  "regions": ["Central", "Eastern", "Northern", "Western"],
+  "districtCoverage": ["Kampala"],
+  "technologyIds": [],
+  "themeIds": ["policy-and-regulation"],
+  "projectIds": [],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-07-01T10:00:00.000Z"
+}

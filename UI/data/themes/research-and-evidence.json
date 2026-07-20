@@ -1,0 +1,15 @@
+{
+  "id": "research-and-evidence",
+  "slug": "research-and-evidence",
+  "name": "Research and Evidence",
+  "icon": "🔬",
+  "summary": "Research findings, monitoring and evaluation data, and evidence base for agri-energy interventions in Uganda — supporting adaptive programming and investment decisions.",
+  "description": "The agri-energy sector in Uganda is growing, but there is still a limited evidence base on technology performance, socioeconomic impacts, gender outcomes, and cost-benefit profiles from Ugandan field conditions. This thematic area curates research papers, programme evaluations, case documentation, and dataset publications that improve the evidence base for agri-energy decision-making. Topics include technology performance monitoring, gender impact assessments, market assessments for renewable energy equipment, smallholder willingness-to-pay studies, and comparative analyses of business models. A stronger evidence base helps donors, government, and implementing partners design more effective programmes and allocate resources to the most impactful interventions.",
+  "whyItMatters": "Without robust Ugandan evidence, agri-energy programmes risk repeating mistakes, over-promising results, and failing to learn from what has already been tried. Research and evidence generation is a public good that benefits the entire sector. Curating and sharing this evidence through the Agri-Energy Desk helps ensure that lessons are not lost and that the sector builds learning progressively.",
+  "relatedTechnologyIds": [],
+  "relatedProjectIds": [],
+  "relatedResourceIds": ["uganda-agri-energy-landscape-2024", "gender-agri-energy-brief", "biogas-programme-report-2023"],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-06-01T09:00:00.000Z"
+}

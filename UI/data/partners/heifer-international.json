@@ -1,0 +1,39 @@
+{
+  "id": "heifer-international",
+  "slug": "heifer-international",
+  "name": "Heifer International Uganda",
+  "type": "International NGO",
+  "summary": "International development organization working to end hunger and poverty through livestock, agri-enterprise, and value chain development across Uganda.",
+  "description": "Heifer International Uganda has been active in the country for over 30 years, working with farming communities to build sustainable agriculture, livestock, and rural enterprise. Heifer's flagship approach — Passing on the Gift — creates community enterprise models that combine livestock improvement, cooperative development, nutrition, and market linkages. In agri-energy, Heifer has integrated solar energy into dairy value chain projects, coffee processing ventures, and livestock veterinary services. Heifer programmes have strong gender programming, ensuring women's meaningful participation in enterprise governance and benefit-sharing.",
+  "website": "https://www.heifer.org/where-we-work/africa/uganda.html",
+  "email": "uganda@heifer.org",
+  "phone": "+256 41 4270 447",
+  "logo": "https://nrep.ug/wp-content/uploads/2025/12/heifer-logo.jpg",
+  "regions": [
+    "Western",
+    "Eastern"
+  ],
+  "districtCoverage": [
+    "Mbarara",
+    "Ntungamo",
+    "Mbale",
+    "Masaka"
+  ],
+  "technologyIds": [
+    "solar-cold-storage",
+    "solar-powered-processing"
+  ],
+  "themeIds": [
+    "value-chain-applications",
+    "gender-youth-inclusion",
+    "financing-and-business-models"
+  ],
+  "projectIds": [
+    "project-002",
+    "project-006",
+    "project-007"
+  ],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2026-03-11T06:00:08.850Z"
+}

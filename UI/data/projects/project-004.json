@@ -1,0 +1,50 @@
+{
+  "id": "project-004",
+  "slug": "project-004",
+  "title": "Solar Drying Centres for Grain Farmers — Gulu District",
+  "summary": "Construction of 4 community solar drying centres to reduce aflatoxin contamination and post-harvest losses in maize and sorghum in Gulu District, Northern Uganda.",
+  "description": "Post-harvest aflatoxin contamination affects an estimated 30% of grain stocks in Northern Uganda, causing significant health risks and market rejections. This project established 4 solar-assisted drying centres in Gulu District, each capable of handling 20 tons of grain per drying cycle. The centres incorporate forced-air solar collectors, digital moisture meters, and hermetic grain storage bags. Farmer groups were trained in aflatoxin prevention, proper drying protocols, and grain quality testing. Linkages were established with certified grain buyers and the national grain quality inspection system.",
+  "region": "Northern Uganda",
+  "district": "Gulu District",
+  "regions": [
+    "Northern Uganda"
+  ],
+  "districts": [
+    "Gulu District"
+  ],
+  "locationNote": "4 drying centre sites across Gulu District sub-counties",
+  "coordinates": {
+    "lat": 2.7747,
+    "lng": 32.299
+  },
+  "implementingPartnerIds": [
+    "nrep",
+    "maaif"
+  ],
+  "fundingPartner": "USAID Feed the Future",
+  "budget": 240000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": 800,
+  "technologyIds": [
+    "solar-drying"
+  ],
+  "themeIds": [
+    "post-harvest-value-addition",
+    "productive-use-of-energy"
+  ],
+  "valueChain": "Maize",
+  "beneficiaries": [
+    "Grain Farmers",
+    "Farmer Groups"
+  ],
+  "status": "Active",
+  "startDate": "2023-03",
+  "endDate": "2026-02",
+  "outcomes": "4 drying centres operational; aflatoxin rejection rate down 65%; 800 farmer households served; 3 grain traders offering premium prices for quality-certified grain.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-09-20T09:00:00.000Z"
+}

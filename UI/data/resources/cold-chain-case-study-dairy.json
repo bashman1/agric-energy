@@ -1,0 +1,16 @@
+{
+  "id": "cold-chain-case-study-dairy",
+  "slug": "cold-chain-case-study-dairy",
+  "title": "Building the Cold Chain: Solar Cold Rooms for Post-Harvest Loss Reduction",
+  "type": "Case Study",
+  "summary": "Case study examining the implementation and performance of solar cold rooms for perishable agricultural produce in Uganda, with economic impact data.",
+  "description": "Cold chain infrastructure is critically absent across Uganda's agricultural marketing system, contributing to large post-harvest losses. This case study examines the deployment of five solar cold rooms across horticulture, dairy, and fish value chains in Uganda, comparing technology performance, business models, and economic outcomes. Key findings include: average return on investment period of 3.2 years at full utilisation; shared cold room models outperform single-owner models in terms of utilisation and sustainability; cold rooms that serve multiple value chains show higher and more consistent utilisation than single-commodity cold rooms; and female-managed cold room enterprises show strong financial discipline and community trust. The case study provides practical recommendations for cold room sizing, siting, business model design, and programme support.",
+  "fileUrl": "",
+  "externalUrl": "",
+  "themeIds": ["value-chain-applications", "productive-use-of-energy"],
+  "technologyIds": ["solar-cold-storage"],
+  "publicationDate": "2022-05-01",
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-03-01T09:00:00.000Z"
+}

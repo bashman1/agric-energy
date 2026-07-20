@@ -1,0 +1,58 @@
+{
+  "id": "project-010",
+  "slug": "project-010",
+  "title": "Cross-Regional Solar Aggregation Centre Network",
+  "summary": "Establishment of solar-powered commodity aggregation centres in Northern and Eastern Uganda to improve market linkages for cereal and legume producers.",
+  "description": "This multi-region programme established a network of 5 solar-powered agricultural commodity aggregation centres spanning Northern and Eastern Uganda. Each centre serves as an anchor point for local farmers to bring produce for quality testing, weighing, bulking, and temporary storage before onward sale to large buyers and exporters. Solar power runs grading machines, moisture meters, weighbridges, and communication infrastructure. The network collectively serves an estimated 3,500 farmers across 8 districts in two regions.",
+  "region": "Northern Uganda",
+  "district": "Multiple Districts",
+  "regions": [
+    "Northern Uganda",
+    "Eastern Uganda"
+  ],
+  "districts": [
+    "Gulu District",
+    "Amuru District",
+    "Mbale District",
+    "Iganga District",
+    "Tororo District"
+  ],
+  "locationNote": "5 centres across Northern Uganda (Gulu, Amuru) and Eastern Uganda (Mbale, Iganga, Tororo)",
+  "coordinates": {
+    "lat": 2.0,
+    "lng": 33.2
+  },
+  "implementingPartnerIds": [
+    "nrep",
+    "maaif",
+    "upc"
+  ],
+  "fundingPartner": "European Union — Agri-Energy Initiative",
+  "budget": 750000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": 3500,
+  "technologyIds": [
+    "solar-mini-grids"
+  ],
+  "themeIds": [
+    "market-access",
+    "post-harvest-value-addition",
+    "productive-use-of-energy"
+  ],
+  "valueChain": "Multi-commodity",
+  "beneficiaries": [
+    "Smallholder Farmers",
+    "Farmer Cooperatives",
+    "Agribusiness Enterprises"
+  ],
+  "status": "Active",
+  "startDate": "2024-03",
+  "endDate": "2027-02",
+  "outcomes": "5 centres under construction; 8 districts covered; 3,500 farmer households targeted; procurement framework for quality-certified exports established.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": true,
+  "published": true,
+  "updatedAt": "2025-01-10T08:00:00.000Z"
+}

@@ -1,0 +1,22 @@
+[
+  { "id": "co-gulu-bardege",    "slug": "bardege-layibi",  "name": "Bardege-Layibi",    "code": "C-GL-01", "districtId": "d-gulu",     "regionId": "r-north",   "boundaryId": null },
+  { "id": "co-gulu-omoro",      "slug": "omoro",           "name": "Omoro",              "code": "C-GL-02", "districtId": "d-gulu",     "regionId": "r-north",   "boundaryId": null },
+  { "id": "co-dokolo-dokolo",   "slug": "dokolo",          "name": "Dokolo",             "code": "C-DK-01", "districtId": "d-dokolo",   "regionId": "r-north",   "boundaryId": null },
+  { "id": "co-dokolo-kwera",    "slug": "kwera",           "name": "Kwera",              "code": "C-DK-02", "districtId": "d-dokolo",   "regionId": "r-north",   "boundaryId": null },
+  { "id": "co-lira-erute",      "slug": "erute",           "name": "Erute",              "code": "C-LR-01", "districtId": "d-lira",     "regionId": "r-north",   "boundaryId": null },
+  { "id": "co-adjumani-adjum",  "slug": "adjumani",        "name": "Adjumani",           "code": "C-AJ-01", "districtId": "d-adjumani", "regionId": "r-north",   "boundaryId": null },
+  { "id": "co-adjumani-ofua",   "slug": "ofua",            "name": "Ofua",               "code": "C-AJ-02", "districtId": "d-adjumani", "regionId": "r-north",   "boundaryId": null },
+  { "id": "co-soroti-dakabela", "slug": "dakabela",        "name": "Dakabela",           "code": "C-SR-01", "districtId": "d-soroti",   "regionId": "r-east",    "boundaryId": null },
+  { "id": "co-soroti-soroti",   "slug": "soroti-county",   "name": "Soroti County",      "code": "C-SR-02", "districtId": "d-soroti",   "regionId": "r-east",    "boundaryId": null },
+  { "id": "co-serere-pingire",  "slug": "pingire",         "name": "Pingire",            "code": "C-SE-01", "districtId": "d-serere",   "regionId": "r-east",    "boundaryId": null },
+  { "id": "co-serere-kasilo",   "slug": "kasilo",          "name": "Kasilo",             "code": "C-SE-02", "districtId": "d-serere",   "regionId": "r-east",    "boundaryId": null },
+  { "id": "co-mbale-bungokho",  "slug": "bungokho",        "name": "Bungokho",           "code": "C-MB-01", "districtId": "d-mbale",    "regionId": "r-east",    "boundaryId": null },
+  { "id": "co-mbale-bubulo",    "slug": "bubulo",          "name": "Bubulo",             "code": "C-MB-02", "districtId": "d-mbale",    "regionId": "r-east",    "boundaryId": null },
+  { "id": "co-masaka-masaka",   "slug": "masaka-county",   "name": "Masaka County",      "code": "C-MA-01", "districtId": "d-masaka",   "regionId": "r-central", "boundaryId": null },
+  { "id": "co-kayunga-kayunga", "slug": "kayunga-county",  "name": "Kayunga County",     "code": "C-KY-01", "districtId": "d-kayunga",  "regionId": "r-central", "boundaryId": null },
+  { "id": "co-kayunga-busaana", "slug": "busaana",         "name": "Busaana",            "code": "C-KY-02", "districtId": "d-kayunga",  "regionId": "r-central", "boundaryId": null },
+  { "id": "co-mbarara-kashari", "slug": "kashari",         "name": "Kashari",            "code": "C-MB-01", "districtId": "d-mbarara",  "regionId": "r-west",    "boundaryId": null },
+  { "id": "co-mbarara-kazo",    "slug": "kazo",            "name": "Kazo",               "code": "C-MB-02", "districtId": "d-mbarara",  "regionId": "r-west",    "boundaryId": null },
+  { "id": "co-kabale-ndorwa",   "slug": "ndorwa",          "name": "Ndorwa",             "code": "C-KB-01", "districtId": "d-kabale",   "regionId": "r-west",    "boundaryId": null },
+  { "id": "co-kabale-rubanda",  "slug": "rubanda",         "name": "Rubanda",            "code": "C-KB-02", "districtId": "d-kabale",   "regionId": "r-west",    "boundaryId": null }
+]

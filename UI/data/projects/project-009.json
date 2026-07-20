@@ -1,0 +1,51 @@
+{
+  "id": "project-009",
+  "slug": "project-009",
+  "title": "Solar Grain Mills — Soroti, Serere & Kaberamaido",
+  "summary": "Solar-powered grain milling facilities replacing diesel mills in three adjacent districts of Teso sub-region, Eastern Uganda.",
+  "description": "Grain milling in the Teso sub-region of Eastern Uganda relies heavily on diesel-powered mills. Fuel costs account for up to 35% of milling service costs, making milling unaffordable for the poorest households. This project replaced 9 diesel mills across Soroti, Serere, and Kaberamaido Districts with solar-powered alternatives, each with battery backup for cloudy days. The mills process maize, sorghum, and millet. Solar mill operators received training in financial management, and a revolving savings scheme was established at each site to fund maintenance and component replacement.",
+  "region": "Eastern Uganda",
+  "district": "Soroti District",
+  "regions": [
+    "Eastern Uganda"
+  ],
+  "districts": [
+    "Soroti District",
+    "Serere District",
+    "Kaberamaido District"
+  ],
+  "locationNote": "Covers Soroti, Serere, and Kaberamaido Districts — Teso sub-region",
+  "coordinates": {
+    "lat": 1.7148,
+    "lng": 33.6111
+  },
+  "implementingPartnerIds": [
+    "nrep"
+  ],
+  "fundingPartner": "DFID Uganda Rural Energy Access Programme",
+  "budget": 330000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": 1200,
+  "technologyIds": [
+    "solar-milling"
+  ],
+  "themeIds": [
+    "productive-use-of-energy",
+    "food-security"
+  ],
+  "valueChain": "Maize",
+  "beneficiaries": [
+    "Smallholder Farmers",
+    "Rural Women"
+  ],
+  "status": "Completed",
+  "startDate": "2019-06",
+  "endDate": "2022-05",
+  "outcomes": "9 diesel mills replaced; milling costs reduced 30%; 1,200 household-equivalent access; savings schemes operational at 7 sites.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": false,
+  "published": true,
+  "updatedAt": "2022-06-01T09:00:00.000Z"
+}

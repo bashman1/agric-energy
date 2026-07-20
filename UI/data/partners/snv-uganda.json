@@ -1,0 +1,43 @@
+{
+  "id": "snv-uganda",
+  "slug": "snv-uganda",
+  "name": "SNV Uganda",
+  "type": "International NGO",
+  "summary": "SNV is a global development organisation working on agri-food systems, energy access, and water, sanitation & hygiene in Uganda, supporting smallholders and enterprises to build inclusive and sustainable livelihoods.",
+  "description": "SNV Netherlands Development Organisation has operated in Uganda since the 1980s, delivering market-based solutions that connect smallholder farmers, agri-enterprises, and energy service providers to inclusive value chains. In partnership with government and the private sector, SNV Uganda's Energy programme supports the deployment of productive use of energy (PUE) technologies — including solar-powered irrigation, agro-processing machinery, and biodigesters — to reduce post-harvest losses, improve food security, and increase farm incomes. SNV is a key implementer and technical advisor on several donor-funded agri-energy initiatives, including projects supported by the Dutch Ministry of Foreign Affairs, EU, and USAID.",
+  "website": "https://snv.org/country/uganda",
+  "email": "uganda@snv.org",
+  "phone": "+256 414 563 200",
+  "logo": "https://nrep.ug/wp-content/uploads/2025/10/SNV.png",
+  "regions": [
+    "Central",
+    "Northern",
+    "Eastern",
+    "Western"
+  ],
+  "districtCoverage": [
+    "Kampala",
+    "Wakiso",
+    "Gulu",
+    "Lira",
+    "Soroti",
+    "Mbale",
+    "Mbarara",
+    "Jinja"
+  ],
+  "technologyIds": [
+    "solar-water-pumping",
+    "biogas-digesters",
+    "solar-cold-storage",
+    "solar-powered-milling"
+  ],
+  "themeIds": [
+    "productive-use-of-energy",
+    "financing-and-business-models",
+    "value-chain-applications"
+  ],
+  "projectIds": [],
+  "featured": true,
+  "published": true,
+  "updatedAt": "2026-03-11T06:55:29.349Z"
+}

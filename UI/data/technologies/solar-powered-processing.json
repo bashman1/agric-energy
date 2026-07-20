@@ -1,0 +1,49 @@
+{
+  "id": "solar-powered-processing",
+  "slug": "solar-powered-processing",
+  "name": "Solar-Powered Agro-Processing",
+  "category": "Post-Harvest & Processing",
+  "summary": "Solar PV systems powering coffee hulling, dairy pasteurisation, oil pressing and other agro-processing machinery to add value to agricultural produce at farm or community level.",
+  "description": "Solar-powered agro-processing uses photovoltaic energy to drive a range of processing machinery traditionally dependent on diesel generators or grid electricity. Applications in Uganda include coffee hulling, pulping and drying, oilseed pressing (sunflower, simsim), dairy pasteurisation and packaging, cassava chipping and drying, and groundnut shelling. These systems allow farmers and cooperatives to add value to raw produce, earning higher prices at market. Solar-powered processing facilities are often established as cooperative enterprises or small agri-businesses that provide contracted processing services to surrounding farming communities. The transition from selling raw to processed commodities can multiply farmer income by 2–5 times depending on the value chain. Solar processing systems can operate standalone or as part of integrated agri-hubs that may include cold storage, milling, and irrigation services.",
+  "applications": [
+    "Coffee wet processing (pulping, washing, drying)",
+    "Coffee dry processing (hulling, grading, sorting)",
+    "Dairy pasteurisation and packaging",
+    "Sunflower and simsim oil pressing",
+    "Cassava chipping and value addition",
+    "Multi-commodity agri-processing hubs"
+  ],
+  "benefits": [
+    "Enables value addition at point of production",
+    "Reduces post-harvest losses through timely processing",
+    "Creates local employment in processing operations",
+    "Replaces diesel with clean solar energy, lowering operating costs",
+    "Processing equipment can serve multiple commodities if designed for flexibility"
+  ],
+  "limitations": [
+    "Processing loads vary — system must handle peak demand of all equipment running simultaneously",
+    "Seasonal nature of crops means equipment is idle for long periods",
+    "Requires skilled operators and regular preventive maintenance",
+    "Higher upfront capital than diesel-equivalent systems",
+    "Market linkages must be developed alongside processing capacity"
+  ],
+  "operationalNotes": [
+    "Conduct a seasonal calendar mapping crop availability vs. processing demand",
+    "Establish service agreements with surrounding farmer groups before installation",
+    "Include metering or job cards to track throughput and revenue",
+    "Design equipment layout for efficient workflow and hygiene",
+    "Develop a phased business plan with clear break-even projections"
+  ],
+  "maintenanceNotes": [
+    "Service all processing machinery at end of each season",
+    "Replace belts, bearings, and blades according to manufacturer's schedule",
+    "Conduct thorough cleaning of all processing surfaces after each day's operation",
+    "Clean PV panels weekly during harvest season",
+    "Maintain a spare parts inventory for critical wear components"
+  ],
+  "relatedProjectIds": ["project-002", "project-006"],
+  "relatedResourceIds": ["agro-processing-business-model-guide"],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-07-05T08:00:00.000Z"
+}

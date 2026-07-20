@@ -1,0 +1,45 @@
+{
+  "hero": {
+    "title": "Uganda's National Agri-Energy Knowledge Platform",
+    "subtitle": "Explore agri-energy projects, technologies, partners, and knowledge resources from across Uganda — all in one place.",
+    "ctaLabel": "Explore Projects",
+    "ctaUrl": "/projects",
+    "backgroundImage": ""
+  },
+  "stats": {
+    "projects": 8,
+    "technologies": 8,
+    "themes": 8,
+    "partners": 8,
+    "resources": 10,
+    "districts": 12
+  },
+  "featuredProjectIds": [
+    "project-001",
+    "project-002",
+    "project-003"
+  ],
+  "featuredTechnologyIds": [
+    "solar-water-pumping",
+    "biogas-digesters",
+    "solar-powered-milling"
+  ],
+  "featuredThemeIds": [
+    "technologies-and-innovations",
+    "productive-use-of-energy",
+    "financing-and-business-models"
+  ],
+  "featuredPartnerIds": [
+    "nrep",
+    "maaif",
+    "giz-uganda"
+  ],
+  "featuredResourceIds": [
+    "uganda-agri-energy-landscape-2024",
+    "solar-pumping-practical-guide",
+    "productive-use-energy-policy-brief"
+  ],
+  "contactEmail": "agrienergy@nrep.go.ug",
+  "contactPhone": "+256 414 123 456",
+  "aboutSummary": "The Agri-Energy Desk is managed by the National Renewable Energy Platform (NREP) Secretariat as Uganda's central digital reference point for energy use in agriculture."
+}

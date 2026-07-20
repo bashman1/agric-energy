@@ -1,0 +1,52 @@
+{
+  "id": "project-006",
+  "slug": "project-006",
+  "title": "E-Vehicle Cold Logistics for Horticulture — Mbale & Jinja",
+  "summary": "Deployment of electric refrigerated vehicles for farm-to-market cold chain logistics serving horticulture producers in Mbale and Jinja Districts, Eastern Uganda.",
+  "description": "Post-harvest losses in Uganda's horticulture sector are estimated at up to 40%, largely due to the absence of cold chain logistics. This project deployed 6 electric refrigerated light vehicles (capacity 1.5 tons each) to serve vegetable and fruit producers in Mbale and Jinja Districts. The vehicles operate on a hub-and-spoke model from two solar-powered depot charging stations, one in each district. Produce aggregators and farmer cooperatives were enrolled as anchor clients. Route optimisation software tracks vehicle movements, cold chain temperatures, and delivery timelines. The project generated employment for 12 logistics operators.",
+  "region": "Eastern Uganda",
+  "district": "Mbale District",
+  "regions": [
+    "Eastern Uganda"
+  ],
+  "districts": [
+    "Mbale District",
+    "Jinja District"
+  ],
+  "locationNote": "Covers Mbale and Jinja Districts, Eastern corridor",
+  "coordinates": {
+    "lat": 1.0753,
+    "lng": 34.1752
+  },
+  "implementingPartnerIds": [
+    "upc",
+    "nrep"
+  ],
+  "fundingPartner": "Rockefeller Foundation",
+  "budget": 540000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": null,
+  "technologyIds": [
+    "electric-vehicles",
+    "cold-storage"
+  ],
+  "themeIds": [
+    "post-harvest-value-addition",
+    "productive-use-of-energy"
+  ],
+  "valueChain": "Horticulture",
+  "beneficiaries": [
+    "Horticulture Farmers",
+    "Agribusiness Enterprises"
+  ],
+  "status": "Active",
+  "startDate": "2023-07",
+  "endDate": "2026-06",
+  "outcomes": "6 e-refrigerated vehicles deployed; 2 solar-powered depot stations; 40% reduction in cold chain losses reported; 12 logistics jobs created.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-11-01T07:00:00.000Z"
+}

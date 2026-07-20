@@ -1,0 +1,51 @@
+{
+  "id": "project-007",
+  "slug": "project-007",
+  "title": "Solar Cold Storage for Banana & Plantain — Masaka District",
+  "summary": "Solar-powered cold rooms at 3 collection centres to extend shelf life of banana and plantain from 3 days to 14 days in Masaka District, Central Uganda.",
+  "description": "Masaka District is Uganda's dominant banana and plantain production zone, but rapid post-harvest deterioration severely limits market access and negotiating power for smallholder farmers. This project installed solar-powered cold rooms (10 ton capacity each) at 3 strategic collection centres in Masaka District. The cold storage systems extend shelf life from 3 days to up to 14 days, allowing producers to wait for favourable market prices and transportation windows. Integration with a mobile market information system allows farmers to monitor prices in real time before releasing stored produce. Solar power covers the full energy cost of the cold rooms, eliminating dependency on the unreliable national grid.",
+  "region": "Central Uganda",
+  "district": "Masaka District",
+  "regions": [
+    "Central Uganda"
+  ],
+  "districts": [
+    "Masaka District"
+  ],
+  "locationNote": "3 collection centre sites, Masaka District banana zone",
+  "coordinates": {
+    "lat": -0.3476,
+    "lng": 31.747
+  },
+  "implementingPartnerIds": [
+    "nrep",
+    "maaif"
+  ],
+  "fundingPartner": "International Fund for Agricultural Development (IFAD)",
+  "budget": 265000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": 600,
+  "technologyIds": [
+    "cold-storage",
+    "solar-mini-grids"
+  ],
+  "themeIds": [
+    "post-harvest-value-addition",
+    "market-access"
+  ],
+  "valueChain": "Banana/Plantain",
+  "beneficiaries": [
+    "Smallholder Farmers",
+    "Farmer Cooperatives"
+  ],
+  "status": "Completed",
+  "startDate": "2021-02",
+  "endDate": "2024-01",
+  "outcomes": "3 cold rooms operational; shelf life extended to 14 days; 600 households with improved market access; 22% average price improvement for participating farmers.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-02-01T10:00:00.000Z"
+}

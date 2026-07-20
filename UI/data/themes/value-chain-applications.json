@@ -1,0 +1,15 @@
+{
+  "id": "value-chain-applications",
+  "slug": "value-chain-applications",
+  "name": "Value Chain Applications",
+  "icon": "🔗",
+  "summary": "Tracing how agri-energy technologies are applied at different nodes along Uganda's key agricultural value chains — from production through to processing, storage, and market.",
+  "description": "Agricultural value chains span multiple stages from input supply, through production, aggregation, processing, storage, transportation, and retail to the final consumer. Energy plays a role at each stage, and understanding where agri-energy investments fit within the value chain is essential for designing effective interventions. This thematic area examines energy applications across Uganda's key value chains including maize, dairy, coffee, fish, horticulture, cassava, and beans. It documents which value chain nodes are most constrained by energy deficits, which technologies are being applied, and what results are being achieved. Case studies from the project database are organised by value chain to support planners and investors.",
+  "whyItMatters": "Most agri-energy projects are technology-led rather than value-chain-led, which means they often address energy provision without fully connecting technology deployment to market systems and commercial viability. A value chain perspective helps identify the highest-impact nodes for energy investment and ensures that agri-energy interventions are embedded in a pathway to sustainable adoption.",
+  "relatedTechnologyIds": ["solar-powered-processing", "solar-cold-storage", "solar-drying"],
+  "relatedProjectIds": ["project-002", "project-006", "project-007"],
+  "relatedResourceIds": ["dairy-value-chain-solar-report", "post-harvest-loss-reduction-brief"],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-08-20T09:00:00.000Z"
+}

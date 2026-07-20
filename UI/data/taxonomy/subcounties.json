@@ -1,0 +1,14 @@
+[
+  { "id": "sc-gulu-layibi",     "slug": "layibi",          "name": "Layibi",             "code": "SC-GL-01", "districtId": "d-gulu",     "countyId": "co-gulu-bardege",   "regionId": "r-north",   "boundaryId": null },
+  { "id": "sc-gulu-pece",       "slug": "pece",            "name": "Pece",               "code": "SC-GL-02", "districtId": "d-gulu",     "countyId": "co-gulu-bardege",   "regionId": "r-north",   "boundaryId": null },
+  { "id": "sc-dokolo-dokolo",   "slug": "dokolo-tc",       "name": "Dokolo Town Council","code": "SC-DK-01", "districtId": "d-dokolo",   "countyId": "co-dokolo-dokolo",  "regionId": "r-north",   "boundaryId": null },
+  { "id": "sc-dokolo-bata",     "slug": "bata",            "name": "Bata",               "code": "SC-DK-02", "districtId": "d-dokolo",   "countyId": "co-dokolo-dokolo",  "regionId": "r-north",   "boundaryId": null },
+  { "id": "sc-adjumani-adropi", "slug": "adropi",          "name": "Adropi",             "code": "SC-AJ-01", "districtId": "d-adjumani", "countyId": "co-adjumani-adjum", "regionId": "r-north",   "boundaryId": null },
+  { "id": "sc-soroti-opuyo",    "slug": "opuyo",           "name": "Opuyo",              "code": "SC-SR-01", "districtId": "d-soroti",   "countyId": "co-soroti-dakabela","regionId": "r-east",    "boundaryId": null },
+  { "id": "sc-serere-olio",     "slug": "olio",            "name": "Olio",               "code": "SC-SE-01", "districtId": "d-serere",   "countyId": "co-serere-pingire", "regionId": "r-east",    "boundaryId": null },
+  { "id": "sc-mbale-nkoma",     "slug": "nkoma",           "name": "Nkoma",              "code": "SC-MB-01", "districtId": "d-mbale",    "countyId": "co-mbale-bungokho", "regionId": "r-east",    "boundaryId": null },
+  { "id": "sc-masaka-buwunga",  "slug": "buwunga",         "name": "Buwunga",            "code": "SC-MA-01", "districtId": "d-masaka",   "countyId": "co-masaka-masaka",  "regionId": "r-central", "boundaryId": null },
+  { "id": "sc-kayunga-galiraya","slug": "galiraya",        "name": "Galiraya",           "code": "SC-KY-01", "districtId": "d-kayunga",  "countyId": "co-kayunga-busaana","regionId": "r-central", "boundaryId": null },
+  { "id": "sc-mbarara-kamukuzi","slug": "kamukuzi",        "name": "Kamukuzi",           "code": "SC-MW-01", "districtId": "d-mbarara",  "countyId": "co-mbarara-kashari","regionId": "r-west",    "boundaryId": null },
+  { "id": "sc-kabale-kamwezi",  "slug": "kamwezi",         "name": "Kamwezi",            "code": "SC-KB-01", "districtId": "d-kabale",   "countyId": "co-kabale-ndorwa",  "regionId": "r-west",    "boundaryId": null }
+]

@@ -1,0 +1,16 @@
+{
+  "id": "post-harvest-loss-reduction-brief",
+  "slug": "post-harvest-loss-reduction-brief",
+  "title": "Reducing Post-Harvest Losses Through Clean Energy: Evidence from Uganda",
+  "type": "Policy Brief",
+  "summary": "Evidence-based brief documenting how clean energy technologies — solar cold rooms, improved drying, and solar milling — reduce post-harvest losses across Uganda's key agricultural value chains.",
+  "description": "Post-harvest losses in Uganda are estimated at 30–40% of total agricultural production, representing a massive economic and food security loss. This brief presents evidence from monitoring and evaluation data on clean energy post-harvest technologies deployed across Uganda, documenting loss reduction rates achieved by solar cold rooms in dairy and horticulture, improved solar drying in coffee and fish, and solar milling in maize and sorghum value chains. The brief also includes a cost-benefit analysis showing the economic case for post-harvest energy investment compared to input and yield interventions alone. Policy recommendations address the need for post-harvest energy investment to be integrated into agricultural development planning rather than treated as an energy sector issue.",
+  "fileUrl": "",
+  "externalUrl": "https://www.nrep.go.ug/resources/post-harvest-loss-brief",
+  "themeIds": ["productive-use-of-energy", "value-chain-applications", "research-and-evidence"],
+  "technologyIds": ["solar-cold-storage", "solar-drying", "solar-powered-milling"],
+  "publicationDate": "2024-05-01",
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-09-01T09:00:00.000Z"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "makerere-university",
+  "slug": "makerere-university",
+  "name": "Makerere University — School of Agricultural and Environmental Sciences",
+  "type": "Research / Academic Institution",
+  "summary": "Uganda's premier university contributing research, training, and technical expertise to the agri-energy sector through applied research and academic programmes.",
+  "description": "Makerere University is Uganda's oldest and most comprehensive university, with several faculties and schools conducting research relevant to agri-energy. The School of Agricultural and Environmental Sciences, the Department of Electrical Engineering, and the Makerere Energy and Environment Research Group (MEERG) have produced applied research on solar energy applications in agriculture, biogas technology performance, post-harvest energy solutions, and smallholder technology adoption. Makerere is well positioned to contribute evidence, technical review, training, and student placement to agri-energy programmes in Uganda.",
+  "website": "https://www.mak.ac.ug",
+  "email": "agricultureschool@mak.ac.ug",
+  "phone": "+256 414 533 333",
+  "logo": "https://mak.ac.ug/themes/custom/makunika/logo.svg",
+  "regions": [
+    "Central"
+  ],
+  "districtCoverage": [
+    "Kampala"
+  ],
+  "technologyIds": [
+    "solar-water-pumping",
+    "biogas-digesters"
+  ],
+  "themeIds": [
+    "research-and-evidence",
+    "technologies-and-innovations"
+  ],
+  "projectIds": [],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2026-03-11T05:57:32.985Z"
+}

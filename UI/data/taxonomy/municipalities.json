@@ -1,0 +1,13 @@
+[
+  { "id": "mun-gulu",      "slug": "gulu-municipality",    "name": "Gulu City",           "code": "MU-GL-01", "districtId": "d-gulu",     "regionId": "r-north",   "boundaryId": null },
+  { "id": "mun-lira",      "slug": "lira-municipality",    "name": "Lira City",           "code": "MU-LR-01", "districtId": "d-lira",     "regionId": "r-north",   "boundaryId": null },
+  { "id": "mun-arua",      "slug": "arua-municipality",    "name": "Arua City",           "code": "MU-AR-01", "districtId": "d-arua",     "regionId": "r-north",   "boundaryId": null },
+  { "id": "mun-mbale",     "slug": "mbale-municipality",   "name": "Mbale City",          "code": "MU-MB-01", "districtId": "d-mbale",    "regionId": "r-east",    "boundaryId": null },
+  { "id": "mun-jinja",     "slug": "jinja-municipality",   "name": "Jinja City",          "code": "MU-JN-01", "districtId": "d-jinja",    "regionId": "r-east",    "boundaryId": null },
+  { "id": "mun-soroti",    "slug": "soroti-municipality",  "name": "Soroti City",         "code": "MU-SR-01", "districtId": "d-soroti",   "regionId": "r-east",    "boundaryId": null },
+  { "id": "mun-kampala",   "slug": "kampala-city",         "name": "Kampala City",        "code": "MU-KP-01", "districtId": "d-kampala",  "regionId": "r-central", "boundaryId": null },
+  { "id": "mun-mbarara",   "slug": "mbarara-municipality", "name": "Mbarara City",        "code": "MU-MW-01", "districtId": "d-mbarara",  "regionId": "r-west",    "boundaryId": null },
+  { "id": "mun-fortportal","slug": "fort-portal-city",     "name": "Fort Portal City",    "code": "MU-FP-01", "districtId": "d-fortportal","regionId": "r-west",   "boundaryId": null },
+  { "id": "mun-hoima",     "slug": "hoima-municipality",   "name": "Hoima City",          "code": "MU-HM-01", "districtId": "d-hoima",    "regionId": "r-west",    "boundaryId": null },
+  { "id": "mun-masaka",    "slug": "masaka-municipality",  "name": "Masaka City",         "code": "MU-MA-01", "districtId": "d-masaka",   "regionId": "r-central", "boundaryId": null }
+]

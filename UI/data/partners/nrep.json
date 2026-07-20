@@ -1,0 +1,39 @@
+{
+  "id": "nrep",
+  "slug": "nrep",
+  "name": "National Renewable Energy Platform (NREP)",
+  "type": "Local NGO",
+  "summary": "Uganda's national platform for renewable energy knowledge, coordination, and sector support, serving as the institutional home of the Agri-Energy Desk.",
+  "description": "The National Renewable Energy Platform (NREP) is the institutional home of the Agri-Energy Desk and serves as Uganda's primary coordination mechanism for renewable energy knowledge, programme support, and stakeholder engagement across the energy sector. NREP provides technical support, knowledge management, and platform services to government ministries, development partners, private sector actors, and civil society organisations working on renewable energy in Uganda. In the agri-energy space, NREP provides technical oversight, data management, and coordination of the national Agri-Energy Desk platform.",
+  "website": "https://www.nrep.go.ug",
+  "email": "info@nrep.go.ug",
+  "phone": "+256 414 123 456",
+  "logo": "https://nrep.ug/wp-content/uploads/elementor/thumbs/NREP-LOGO-COLORED-scaled-rieu65sc8owur5gv83ut1t3sbzktkadyvrk9beiom8.png",
+  "regions": [
+    "Central",
+    "Eastern",
+    "Northern",
+    "Western"
+  ],
+  "districtCoverage": [
+    "Kampala"
+  ],
+  "technologyIds": [
+    "solar-water-pumping",
+    "biogas-digesters",
+    "solar-powered-milling"
+  ],
+  "themeIds": [
+    "technologies-and-innovations",
+    "productive-use-of-energy",
+    "policy-and-regulation"
+  ],
+  "projectIds": [
+    "project-001",
+    "project-003",
+    "project-008"
+  ],
+  "featured": true,
+  "published": false,
+  "updatedAt": "2026-04-01T13:09:37.761Z"
+}

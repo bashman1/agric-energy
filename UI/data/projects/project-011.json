@@ -1,0 +1,49 @@
+{
+  "id": "project-011",
+  "slug": "project-011",
+  "title": "National Agri-Energy Extension Training Programme",
+  "summary": "A national programme training 2,000 agricultural extension officers across all 4 Uganda regions in agri-energy technologies, assessment tools, and farmer advisory services.",
+  "description": "Agricultural extension officers are the primary touchpoint for technology transfer in Uganda's farming sector. However, most extension workers lack training in agri-energy technologies, making them unable to advise farmers on solar irrigation, biogas, cold storage, and other productive use technologies. This national programme runs a structured training curriculum for district-level agricultural extension officers across all four Uganda regions. Training covers technology selection, basic technical assessment, business model guidance, and safety. Master trainers are deployed in each region to cascade training to district and sub-county level.",
+  "region": "National",
+  "district": "National Coverage",
+  "regions": [],
+  "districts": [],
+  "locationNote": "Training hubs in Gulu (North), Mbale (East), Kampala (Central), Mbarara (West)",
+  "coordinates": {
+    "lat": 1.3733,
+    "lng": 32.2903
+  },
+  "implementingPartnerIds": [
+    "nrep",
+    "maaif"
+  ],
+  "fundingPartner": "World Bank Group",
+  "budget": 1200000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": 800,
+  "technologyIds": [
+    "solar-water-pumping",
+    "biogas-digesters",
+    "solar-mini-grids",
+    "cold-storage"
+  ],
+  "themeIds": [
+    "technologies-and-innovations",
+    "knowledge-and-policy"
+  ],
+  "valueChain": "Multi-commodity",
+  "beneficiaries": [
+    "Extension Officers",
+    "Smallholder Farmers"
+  ],
+  "status": "Active",
+  "startDate": "2024-06",
+  "endDate": "2027-05",
+  "outcomes": "800 extension officers trained to date; training manuals published; 4 regional master trainer teams deployed; farmer advisory helpline established.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": true,
+  "published": true,
+  "updatedAt": "2025-02-01T12:00:00.000Z"
+}

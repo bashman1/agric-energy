@@ -1,0 +1,287 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap');
+@import "maplibre-gl/dist/maplibre-gl.css";
+@import "tailwindcss";
+
+@theme {
+  /* ─── Brand — forest green, used sparingly (actions, links, accents) ── */
+  --color-primary-50: #f0fdf4;
+  --color-primary-100: #dcfce7;
+  --color-primary-200: #bbf7d0;
+  --color-primary-300: #86efac;
+  --color-primary-400: #4ade80;
+  --color-primary-500: #22c55e;
+  --color-primary-600: #16a34a;
+  --color-primary-700: #15803d;
+  --color-primary-800: #166534;
+  --color-primary-900: #14532d;
+  --color-primary-950: #052e16;
+
+  /* ─── Secondary — warm earth/amber (sparing highlights) ─────────────── */
+  --color-secondary-50: #fffbeb;
+  --color-secondary-100: #fef3c7;
+  --color-secondary-200: #fde68a;
+  --color-secondary-300: #fcd34d;
+  --color-secondary-400: #fbbf24;
+  --color-secondary-500: #f59e0b;
+  --color-secondary-600: #d97706;
+  --color-secondary-700: #b45309;
+  --color-secondary-800: #92400e;
+  --color-secondary-900: #78350f;
+
+  /* ─── Accent — considered blue (data, links on dark) ────────────────── */
+  --color-accent-50: #f0f9ff;
+  --color-accent-100: #e0f2fe;
+  --color-accent-200: #bae6fd;
+  --color-accent-300: #7dd3fc;
+  --color-accent-400: #38bdf8;
+  --color-accent-500: #0ea5e9;
+  --color-accent-600: #0284c7;
+  --color-accent-700: #0369a1;
+  --color-accent-800: #075985;
+  --color-accent-900: #0c4a6e;
+
+  /* ─── Ink — warm-tinted neutrals carry the whole layout ─────────────── */
+  --color-ink-50: #f8f8f6;
+  --color-ink-100: #f1f0ec;
+  --color-ink-200: #e5e3dc;
+  --color-ink-300: #d3cfc4;
+  --color-ink-400: #a8a293;
+  --color-ink-500: #7c766a;
+  --color-ink-600: #5c574d;
+  --color-ink-700: #45413a;
+  --color-ink-800: #2b2822;
+  --color-ink-900: #1a1815;
+
+  /* ─── Typography — Source Serif for display authority, Inter for UI ─── */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+
+  /* ─── Shadows — subtle; institutional surfaces are border-led ───────── */
+  --shadow-card: 0 1px 2px rgba(26,24,21,0.04), 0 1px 3px rgba(26,24,21,0.03);
+  --shadow-card-hover: 0 6px 20px rgba(26,24,21,0.08), 0 2px 6px rgba(26,24,21,0.04);
+  --shadow-raise: 0 10px 40px rgba(26,24,21,0.10);
+}
+
+/* ─── Base resets ───────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  color: var(--color-ink-800);
+  background: #ffffff;
+}
+
+/* Display face for headings that should carry institutional weight. */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* ─── Accessibility: visible focus rings (WCAG 2.4.7) ───────────────── */
+:focus-visible {
+  outline: 3px solid var(--color-primary-600, #16a34a);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+/* Dark surfaces (footer, hero bands) need a light ring for contrast. */
+.hero-band :focus-visible,
+footer :focus-visible,
+.on-dark :focus-visible {
+  outline-color: #ffffff;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── Accessibility: skip-to-content link ───────────────────────────── */
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  z-index: 100;
+  padding: 0.625rem 1rem;
+  background: var(--color-primary-700);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0 0 0.5rem 0.5rem;
+  transition: top 0.15s ease-in-out;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* ─── Layout primitives ─────────────────────────────────────────────── */
+.container-page {
+  max-width: 80rem; /* 1280px */
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 640px) { .container-page { padding-inline: 1.5rem; } }
+@media (min-width: 1024px) { .container-page { padding-inline: 2rem; } }
+
+/* Micro eyebrow label above headings. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-primary-700);
+}
+.eyebrow::before {
+  content: "";
+  width: 1.5rem;
+  height: 2px;
+  background: var(--color-primary-500);
+  border-radius: 2px;
+}
+.eyebrow.on-dark { color: var(--color-primary-300); }
+.eyebrow.on-dark::before { background: var(--color-primary-400); }
+
+/* ─── Card — white, border-led, restrained lift ─────────────────────── */
+.card {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-ink-200);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.card-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+  border-color: var(--color-primary-200);
+}
+
+/* ─── Buttons ───────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1;
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:active { transform: translateY(0.5px); }
+.btn-primary {
+  background: var(--color-primary-700);
+  color: #ffffff;
+}
+.btn-primary:hover { background: var(--color-primary-800); }
+.btn-secondary {
+  background: #ffffff;
+  color: var(--color-ink-800);
+  border-color: var(--color-ink-200);
+}
+.btn-secondary:hover { border-color: var(--color-ink-300); background: var(--color-ink-50); }
+.btn-ghost {
+  background: transparent;
+  color: var(--color-primary-700);
+}
+.btn-ghost:hover { background: var(--color-primary-50); }
+.btn-lg { padding: 0.875rem 1.5rem; font-size: 1rem; border-radius: 0.625rem; }
+
+/* ─── Admin sidebar (unchanged surface) ─────────────────────────────── */
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  text-decoration: none;
+}
+.admin-nav-link:hover { background: #1e293b; color: #f1f5f9; }
+.admin-nav-link.active { background: #1e3a5f; color: #60a5fa; }
+
+/* ─── Form inputs ───────────────────────────────────────────────────── */
+.form-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-ink-300);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background: white;
+  color: var(--color-ink-900);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+/* ─── Section heading ───────────────────────────────────────────────── */
+.section-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-bottom: 2rem;
+}
+.section-heading h2 {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--color-ink-900);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.section-heading p {
+  color: var(--color-ink-500);
+  font-size: 1rem;
+  max-width: 42rem;
+}
+
+/* ─── Responsive table ──────────────────────────────────────────────── */
+.responsive-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.responsive-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: var(--color-ink-50);
+  border-bottom: 1px solid var(--color-ink-200);
+  font-weight: 600;
+  color: var(--color-ink-600);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.responsive-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--color-ink-100);
+  vertical-align: middle;
+}
+.responsive-table tr:last-child td { border-bottom: none; }
+.responsive-table tr:hover td { background: var(--color-ink-50); }
+
+/* ─── Prose content ─────────────────────────────────────────────────── */
+.prose-content p {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+  color: var(--color-ink-700);
+}

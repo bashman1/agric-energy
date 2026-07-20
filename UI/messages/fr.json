@@ -1,0 +1,90 @@
+{
+  "Brand": {
+    "name": "Agri-Energy Desk",
+    "tagline": "Plateforme nationale",
+    "footerTagline": "Plateforme nationale de l'Ouganda"
+  },
+  "Nav": {
+    "label": "Navigation principale",
+    "mobileLabel": "Navigation mobile",
+    "projects": "Projets",
+    "technologies": "Technologies",
+    "partners": "Partenaires",
+    "resources": "Ressources",
+    "events": "Événements",
+    "opportunities": "Opportunités",
+    "news": "Actualités",
+    "tenders": "Appels d'offres",
+    "map": "Carte",
+    "about": "À propos",
+    "partnerPortal": "Portail partenaires",
+    "submitInfo": "Soumettre une information",
+    "openMenu": "Ouvrir le menu principal",
+    "closeMenu": "Fermer le menu principal",
+    "skipToContent": "Aller au contenu principal"
+  },
+  "Search": {
+    "label": "Rechercher",
+    "placeholder": "Rechercher projets, technologies, ressources…",
+    "pagePlaceholder": "Rechercher projets, technologies, ressources, événements, opportunités…",
+    "submit": "Rechercher",
+    "heading": "Trouvez tout sur l'Agri-Energy Desk",
+    "suggestionsLabel": "Suggestions de recherche",
+    "loading": "Recherche en cours…",
+    "noSuggestions": "Aucune suggestion trouvée",
+    "emptyPrompt": "Saisissez au moins 2 caractères pour rechercher dans tout le contenu.",
+    "noResultsTitle": "Aucun résultat pour « {query} »",
+    "noResultsHint": "Essayez un terme plus large ou parcourez les sections ci-dessous.",
+    "resultCount": "{count, plural, one {# résultat} other {# résultats}}",
+    "forQuery": "pour « {query} »",
+    "ranked": "classés par pertinence",
+    "filterByType": "Filtrer les résultats par type",
+    "all": "Tous",
+    "seeAll": "Voir les {count} →"
+  },
+  "Types": {
+    "projects": "Projets",
+    "technologies": "Technologies",
+    "themes": "Thématiques",
+    "resources": "Ressources",
+    "partners": "Partenaires",
+    "events": "Événements",
+    "opportunities": "Opportunités",
+    "posts": "Actualités",
+    "policies": "Politiques"
+  },
+  "Language": {
+    "label": "Langue",
+    "change": "Changer de langue"
+  },
+  "Footer": {
+    "label": "Pied de page du site",
+    "description": "La plateforme numérique nationale de l'Ouganda pour les connaissances agri-énergétiques, la visibilité des projets, la coordination des parties prenantes et la planification fondée sur des données probantes. Gérée par le Secrétariat de la Plateforme nationale des énergies renouvelables (NREP).",
+    "prototypeNotice": "⚠️ Ceci est un prototype de phase 1 — le contenu est un échantillon de données à des fins de démonstration.",
+    "platform": "Plateforme",
+    "projects": "Projets",
+    "technologies": "Technologies",
+    "partners": "Partenaires",
+    "resources": "Ressources",
+    "about": "À propos",
+    "themes": "Domaines thématiques",
+    "mapView": "Vue cartographique",
+    "news": "Actualités",
+    "tenders": "Appels d'offres",
+    "openData": "Données ouvertes",
+    "accessibility": "Accessibilité",
+    "aboutLink": "À propos d'Agri-Energy",
+    "contact": "Nous contacter",
+    "submitInformation": "Soumettre une information",
+    "adminPortal": "Portail d'administration",
+    "copyright": "© {year} Agri-Energy Desk — Plateforme nationale des énergies renouvelables (NREP), Ouganda.",
+    "builtWith": "Prototype de phase 1 — Propulsé par Next.js"
+  },
+  "Common": {
+    "loading": "Chargement…",
+    "noResults": "Aucun résultat trouvé.",
+    "error": "Une erreur s'est produite. Veuillez réessayer.",
+    "close": "Fermer",
+    "readMore": "Lire la suite"
+  }
+}

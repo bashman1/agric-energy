@@ -1,0 +1,51 @@
+{
+  "id": "project-001",
+  "slug": "project-001",
+  "title": "Solar-Powered Irrigation Scheme — Dokolo District",
+  "summary": "Deployment of a 15 kW solar water pumping system irrigating 120 acres of rice paddies for 340 smallholder farmers in Dokolo District, Northern Uganda.",
+  "description": "This project introduced a solar-powered irrigation system in Dokolo District to reduce dependence on rain-fed agriculture among smallholder rice farmers. The system uses a 15 kW solar array to power submersible pumps drawing water from the River Okole into a distribution network covering 120 acres. The project supports 340 farmers — of whom 58% are women — with guaranteed water supply across two growing seasons per year. Farmer groups received training on system operation, maintenance, and cost-recovery mechanisms. A water user association was established to manage the infrastructure on a sustainable basis. The project has contributed to a 40% increase in total rice output and improved incomes in the target communities.",
+  "region": "Northern Uganda",
+  "district": "Dokolo District",
+  "regions": [
+    "Northern Uganda"
+  ],
+  "districts": [
+    "Dokolo District"
+  ],
+  "locationNote": "River Okole irrigation command area, Dokolo District",
+  "coordinates": {
+    "lat": 1.9073,
+    "lng": 33.1736
+  },
+  "implementingPartnerIds": [
+    "maaif",
+    "nrep"
+  ],
+  "fundingPartner": "Green Climate Fund (GCF)",
+  "budget": 285000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": 340,
+  "technologyIds": [
+    "solar-water-pumping"
+  ],
+  "themeIds": [
+    "technologies-and-innovations",
+    "productive-use-of-energy",
+    "climate-resilience"
+  ],
+  "valueChain": "Rice",
+  "beneficiaries": [
+    "Smallholder Farmers",
+    "Women Farmers"
+  ],
+  "status": "Active",
+  "startDate": "2022-05",
+  "endDate": "2025-04",
+  "outcomes": "340 farmers with year-round irrigation access; 40% increase in rice yields; 58% female participation; water user association established and operational.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-11-15T10:00:00.000Z"
+}

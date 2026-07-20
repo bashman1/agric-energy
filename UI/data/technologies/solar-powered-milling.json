@@ -1,0 +1,48 @@
+{
+  "id": "solar-powered-milling",
+  "slug": "solar-powered-milling",
+  "name": "Solar-Powered Grain Milling",
+  "category": "Post-Harvest & Processing",
+  "summary": "Photovoltaic-powered hammer mills and grain processing equipment that provide affordable and reliable milling services in off-grid and peri-urban communities.",
+  "description": "Solar-powered grain milling systems use PV panels to power electric hammer mills, roller mills, and associated grain processing equipment. These systems replace diesel-powered mills, dramatically reducing operating costs and enabling communities in off-grid areas to access affordable milling services. In Uganda, solar milling units typically operate on 2–10 kW PV systems paired with batteries or direct DC-drive mills. Common configurations handle maize, sorghum, millet, cassava, and groundnuts. Solar mills are increasingly deployed as community enterprise facilities, operated by trained youth or women's groups as small agri-businesses. Some designs use direct solar DC drive systems with no battery, running only during daylight hours. Battery-buffered systems can work in the evening, improving utilisation. Solar milling can be standalone or integrated into broader solar energy hubs providing multiple services.",
+  "applications": [
+    "Maize flour milling for household consumption and sale",
+    "Sorghum and millet milling in northern Uganda",
+    "Cassava flour processing",
+    "Groundnut de-hulling and pressing (groundnut oil)",
+    "Community agri-enterprise service centres"
+  ],
+  "benefits": [
+    "Eliminates diesel fuel costs (major saving for operators)",
+    "Provides affordable milling in remote areas",
+    "Enables small agri-enterprise business models",
+    "Cleaner and quieter operation vs diesel mills",
+    "Can integrate with other solar applications (lighting, phone charging)"
+  ],
+  "limitations": [
+    "Limited milling output on heavily cloudy days (unless battery-backed)",
+    "Higher initial investment for battery-equipped systems",
+    "Electric mill components (brushes, bearings) require periodic servicing",
+    "Limited processing throughput compared to large commercial mills",
+    "Operator training needed for both solar system and mill"
+  ],
+  "operationalNotes": [
+    "Size PV array for expected daily milling workload (kg/day)",
+    "Include battery bank for 2–4 hours operation flexibility",
+    "Coordinate with local farmers on regular milling days to aggregate demand",
+    "Establish a community tariff schedule and payment system",
+    "Keep a maintenance log for all components"
+  ],
+  "maintenanceNotes": [
+    "Clean mill screen and hammers weekly",
+    "Replace hammer mill hammers every 3–6 months depending on usage",
+    "Lubricate bearings and drive shaft monthly",
+    "Clean PV panels weekly to maintain output",
+    "Inspect battery terminals quarterly and top up distilled water (flooded cells)"
+  ],
+  "relatedProjectIds": ["project-004", "project-005"],
+  "relatedResourceIds": ["solar-milling-enterprise-guide", "productive-use-energy-policy-brief"],
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-09-20T11:00:00.000Z"
+}

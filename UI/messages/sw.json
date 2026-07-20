@@ -1,0 +1,90 @@
+{
+  "Brand": {
+    "name": "Agri-Energy Desk",
+    "tagline": "Jukwaa la Kitaifa",
+    "footerTagline": "Jukwaa la Kitaifa la Uganda"
+  },
+  "Nav": {
+    "label": "Urambazaji mkuu",
+    "mobileLabel": "Urambazaji wa simu",
+    "projects": "Miradi",
+    "technologies": "Teknolojia",
+    "partners": "Washirika",
+    "resources": "Rasilimali",
+    "events": "Matukio",
+    "opportunities": "Fursa",
+    "news": "Habari",
+    "tenders": "Zabuni",
+    "map": "Ramani",
+    "about": "Kuhusu",
+    "partnerPortal": "Lango la Washirika",
+    "submitInfo": "Wasilisha Taarifa",
+    "openMenu": "Fungua menyu kuu",
+    "closeMenu": "Funga menyu kuu",
+    "skipToContent": "Rukia hadi maudhui makuu"
+  },
+  "Search": {
+    "label": "Tafuta",
+    "placeholder": "Tafuta miradi, teknolojia, rasilimali…",
+    "pagePlaceholder": "Tafuta miradi, teknolojia, rasilimali, matukio, fursa…",
+    "submit": "Tafuta",
+    "heading": "Pata chochote kwenye Agri-Energy Desk",
+    "suggestionsLabel": "Mapendekezo ya utafutaji",
+    "loading": "Inatafuta…",
+    "noSuggestions": "Hakuna mapendekezo yaliyopatikana",
+    "emptyPrompt": "Andika angalau herufi 2 ili kutafuta maudhui yote.",
+    "noResultsTitle": "Hakuna matokeo ya “{query}”",
+    "noResultsHint": "Jaribu neno pana zaidi au vinjari sehemu zilizo hapa chini.",
+    "resultCount": "{count, plural, one {matokeo #} other {matokeo #}}",
+    "forQuery": "kwa “{query}”",
+    "ranked": "yamepangwa kwa umuhimu",
+    "filterByType": "Chuja matokeo kwa aina",
+    "all": "Zote",
+    "seeAll": "Ona zote {count} →"
+  },
+  "Types": {
+    "projects": "Miradi",
+    "technologies": "Teknolojia",
+    "themes": "Mada",
+    "resources": "Rasilimali",
+    "partners": "Washirika",
+    "events": "Matukio",
+    "opportunities": "Fursa",
+    "posts": "Habari",
+    "policies": "Sera"
+  },
+  "Language": {
+    "label": "Lugha",
+    "change": "Badilisha lugha"
+  },
+  "Footer": {
+    "label": "Sehemu ya chini ya tovuti",
+    "description": "Jukwaa la kidijitali la kitaifa la Uganda kwa maarifa ya nishati katika kilimo, mwonekano wa miradi, uratibu wa wadau, na upangaji unaotegemea ushahidi. Linasimamiwa na Sekretarieti ya Jukwaa la Kitaifa la Nishati Mbadala (NREP).",
+    "prototypeNotice": "⚠️ Hii ni sampuli ya Awamu ya 1 — maudhui ni data ya mfano kwa madhumuni ya maonyesho.",
+    "platform": "Jukwaa",
+    "projects": "Miradi",
+    "technologies": "Teknolojia",
+    "partners": "Washirika",
+    "resources": "Rasilimali",
+    "about": "Kuhusu",
+    "themes": "Maeneo ya Mada",
+    "mapView": "Mwonekano wa Ramani",
+    "news": "Habari",
+    "tenders": "Zabuni",
+    "openData": "Data Huria",
+    "accessibility": "Ufikivu",
+    "aboutLink": "Kuhusu Agri-Energy",
+    "contact": "Wasiliana Nasi",
+    "submitInformation": "Wasilisha Taarifa",
+    "adminPortal": "Lango la Msimamizi",
+    "copyright": "© {year} Agri-Energy Desk — Jukwaa la Kitaifa la Nishati Mbadala (NREP), Uganda.",
+    "builtWith": "Sampuli ya Awamu ya 1 — Inaendeshwa na Next.js"
+  },
+  "Common": {
+    "loading": "Inapakia…",
+    "noResults": "Hakuna matokeo yaliyopatikana.",
+    "error": "Hitilafu imetokea. Tafadhali jaribu tena.",
+    "close": "Funga",
+    "readMore": "Soma zaidi"
+  }
+}

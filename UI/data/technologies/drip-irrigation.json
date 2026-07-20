@@ -1,0 +1,48 @@
+{
+  "id": "drip-irrigation",
+  "slug": "drip-irrigation",
+  "name": "Drip Irrigation Systems",
+  "category": "Irrigation Systems",
+  "summary": "Water-efficient drip and micro-irrigation systems that deliver water directly to plant root zones, reducing water consumption by 30–50% compared to surface irrigation.",
+  "description": "Drip irrigation systems deliver water directly to the root zone of plants through a network of emitters, pipes, and pressure regulators at low flow rates. Unlike surface or sprinkler irrigation, drip systems minimise evaporation and soil surface wetting, dramatically reducing overall water consumption. In Uganda's agri-energy context, drip irrigation is often powered by solar water pumps, making it the preferred irrigation method for solar-based schemes. Systems range from gravity-fed low-cost drip kits suitable for 0.1–0.5 acre plots ($30–150), to pressurised multi-acre systems for commercial farmers. Drip systems are particularly well suited to high-value horticultural crops (vegetables, fruits, herbs) and can support fertigation (fertiliser delivery through the drip system). Water use efficiency gains of 30–50% make drip systems highly appropriate in water-stressed areas and for farmers managing solar pump capacity.",
+  "applications": [
+    "Vegetable and fruit production for local and export markets",
+    "Greenhouse and tunnel farming",
+    "High-value horticulture where water efficiency is critical",
+    "Combined with solar pumping for off-grid irrigation",
+    "School garden pilots and demonstration sites"
+  ],
+  "benefits": [
+    "30–50% water savings compared to surface irrigation",
+    "Reduced weed pressure (dry soil between rows)",
+    "Compatible with fertigation (fertiliser through drip lines)",
+    "Allows irrigation during windy conditions (unlike sprinklers)",
+    "Scalable from 0.1 acre home gardens to large commercial farms"
+  ],
+  "limitations": [
+    "Emitters can clog — requires filtered and managed water supply",
+    "Higher installation cost per hectare than surface methods",
+    "Requires consistent water pressure — pump sizing is critical",
+    "UV degradation of poly-pipe in direct sunlight (use covered tape)",
+    "Lateral pipe layout must match crop spacing precisely"
+  ],
+  "operationalNotes": [
+    "Install a filtration system (disc or media filter) to prevent emitter clogging",
+    "Flush lateral lines weekly to clear sediment",
+    "Match emitter flow rate to crop water requirement and soil type",
+    "Conduct pressure testing at system installation and after any modification",
+    "Train farmer on irrigation scheduling based on crop growth stage and weather"
+  ],
+  "maintenanceNotes": [
+    "Clean filters monthly (more frequently during turbid water conditions)",
+    "Inspect and replace clogged emitters each season",
+    "Protect poly-pipe from direct sunlight exposure where possible",
+    "Check for leaks and rodent damage at start of each season",
+    "Store uninstalled drip tape loosely coiled to prevent kinking"
+  ],
+  "relatedProjectIds": ["project-001", "project-008"],
+  "relatedResourceIds": ["solar-pumping-practical-guide"],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-09-01T10:00:00.000Z"
+}

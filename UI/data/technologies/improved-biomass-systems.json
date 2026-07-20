@@ -1,0 +1,48 @@
+{
+  "id": "improved-biomass-systems",
+  "slug": "improved-biomass-systems",
+  "name": "Improved Biomass Cooking Systems",
+  "category": "Biogas / Biomass",
+  "summary": "Efficient cookstoves and kilns that reduce biomass consumption by 40–60% compared to traditional three-stone fires, cutting fuel costs, indoor air pollution, and deforestation pressure.",
+  "description": "Improved biomass cooking systems encompass a range of technologies that convert woody biomass, agricultural residues, and charcoal with higher thermal efficiency than traditional three-stone fires or simple mud stoves. Technologies deployed in Uganda include rocket stoves, gasifier stoves, briquette stoves, and improved kilns for fish smoking and food processing. In agricultural settings, improved biomass systems are used for crop drying, food processing, tea curing, and institutional cooking. These systems can achieve 40–60% reductions in fuel consumption compared to traditional methods. In fishing communities, improved fish smoking kilns (such as the Chorkor kiln) dramatically reduce wood consumption and improve product quality. Biomass briquettes from agricultural waste (groundnut shells, rice husks, sugarcane bagasse) offer an alternative to wood fuel and reduce pressure on forest resources.",
+  "applications": [
+    "Household cooking energy in rural areas",
+    "Institutional cooking (schools, health centres)",
+    "Fish smoking at landing sites",
+    "Tea and crop drying in agro-processing",
+    "Brick-making and lime production"
+  ],
+  "benefits": [
+    "40–60% reduction in fuel consumption",
+    "Significant reduction in indoor air pollution and health risks",
+    "Reduces household expenditure on firewood and charcoal",
+    "Technologies can be fabricated locally using available materials",
+    "Briquette-based systems provide market for agricultural waste"
+  ],
+  "limitations": [
+    "Technology adoption can be slow due to user behavioural preferences",
+    "Performance depends on stove-user combination (requires training)",
+    "Biomass availability and quality affects performance",
+    "Limited impact without addressing underlying fuelwood supply",
+    "Some improved stoves perform poorly with charcoal fuel"
+  ],
+  "operationalNotes": [
+    "Train users on correct lighting technique for maximum efficiency",
+    "Use dry, well-seasoned wood for best results",
+    "Ensure pots fit correctly on stove — poorly fitted pots waste heat",
+    "Community demonstration and peer exchange accelerates adoption",
+    "Pair stove distribution with household energy awareness campaigns"
+  ],
+  "maintenanceNotes": [
+    "Inspect combustion chamber for cracks or damage seasonally",
+    "Replace ceramic liner in rocket stoves every 2–3 years",
+    "Clean grate and ash chamber weekly",
+    "Repaint external metal surfaces annually for improved kilns",
+    "Provide users with simple repair kit and basic maintenance training"
+  ],
+  "relatedProjectIds": ["project-007"],
+  "relatedResourceIds": ["clean-cooking-uganda-report"],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-05-20T10:00:00.000Z"
+}

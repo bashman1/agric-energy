@@ -1,0 +1,47 @@
+{
+  "id": "solar-drying",
+  "slug": "solar-drying",
+  "name": "Solar Crop Drying",
+  "category": "Post-Harvest & Processing",
+  "summary": "Improved solar dryers that use captured solar heat to dry agricultural produce rapidly and hygienically, reducing aflatoxin contamination and post-harvest losses.",
+  "description": "Solar drying technology uses solar radiation — either direct or via a solar collector — to dry agricultural produce more rapidly and hygienically than traditional open sun drying on the ground. Indirect solar dryers channel heated air over produce on mesh trays inside an enclosed drying chamber, protecting produce from dust, rain, insects, and animals. Direct solar dryers use transparent plastic or glass covers on drying beds. In Uganda, solar drying is used extensively for coffee (raised bed drying), fish, cassava, vegetables, and herbs. Improved solar dryers typically achieve 2–5 times faster drying rates compared to open sun drying and produce higher-quality dried products with lower moisture content and better colour. Reducing moisture content below 13% is critical for maize and pulses to prevent aflatoxin contamination, a major food safety and economic issue in the region.",
+  "applications": [
+    "Coffee parchment and natural drying",
+    "Fish drying at landing sites",
+    "Cassava chip drying",
+    "Vegetable and herb drying for market",
+    "Maize and grain drying to safe moisture levels"
+  ],
+  "benefits": [
+    "Faster drying reduces risk of mould and aflatoxin contamination",
+    "Protected drying improves product quality and marketability",
+    "Low technology and easy to fabricate locally",
+    "Works without electricity — uses passive solar heat",
+    "Reduces post-harvest losses and increases farmer income"
+  ],
+  "limitations": [
+    "Output depends on solar radiation and ambient humidity",
+    "Limited capacity per unit — multiple dryers needed for large volumes",
+    "Quality of local fabrication affects performance significantly",
+    "Not suitable for very wet or high-humidity conditions",
+    "Elevated plastic sheeting can degrade and needs replacing after 2–3 seasons"
+  ],
+  "operationalNotes": [
+    "Orient dryer north-south with collecting face angled to optimise solar capture",
+    "Do not overload trays — maintain thin layers of produce for even drying",
+    "Turn produce regularly for uniform drying",
+    "Use moisture meter to verify adequate drying before storage",
+    "Remove produce before evening to avoid reabsorption of moisture"
+  ],
+  "maintenanceNotes": [
+    "Inspect and replace plastic sheeting or glass cover annually",
+    "Check wooden/metal frame for structural integrity each season",
+    "Clean mesh trays after each drying cycle",
+    "Repaint exterior metal components annually to prevent rust"
+  ],
+  "relatedProjectIds": ["project-006", "project-007"],
+  "relatedResourceIds": ["post-harvest-loss-reduction-brief"],
+  "featured": false,
+  "published": true,
+  "updatedAt": "2024-06-12T09:00:00.000Z"
+}

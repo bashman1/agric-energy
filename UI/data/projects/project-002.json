@@ -1,0 +1,51 @@
+{
+  "id": "project-002",
+  "slug": "project-002",
+  "title": "Biogas Digesters for Dairy Cooperatives — Mbarara & Ntungamo",
+  "summary": "Installation of community-scale biogas digesters at 6 dairy cooperative sites in Mbarara and Ntungamo Districts to supply cooking and lighting energy from cattle waste.",
+  "description": "This project targets dairy cooperatives in the Ankole region of Western Uganda where high cattle density creates significant organic waste. Fixed-dome biogas digesters were installed at 6 cooperative collection points, converting cattle waste into biogas for cooking and electricity generation. Each digester serves 25–40 households in adjacent farmer communities. Slurry from the digesters is distributed as high-quality fertiliser, reducing chemical fertiliser purchases. Technical management was transferred to cooperative management committees after a 6-month capacity-building period.",
+  "region": "Western Uganda",
+  "district": "Mbarara District",
+  "regions": [
+    "Western Uganda"
+  ],
+  "districts": [
+    "Mbarara District",
+    "Ntungamo District"
+  ],
+  "locationNote": "Covers Mbarara and Ntungamo Districts, Ankole sub-region",
+  "coordinates": {
+    "lat": -0.6072,
+    "lng": 30.6545
+  },
+  "implementingPartnerIds": [
+    "nrep",
+    "upc"
+  ],
+  "fundingPartner": "European Union (EU) — ENABEL",
+  "budget": 190000,
+  "budgetCurrency": "USD",
+  "beneficiaryCount": 150,
+  "technologyIds": [
+    "biogas-digesters"
+  ],
+  "themeIds": [
+    "productive-use-of-energy",
+    "climate-resilience"
+  ],
+  "valueChain": "Dairy",
+  "beneficiaries": [
+    "Dairy Cooperatives",
+    "Smallholder Farmers"
+  ],
+  "status": "Active",
+  "startDate": "2023-01",
+  "endDate": "2025-12",
+  "outcomes": "6 cooperative sites with biogas; 150+ households with clean cooking energy; slurry fertiliser distributed to 200+ farms; 60 tCO2e emissions avoided annually.",
+  "featuredImage": "",
+  "gallery": [],
+  "externalUrl": "",
+  "featured": true,
+  "published": true,
+  "updatedAt": "2024-10-01T08:00:00.000Z"
+}
