@@ -36,9 +36,15 @@ function withLocaleCookie(req: NextRequest, res: NextResponse): NextResponse {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const isAdminArea = pathname.startsWith("/admin") && pathname !== "/admin/login";
+  // Match the guarded area exactly or as a path segment — NOT as a bare
+  // string prefix, or "/partners" (the public listing) would be caught by
+  // "/partner" and redirected to the portal login.
+  const inArea = (base: string) =>
+    pathname === base || pathname.startsWith(`${base}/`);
+
+  const isAdminArea = inArea("/admin") && pathname !== "/admin/login";
   const isPartnerArea =
-    pathname.startsWith("/partner") &&
+    inArea("/partner") &&
     !["/partner/login", "/partner/register"].includes(pathname);
 
   if (!isAdminArea && !isPartnerArea) {
