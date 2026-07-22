@@ -5,7 +5,14 @@
 // app/partner/submit/[type]/schemas.ts.
 // ============================================================
 
-export type ContentModule = "posts" | "events" | "opportunities" | "policies";
+export type ContentModule =
+  | "posts"
+  | "events"
+  | "opportunities"
+  | "policies"
+  | "themes"
+  | "technologies"
+  | "resources";
 
 export type ContentFieldType =
   | "text"
@@ -15,6 +22,7 @@ export type ContentFieldType =
   | "date"
   | "datetime"
   | "checkbox"
+  | "list"
   | "upload-image"
   | "upload-document"
   | "upload-gallery";
@@ -156,6 +164,60 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
       { key: "summary", label: "Summary", type: "textarea", required: true, rows: 2, placeholder: "One to two sentence summary" },
       { key: "description", label: "Description", type: "textarea", rows: 8 },
       { key: "documentUrl", label: "Policy document", type: "upload-document", help: "Upload the PDF, or paste a link below." },
+    ],
+  },
+
+  themes: {
+    module: "themes",
+    singular: "Theme",
+    plural: "Themes",
+    adminPath: "/admin/themes",
+    publicPath: "/themes",
+    apiPath: "/api/themes",
+    fields: [
+      { key: "name", label: "Name", type: "text", required: true, placeholder: "e.g. Productive Use of Energy" },
+      { key: "icon", label: "Icon", type: "text", half: true, placeholder: "Emoji or icon key" },
+      { key: "summary", label: "Summary", type: "textarea", required: true, rows: 2, placeholder: "One to two sentence description shown in listings" },
+      { key: "description", label: "Description", type: "textarea", rows: 8 },
+      { key: "whyItMatters", label: "Why it matters", type: "textarea", rows: 6, placeholder: "Why this theme matters for agri-energy in Uganda…" },
+    ],
+  },
+
+  technologies: {
+    module: "technologies",
+    singular: "Technology",
+    plural: "Technologies",
+    adminPath: "/admin/technologies",
+    publicPath: "/technologies",
+    apiPath: "/api/technologies",
+    fields: [
+      { key: "name", label: "Name", type: "text", required: true, placeholder: "e.g. Solar Water Pumping" },
+      { key: "category", label: "Category", type: "text", half: true, placeholder: "e.g. Solar Energy" },
+      { key: "summary", label: "Summary", type: "textarea", required: true, rows: 2, placeholder: "One to two sentence description" },
+      { key: "description", label: "Description", type: "textarea", rows: 8 },
+      { key: "applications", label: "Applications", type: "list", help: "One per line." },
+      { key: "benefits", label: "Benefits", type: "list", help: "One per line." },
+      { key: "limitations", label: "Limitations", type: "list", help: "One per line." },
+      { key: "operationalNotes", label: "Operational notes", type: "list", help: "One per line." },
+      { key: "maintenanceNotes", label: "Maintenance notes", type: "list", help: "One per line." },
+    ],
+  },
+
+  resources: {
+    module: "resources",
+    singular: "Resource",
+    plural: "Resources",
+    adminPath: "/admin/resources",
+    publicPath: "/resources",
+    apiPath: "/api/resources",
+    fields: [
+      { key: "title", label: "Title", type: "text", required: true, placeholder: "e.g. Solar Irrigation Field Guide" },
+      { key: "type", label: "Type", type: "text", half: true, placeholder: "Report, Guide, Policy brief…" },
+      { key: "publicationDate", label: "Publication date", type: "date", half: true },
+      { key: "summary", label: "Summary", type: "textarea", required: true, rows: 2, placeholder: "One to two sentence summary shown in listings" },
+      { key: "description", label: "Description", type: "textarea", rows: 8 },
+      { key: "fileUrl", label: "File (PDF/document)", type: "upload-document", help: "Upload the file, or paste a link below." },
+      { key: "externalUrl", label: "External link", type: "url", placeholder: "https://…" },
     ],
   },
 };

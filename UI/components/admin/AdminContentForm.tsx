@@ -46,8 +46,8 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
   const set = (key: string, value: unknown) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const inputClass = "w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100";
-  const labelClass = "block text-xs font-semibold text-gray-600 mb-1";
+  const inputClass = "w-full px-3 py-2 bg-white border border-ink-200 rounded-lg text-sm text-ink-800 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15";
+  const labelClass = "block text-xs font-semibold text-ink-600 mb-1";
 
   // ── Field renderer ─────────────────────────────────────────────────────────
   const renderField = (field: ContentFieldDef) => {
@@ -67,9 +67,9 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
               onChange={(e) => set(field.key, e.target.checked)}
               className="w-4 h-4 rounded accent-primary-700"
             />
-            <span className="text-sm text-gray-700">{field.label}</span>
+            <span className="text-sm text-ink-700">{field.label}</span>
           </label>
-          {field.help && <p className="text-[11px] text-gray-400 mt-1">{field.help}</p>}
+          {field.help && <p className="text-[11px] text-ink-400 mt-1">{field.help}</p>}
         </div>
       );
     }
@@ -163,12 +163,12 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
                 {gallery.map((url, i) => (
                   <li key={`${url}-${i}`} className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt={`Gallery item ${i + 1}`} className="h-16 w-16 object-cover rounded border border-gray-200" />
+                    <img src={url} alt={`Gallery item ${i + 1}`} className="h-16 w-16 object-cover rounded border border-ink-200" />
                     <button
                       type="button"
                       aria-label={`Remove gallery image ${i + 1}`}
                       onClick={() => set("gallery", gallery.filter((_, j) => j !== i))}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-gray-200 text-gray-500 text-xs leading-none hover:text-red-600 hover:border-red-200 transition-colors"
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-ink-200 text-ink-500 text-xs leading-none hover:text-red-600 hover:border-red-200 transition-colors"
                     >
                       ×
                     </button>
@@ -179,6 +179,27 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
           </div>
         );
         break;
+
+      case "list": {
+        // A string[] edited as one item per line.
+        const items = Array.isArray(value) ? (value as string[]) : [];
+        control = (
+          <textarea
+            id={id}
+            className={inputClass}
+            rows={field.rows ?? 4}
+            value={items.join("\n")}
+            onChange={(e) =>
+              set(
+                field.key,
+                e.target.value.split("\n").map((s) => s.trim()).filter(Boolean)
+              )
+            }
+            placeholder={field.placeholder}
+          />
+        );
+        break;
+      }
 
       default:
         control = (
@@ -200,7 +221,7 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
           {field.label}{field.required ? " *" : ""}
         </label>
         {control}
-        {field.help && <p className="text-[11px] text-gray-400 mt-1">{field.help}</p>}
+        {field.help && <p className="text-[11px] text-ink-400 mt-1">{field.help}</p>}
       </div>
     );
   };
@@ -252,8 +273,8 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
       <div className="grid lg:grid-cols-3 gap-6">
         {/* ── Main column ── */}
         <div className="lg:col-span-2 space-y-5">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="font-bold text-gray-900 text-sm mb-4">{schema.singular} Details</h2>
+          <div className="bg-white rounded-xl border border-ink-200 p-5">
+            <h2 className="font-bold text-ink-900 text-sm mb-4">{schema.singular} Details</h2>
             <div className="grid md:grid-cols-2 gap-4">
               {schema.fields.map(renderField)}
             </div>
@@ -262,8 +283,8 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
 
         {/* ── Sidebar ── */}
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-bold text-gray-900 text-sm mb-4">Status &amp; Visibility</h3>
+          <div className="bg-white rounded-xl border border-ink-200 p-5">
+            <h3 className="font-bold text-ink-900 text-sm mb-4">Status &amp; Visibility</h3>
             <div className="space-y-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -272,7 +293,7 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
                   onChange={(e) => set("published", e.target.checked)}
                   className="w-4 h-4 rounded accent-primary-700"
                 />
-                <span className="text-sm text-gray-700">Published (visible on public site)</span>
+                <span className="text-sm text-ink-700">Published (visible on public site)</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -281,7 +302,7 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
                   onChange={(e) => set("featured", e.target.checked)}
                   className="w-4 h-4 rounded accent-primary-700"
                 />
-                <span className="text-sm text-gray-700">Featured (highlighted on the site)</span>
+                <span className="text-sm text-ink-700">Featured (highlighted on the site)</span>
               </label>
             </div>
           </div>
@@ -292,11 +313,11 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
             </button>
             {mode === "edit" && slug && (
               <Link href={`${schema.publicPath}/${slug}`} target="_blank"
-                className="w-full py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors text-center">
+                className="w-full py-2 border border-ink-200 text-ink-600 text-sm font-medium rounded-lg hover:bg-ink-50 transition-colors text-center">
                 Preview Public Page →
               </Link>
             )}
-            <Link href={schema.adminPath} className="w-full py-2 text-gray-400 hover:text-gray-600 text-sm text-center transition-colors">
+            <Link href={schema.adminPath} className="w-full py-2 text-ink-400 hover:text-ink-600 text-sm text-center transition-colors">
               ← Back to {schema.plural}
             </Link>
           </div>

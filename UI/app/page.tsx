@@ -7,12 +7,19 @@ import ThemeCard from "@/components/public/ThemeCard";
 import PartnersSlider from "@/components/public/PartnersSlider";
 import ResourceCard from "@/components/public/ResourceCard";
 import { ArrowRightIcon, SearchIcon, MapPinIcon } from "@/components/shared/icons";
+import Reveal from "@/components/shared/motion/Reveal";
+import StaggerGrid from "@/components/shared/motion/StaggerGrid";
+import CountUp from "@/components/shared/motion/CountUp";
+import BarChartH from "@/components/shared/charts/BarChartH";
+import ChartFrame from "@/components/shared/charts/ChartFrame";
 import { getSiteConfig } from "@/lib/data/site-config";
 import { filterProjects, getPublishedProjects } from "@/lib/data/projects";
 import { getPublishedTechnologies } from "@/lib/data/technologies";
 import { getPublishedThemes } from "@/lib/data/themes";
 import { getPublishedPartners } from "@/lib/data/partners";
 import { getLatestResources } from "@/lib/data/resources";
+import { getRegionStats } from "@/lib/data/open-data";
+import { fmtNumber, fmtBudget } from "@/lib/utils/format";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -38,7 +45,7 @@ function SectionHeader({
   onDark?: boolean;
 }) {
   return (
-    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+    <Reveal className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
       <div>
         <span className={`eyebrow ${onDark ? "on-dark" : ""}`}>{eyebrow}</span>
         <h2
@@ -63,12 +70,12 @@ function SectionHeader({
         {linkLabel}
         <ArrowRightIcon className="transition-transform group-hover:translate-x-1" />
       </Link>
-    </div>
+    </Reveal>
   );
 }
 
 export default async function HomePage() {
-  const [, projects, technologies, themes, partners, resources] =
+  const [, projects, technologies, themes, partners, resources, regionStats] =
     await Promise.all([
       getSiteConfig(),
       filterProjects({ featured: true }, true),
@@ -76,6 +83,7 @@ export default async function HomePage() {
       getPublishedThemes(),
       getPublishedPartners(),
       getLatestResources(4),
+      getRegionStats(),
     ]);
 
   const featuredTechs = technologies.filter((t) => t.featured).slice(0, 4);
@@ -87,12 +95,28 @@ export default async function HomePage() {
     allProjects.map((p) => p.district).filter(Boolean)
   ).size;
 
+  // Impact totals aggregated from the public open-data endpoint.
+  const totalBeneficiaries = regionStats.reduce((n, r) => n + r.beneficiaries, 0);
+  const totalBudget = regionStats.reduce((n, r) => n + r.totalBudget, 0);
+
+  // Headline figures — each animates 0→value on scroll. `formatted` is the
+  // server-rendered final string (hydration-safe); `format` handles frames.
   const stats = [
-    { label: "Projects mapped", value: allProjects.length },
-    { label: "Technologies", value: technologies.length },
-    { label: "Resources", value: resources.length },
-    { label: "Districts reached", value: districtCount },
+    { label: "Projects mapped", value: allProjects.length, formatted: fmtNumber(allProjects.length), compact: false },
+    { label: "Districts reached", value: districtCount, formatted: fmtNumber(districtCount), compact: false },
+    { label: "People reached", value: totalBeneficiaries, formatted: fmtNumber(totalBeneficiaries), compact: false },
+    { label: "Investment mapped", value: totalBudget, formatted: fmtBudget(totalBudget), compact: true },
   ];
+
+  // Top regions by people reached, for the "Impact at a glance" bar chart.
+  const reachByRegion = [...regionStats]
+    .sort((a, b) => b.beneficiaries - a.beneficiaries)
+    .slice(0, 5)
+    .map((r) => ({
+      label: r.region,
+      value: r.beneficiaries,
+      display: fmtNumber(r.beneficiaries),
+    }));
 
   return (
     <>
@@ -120,7 +144,7 @@ export default async function HomePage() {
             }}
           />
           <div className="container-page relative py-20 lg:py-28">
-            <div className="max-w-3xl">
+            <Reveal className="max-w-3xl">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-100 backdrop-blur-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-300" aria-hidden="true" />
                 Phase 1 prototype · sample data
@@ -182,31 +206,65 @@ export default async function HomePage() {
                   </Link>
                 ))}
               </div>
-            </div>
+            </Reveal>
           </div>
         </section>
 
-        {/* ─── STATS BAND ────────────────────────────────────────── */}
+        {/* ─── IMPACT AT A GLANCE ────────────────────────────────── */}
         <section className="bg-white border-b border-ink-200">
-          <div className="container-page">
-            <dl className="grid grid-cols-2 lg:grid-cols-4 divide-y divide-x divide-ink-100 sm:divide-y-0">
-              {stats.map((s) => (
-                <div key={s.label} className="px-2 py-8 text-center lg:py-10">
-                  <dd className="font-display text-4xl lg:text-5xl font-semibold text-ink-900 tabular-nums">
-                    {s.value}
-                  </dd>
-                  <dt className="mt-1 text-sm font-medium text-ink-500">
-                    {s.label}
-                  </dt>
-                </div>
-              ))}
-            </dl>
+          <div className="container-page py-14 lg:py-20">
+            <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 lg:items-center">
+              {/* Animated headline figures */}
+              <div>
+                <Reveal>
+                  <span className="eyebrow">Impact at a glance</span>
+                  <h2 className="font-display text-3xl font-semibold tracking-tight text-ink-900 mt-3">
+                    The platform by the numbers
+                  </h2>
+                </Reveal>
+                <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8">
+                  {stats.map((s) => (
+                    <div key={s.label}>
+                      <dd className="font-display text-4xl lg:text-5xl font-semibold text-ink-900 tabular-nums">
+                        <CountUp
+                          value={s.value}
+                          formatted={s.formatted}
+                          compact={s.compact}
+                        />
+                      </dd>
+                      <dt className="mt-1 text-sm font-medium text-ink-500">
+                        {s.label}
+                      </dt>
+                    </div>
+                  ))}
+                </dl>
+                <p className="mt-8 text-xs text-ink-400">
+                  Figures aggregate published sample projects — prototype data,
+                  not official statistics.
+                </p>
+              </div>
+
+              {/* Regional bar chart */}
+              {reachByRegion.length > 0 && (
+                <Reveal delay={120}>
+                  <div className="card p-6 lg:p-8">
+                    <ChartFrame
+                      eyebrow="Reach by region"
+                      title="People reached, by region"
+                      caption="Sum of beneficiaries across published projects in each region."
+                    >
+                      <BarChartH data={reachByRegion} />
+                    </ChartFrame>
+                  </div>
+                </Reveal>
+              )}
+            </div>
           </div>
         </section>
 
         {/* ─── MAP CALLOUT ───────────────────────────────────────── */}
         <section className="py-16 lg:py-20 bg-ink-50">
-          <div className="container-page">
+          <Reveal className="container-page">
             <Link
               href="/map"
               className="group block relative overflow-hidden rounded-2xl bg-primary-900 border border-primary-800"
@@ -237,7 +295,7 @@ export default async function HomePage() {
                 </span>
               </div>
             </Link>
-          </div>
+          </Reveal>
         </section>
 
         {/* ─── FEATURED PROJECTS ─────────────────────────────────── */}
@@ -251,11 +309,11 @@ export default async function HomePage() {
               linkLabel="Browse all projects"
             />
             {featuredProjects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {featuredProjects.map((p) => (
                   <ProjectCard key={p.id} project={p} />
                 ))}
-              </div>
+              </StaggerGrid>
             ) : (
               <p className="text-ink-500">No featured projects yet.</p>
             )}
@@ -272,11 +330,11 @@ export default async function HomePage() {
               href="/technologies"
               linkLabel="Browse the catalog"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StaggerGrid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredTechs.map((t) => (
                 <TechCard key={t.id} tech={t} />
               ))}
-            </div>
+            </StaggerGrid>
           </div>
         </section>
 
@@ -290,11 +348,11 @@ export default async function HomePage() {
               href="/themes"
               linkLabel="Explore all themes"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <StaggerGrid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredThemes.map((t) => (
                 <ThemeCard key={t.id} theme={t} />
               ))}
-            </div>
+            </StaggerGrid>
           </div>
         </section>
 
@@ -308,11 +366,11 @@ export default async function HomePage() {
               href="/resources"
               linkLabel="Access the library"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StaggerGrid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {resources.map((r) => (
                 <ResourceCard key={r.id} resource={r} />
               ))}
-            </div>
+            </StaggerGrid>
           </div>
         </section>
 
@@ -336,7 +394,7 @@ export default async function HomePage() {
                 "radial-gradient(50% 100% at 50% 0%, #166534 0%, transparent 70%)",
             }}
           />
-          <div className="container-page relative text-center max-w-3xl">
+          <Reveal className="container-page relative text-center max-w-3xl">
             <span className="inline-flex items-center gap-2 text-primary-200 text-sm font-medium">
               <MapPinIcon /> Government of Uganda · NREP Secretariat
             </span>
@@ -358,7 +416,7 @@ export default async function HomePage() {
                 Learn more
               </Link>
             </div>
-          </div>
+          </Reveal>
         </section>
       </main>
       <Footer />

@@ -1,8 +1,10 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import PageHeader from "@/components/public/PageHeader";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getPublishedEvents } from "@/lib/data/events";
+import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import EmptyState from "@/components/shared/EmptyState";
 
 export const metadata: Metadata = {
@@ -37,23 +39,14 @@ export default async function EventsPage() {
     <>
       <Header />
       <main>
-        <section className="bg-primary-800 text-white py-12">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="text-primary-300 text-sm font-semibold mb-2 uppercase tracking-wider">
-              Events &amp; Learning Hub
-            </div>
-            <h1 className="text-3xl font-extrabold mb-3">
-              Conferences, workshops, webinars &amp; training
-            </h1>
-            <p className="text-primary-100 max-w-2xl">
-              Discover and register for learning and networking opportunities across
-              Uganda&rsquo;s Agri-Energy ecosystem.
-            </p>
-          </div>
-        </section>
+        <PageHeader
+          eyebrow="Events & Learning Hub"
+          title="Conferences, workshops, webinars & training"
+          lead="Discover and register for learning and networking opportunities across Uganda's Agri-Energy ecosystem."
+        />
 
-        <section className="bg-gray-50 py-10 min-h-[50vh]">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <section className="bg-ink-50 py-10 min-h-[50vh]">
+          <div className="container-page">
             {events.length === 0 ? (
               <EmptyState
                 title="No events yet"
@@ -67,21 +60,21 @@ export default async function EventsPage() {
                     No upcoming events scheduled. See past events below.
                   </p>
                 ) : (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+                  <StaggerGrid className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
                     {upcoming.map((e) => (
                       <EventCard key={e.slug} e={e} fmt={fmt} />
                     ))}
-                  </div>
+                  </StaggerGrid>
                 )}
 
                 {past.length > 0 && (
                   <>
                     <h2 className="text-lg font-bold text-gray-900 mb-4">Past events</h2>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <StaggerGrid className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                       {past.map((e) => (
                         <EventCard key={e.slug} e={e} fmt={fmt} muted />
                       ))}
-                    </div>
+                    </StaggerGrid>
                   </>
                 )}
               </>

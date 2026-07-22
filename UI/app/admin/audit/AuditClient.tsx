@@ -1,6 +1,7 @@
 "use client";
 import { useId, useState } from "react";
 import EmptyState from "@/components/shared/EmptyState";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import type { AuditEntry } from "@/lib/data/admin";
 
 /** activitylog event names we emit; "" = all. */
@@ -59,18 +60,16 @@ export default function AuditClient({ entries, event, subjectType, limit }: Prop
 
   return (
     <div className="max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Audit Trail</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Who changed what, and when. Read-only — entries cannot be edited or removed.
-        </p>
-      </div>
+      <AdminPageHeader
+        title="Audit Trail"
+        subtitle="Who changed what, and when. Read-only — entries cannot be edited or removed."
+      />
 
       {/* ── Filters (GET form so state lives in the URL) ────────── */}
-      <form method="GET" className="bg-white rounded-xl border border-gray-200 p-4 mb-5">
+      <form method="GET" className="bg-white rounded-xl border border-ink-200 shadow-card p-4 mb-5">
         <div className="flex flex-wrap gap-3 items-end">
           <div className="min-w-40">
-            <label htmlFor={eventId} className="block text-xs font-semibold text-gray-600 mb-1">
+            <label htmlFor={eventId} className="block text-xs font-semibold text-ink-600 mb-1">
               Event
             </label>
             <select id={eventId} name="event" defaultValue={event} className="form-input">
@@ -82,7 +81,7 @@ export default function AuditClient({ entries, event, subjectType, limit }: Prop
           </div>
 
           <div className="min-w-40">
-            <label htmlFor={subjectId} className="block text-xs font-semibold text-gray-600 mb-1">
+            <label htmlFor={subjectId} className="block text-xs font-semibold text-ink-600 mb-1">
               Record type
             </label>
             <select id={subjectId} name="subjectType" defaultValue={subjectType} className="form-input">
@@ -94,7 +93,7 @@ export default function AuditClient({ entries, event, subjectType, limit }: Prop
           </div>
 
           <div className="w-28">
-            <label htmlFor={limitId} className="block text-xs font-semibold text-gray-600 mb-1">
+            <label htmlFor={limitId} className="block text-xs font-semibold text-ink-600 mb-1">
               Show
             </label>
             <select id={limitId} name="limit" defaultValue={limit} className="form-input">
@@ -113,7 +112,7 @@ export default function AuditClient({ entries, event, subjectType, limit }: Prop
           {(event || subjectType) && (
             <a
               href="/admin/audit"
-              className="px-3 py-2 border border-gray-200 text-gray-500 text-sm font-medium rounded-lg hover:bg-gray-50"
+              className="px-3 py-2 border border-ink-200 text-ink-500 text-sm font-medium rounded-lg hover:bg-ink-50"
             >
               Clear
             </a>
@@ -128,12 +127,12 @@ export default function AuditClient({ entries, event, subjectType, limit }: Prop
           message="Nothing matches these filters yet. Content changes appear here as soon as they happen."
         />
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-ink-200 shadow-card overflow-hidden">
           <table className="w-full text-sm">
             <caption className="sr-only">
               Audit trail of content changes, most recent first
             </caption>
-            <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+            <thead className="bg-ink-50 text-ink-500 text-xs uppercase tracking-wide">
               <tr>
                 <th scope="col" className="text-left font-semibold px-4 py-3">When</th>
                 <th scope="col" className="text-left font-semibold px-4 py-3">Who</th>
@@ -142,38 +141,38 @@ export default function AuditClient({ entries, event, subjectType, limit }: Prop
                 <th scope="col" className="text-right font-semibold px-4 py-3">Changes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-ink-100">
               {entries.map((entry) => {
                 const rows = diffRows(entry.changes ?? {});
                 const isOpen = expanded === entry.id;
                 return (
                   <tr key={entry.id} className="align-top">
-                    <td className="px-4 py-3 whitespace-nowrap text-gray-600 text-xs">
+                    <td className="px-4 py-3 whitespace-nowrap text-ink-600 text-xs">
                       {formatWhen(entry.at)}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-semibold text-ink-800">
                         {entry.causer ?? "System"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span
                         className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
-                          EVENT_STYLE[entry.event] ?? "bg-gray-50 text-gray-600 border-gray-200"
+                          EVENT_STYLE[entry.event] ?? "bg-ink-50 text-ink-600 border-ink-200"
                         }`}
                       >
                         {entry.event || entry.description}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-gray-800">{entry.subjectType || "—"}</div>
+                      <div className="text-ink-800">{entry.subjectType || "—"}</div>
                       {entry.subjectId !== null && (
-                        <div className="text-xs text-gray-400">#{entry.subjectId}</div>
+                        <div className="text-xs text-ink-400">#{entry.subjectId}</div>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
                       {rows.length === 0 ? (
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-xs text-ink-400">—</span>
                       ) : (
                         <>
                           <button
@@ -185,15 +184,15 @@ export default function AuditClient({ entries, event, subjectType, limit }: Prop
                             {isOpen ? "Hide" : `${rows.length} field${rows.length === 1 ? "" : "s"}`}
                           </button>
                           {isOpen && (
-                            <dl className="mt-2 text-left bg-gray-50 rounded-lg p-3 space-y-1.5">
+                            <dl className="mt-2 text-left bg-ink-50 rounded-lg p-3 space-y-1.5">
                               {rows.map(({ key, before, after }) => (
                                 <div key={key} className="text-xs">
-                                  <dt className="font-semibold text-gray-600">{key}</dt>
-                                  <dd className="text-gray-500 break-words">
+                                  <dt className="font-semibold text-ink-600">{key}</dt>
+                                  <dd className="text-ink-500 break-words">
                                     <span className="line-through text-red-500">
                                       {renderValue(before)}
                                     </span>
-                                    <span className="mx-1.5 text-gray-400" aria-hidden="true">→</span>
+                                    <span className="mx-1.5 text-ink-400" aria-hidden="true">→</span>
                                     <span className="text-emerald-700">{renderValue(after)}</span>
                                   </dd>
                                 </div>

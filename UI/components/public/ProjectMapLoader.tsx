@@ -16,10 +16,10 @@ export interface ProjectMapProps {
 const ProjectMap = dynamic(() => import("./ProjectMap"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full bg-[#0d1b2a] flex items-center justify-center rounded-xl">
+    <div className="w-full h-full bg-ink-100 flex items-center justify-center rounded-xl">
       <div className="text-center">
-        <div className="w-8 h-8 border-2 border-primary-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-sm text-gray-400">Loading map…</p>
+        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-sm text-ink-500">Loading map…</p>
       </div>
     </div>
   ),

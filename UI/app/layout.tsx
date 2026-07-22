@@ -45,6 +45,16 @@ export default async function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/* Scroll-reveal elements start hidden and are shown by JS. Without
+            JS there is no observer to reveal them, so un-hide them here. */}
+        <noscript>
+          <style
+            dangerouslySetInnerHTML={{
+              __html:
+                "[data-reveal]{opacity:1!important;transform:none!important}.bar-fill{width:var(--w,0)!important}",
+            }}
+          />
+        </noscript>
       </head>
       <body className="min-h-screen bg-gray-50">
         <NextIntlClientProvider>

@@ -24,10 +24,10 @@ export default async function AdminSubmissionDetailPage({ params }: Props) {
   return (
     <div>
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+      <nav className="flex items-center gap-2 text-sm text-ink-500 mb-6">
         <Link href="/admin/submissions" className="hover:text-primary-700">Submissions</Link>
         <span>/</span>
-        <span className="text-gray-800 font-medium truncate max-w-xs">{submission.subject}</span>
+        <span className="text-ink-800 font-medium truncate max-w-xs">{submission.subject}</span>
       </nav>
 
       <SubmissionDetailClient submission={submission} />

@@ -1,6 +1,8 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import PageHeader from "@/components/public/PageHeader";
 import TechCard from "@/components/public/TechCard";
+import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import EmptyState from "@/components/shared/EmptyState";
 import { filterTechnologies } from "@/lib/data/technologies";
 import { getTaxonomy } from "@/lib/data/taxonomy";
@@ -27,18 +29,13 @@ export default async function TechnologiesPage({ searchParams }: PageProps) {
     <>
       <Header />
       <main>
-        <section className="bg-primary-800 text-white py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-primary-300 text-sm font-semibold mb-1 uppercase tracking-wider">Platform</div>
-            <h1 className="text-3xl font-extrabold mb-2">Technologies Library</h1>
-            <p className="text-green-200 max-w-xl">
-              In-depth reference information on agri-energy technologies deployed in Uganda — applications, benefits, operational guidance, and maintenance.
-            </p>
-          </div>
-        </section>
+        <PageHeader
+          title="Technologies Library"
+          lead="In-depth reference information on agri-energy technologies deployed in Uganda — applications, benefits, operational guidance, and maintenance."
+        />
 
-        <section className="py-8 bg-gray-50 min-h-screen">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-8 bg-ink-50 min-h-screen">
+          <div className="container-page">
             {/* Filters */}
             <div className="bg-white rounded-xl border border-gray-100 p-4 mb-6 shadow-card">
               <form method="GET" className="flex flex-wrap gap-3 items-end">
@@ -67,9 +64,9 @@ export default async function TechnologiesPage({ searchParams }: PageProps) {
             </div>
 
             {technologies.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {technologies.map((t) => <TechCard key={t.id} tech={t} />)}
-              </div>
+              </StaggerGrid>
             ) : (
               <EmptyState title="No technologies found" message="Try adjusting your search or category filter." icon="⚡" action={{ label: "Clear Filters", href: "/technologies" }} />
             )}

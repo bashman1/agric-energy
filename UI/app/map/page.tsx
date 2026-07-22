@@ -21,12 +21,15 @@ export default async function MapPage() {
       <Header />
       <main>
         {/* Page header */}
-        <section className="bg-primary-800 text-white py-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-primary-300 text-sm font-semibold mb-1 uppercase tracking-wider">Platform</div>
-            <h1 className="text-3xl font-extrabold mb-1">Project Map</h1>
-            <p className="text-green-200">
-              Interactive geographic view of agri-energy projects across Uganda&apos;s districts and regions.
+        <section className="hero-band bg-primary-900 text-white py-12">
+          <div className="container-page">
+            <span className="eyebrow on-dark">Platform</span>
+            <h1 className="font-display text-4xl font-semibold tracking-tight mt-3 mb-2">
+              Project Map
+            </h1>
+            <p className="text-primary-100 max-w-2xl">
+              Interactive geographic view of agri-energy projects across
+              Uganda&apos;s districts and regions — over a live road-and-town basemap.
             </p>
           </div>
         </section>

@@ -43,8 +43,8 @@ export default function PartnerCreatePanel({ initialName = "", onCreated, onCanc
     const set = (k: keyof NewPartner, v: string) => setForm((p) => ({ ...p, [k]: v }));
 
     const inputClass =
-        "w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100";
-    const labelClass = "block text-xs font-semibold text-gray-600 mb-1";
+        "w-full px-3 py-2 bg-ink-50 border border-ink-200 rounded-lg text-sm text-ink-800 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100";
+    const labelClass = "block text-xs font-semibold text-ink-600 mb-1";
     const uid = useId();
 
     const handleSubmit = async () => {
@@ -86,17 +86,17 @@ export default function PartnerCreatePanel({ initialName = "", onCreated, onCanc
     };
 
     return (
-        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-5">
+        <div className="mt-3 bg-primary-50 border border-primary-200 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-bold text-blue-900 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">+</span>
+                <h4 className="text-sm font-bold text-primary-900 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary-600 text-white text-xs flex items-center justify-center">+</span>
                     Create New Partner
                 </h4>
-                <button type="button" onClick={onCancel} className="text-blue-400 hover:text-blue-700 text-lg leading-none">×</button>
+                <button type="button" onClick={onCancel} className="text-primary-400 hover:text-primary-700 text-lg leading-none">×</button>
             </div>
 
             {error && (
-                <p className="mb-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">✗ {error}</p>
+                <p className="mb-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
             )}
 
             <div className="space-y-3">
@@ -152,11 +152,11 @@ export default function PartnerCreatePanel({ initialName = "", onCreated, onCanc
                         type="button"
                         disabled={saving}
                         onClick={handleSubmit}
-                        className="px-5 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        className="px-5 py-2 bg-primary-600 text-white text-sm font-bold rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                     >
                         {saving ? "Creating…" : "Create & Select Partner"}
                     </button>
-                    <button type="button" onClick={onCancel} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                    <button type="button" onClick={onCancel} className="px-4 py-2 text-sm text-ink-500 hover:text-ink-700 transition-colors">
                         Cancel
                     </button>
                 </div>

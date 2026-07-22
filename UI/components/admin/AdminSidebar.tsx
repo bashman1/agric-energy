@@ -1,26 +1,47 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import {
+  DashboardIcon,
+  ChartIcon,
+  SproutIcon,
+  BoltIcon,
+  LayersIcon,
+  BuildingIcon,
+  DocumentIcon,
+  NewspaperIcon,
+  CalendarIcon,
+  CoinsIcon,
+  ScaleIcon,
+  MailIcon,
+  CheckCircleIcon,
+  UsersIcon,
+  InboxIcon,
+  HistoryIcon,
+  SettingsIcon,
+  GlobeIcon,
+  LogOutIcon,
+} from "@/components/shared/icons";
 
-const navItems = [
-  { href: "/admin", label: "Dashboard", icon: "📊", exact: true },
-  { href: "/admin/analytics", label: "Analytics", icon: "📈" },
-  { href: "/admin/projects", label: "Projects", icon: "🏗️" },
-  { href: "/admin/technologies", label: "Technologies", icon: "⚡" },
-  { href: "/admin/themes", label: "Themes", icon: "📚" },
-  { href: "/admin/partners", label: "Partners", icon: "🤝" },
-  { href: "/admin/resources", label: "Resources", icon: "📄" },
-  { href: "/admin/posts", label: "News & Stories", icon: "📰" },
-  { href: "/admin/events", label: "Events", icon: "📅" },
-  { href: "/admin/opportunities", label: "Opportunities", icon: "💰" },
-  { href: "/admin/policies", label: "Policies", icon: "📜" },
-  { href: "/admin/newsletter", label: "Newsletter", icon: "✉️" },
-  { href: "/admin/review", label: "Review Queue", icon: "✅" },
-  { href: "/admin/users", label: "Users", icon: "👥" },
-  { href: "/admin/submissions", label: "Submissions", icon: "📬" },
-  { href: "/admin/audit", label: "Audit Trail", icon: "🗂️" },
-  { href: "/admin/site-config", label: "Site Config", icon: "⚙️" },
+const navItems: { href: string; label: string; icon: ReactNode; exact?: boolean }[] = [
+  { href: "/admin", label: "Dashboard", icon: <DashboardIcon />, exact: true },
+  { href: "/admin/analytics", label: "Analytics", icon: <ChartIcon /> },
+  { href: "/admin/projects", label: "Projects", icon: <SproutIcon /> },
+  { href: "/admin/technologies", label: "Technologies", icon: <BoltIcon /> },
+  { href: "/admin/themes", label: "Themes", icon: <LayersIcon /> },
+  { href: "/admin/partners", label: "Partners", icon: <BuildingIcon /> },
+  { href: "/admin/resources", label: "Resources", icon: <DocumentIcon /> },
+  { href: "/admin/posts", label: "News & Stories", icon: <NewspaperIcon /> },
+  { href: "/admin/events", label: "Events", icon: <CalendarIcon /> },
+  { href: "/admin/opportunities", label: "Opportunities", icon: <CoinsIcon /> },
+  { href: "/admin/policies", label: "Policies", icon: <ScaleIcon /> },
+  { href: "/admin/newsletter", label: "Newsletter", icon: <MailIcon /> },
+  { href: "/admin/review", label: "Review Queue", icon: <CheckCircleIcon /> },
+  { href: "/admin/users", label: "Users", icon: <UsersIcon /> },
+  { href: "/admin/submissions", label: "Submissions", icon: <InboxIcon /> },
+  { href: "/admin/audit", label: "Audit Trail", icon: <HistoryIcon /> },
+  { href: "/admin/site-config", label: "Site Config", icon: <SettingsIcon /> },
 ];
 
 const isActive = (item: typeof navItems[0], pathname: string) =>
@@ -40,12 +61,12 @@ function SidebarContent({
   return (
     <>
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-gray-800">
+      <div className="px-4 py-5 border-b border-white/10">
         <Link href="/admin" className="flex items-center gap-2.5" onClick={onNavigate}>
-          <div className="w-8 h-8 rounded-lg bg-primary-700 flex items-center justify-center text-white font-bold text-xs shrink-0">AE</div>
+          <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-xs shrink-0">AE</div>
           <div>
-            <div className="text-white font-bold text-xs leading-tight">Agri-Energy Desk</div>
-            <div className="text-gray-500 text-xs leading-tight">Admin Portal</div>
+            <div className="text-white font-display font-semibold text-sm leading-tight">Agri-Energy Desk</div>
+            <div className="text-ink-400 text-xs leading-tight">Admin Portal</div>
           </div>
         </Link>
       </div>
@@ -57,24 +78,25 @@ function SidebarContent({
             key={item.href}
             href={item.href}
             onClick={onNavigate}
+            aria-current={isActive(item, pathname) ? "page" : undefined}
             className={`admin-nav-link ${isActive(item, pathname) ? "active" : ""}`}
           >
-            <span className="text-sm">{item.icon}</span>
+            {item.icon}
             {item.label}
           </Link>
         ))}
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-4 border-t border-gray-800 space-y-1">
-        <Link href="/" target="_blank" className="admin-nav-link text-xs" onClick={onNavigate}>
-          <span>🌐</span> View Public Site
+      <div className="px-3 py-4 border-t border-white/10 space-y-1">
+        <Link href="/" target="_blank" className="admin-nav-link" onClick={onNavigate}>
+          <GlobeIcon /> View Public Site
         </Link>
         <button
           onClick={onLogout}
-          className="admin-nav-link w-full text-left text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10"
+          className="admin-nav-link w-full text-left text-red-400 hover:text-red-300 hover:bg-red-500/10"
         >
-          <span>🚪</span> Logout
+          <LogOutIcon /> Logout
         </button>
       </div>
     </>
@@ -97,19 +119,19 @@ export default function AdminSidebar() {
   return (
     <>
       {/* ── Desktop sidebar (lg+) ────────────────────────────── */}
-      <aside className="hidden lg:flex w-56 bg-gray-950 text-gray-300 flex-col min-h-screen shrink-0">
+      <aside className="hidden lg:flex w-60 bg-ink-900 text-ink-300 flex-col min-h-screen shrink-0">
         <SidebarContent pathname={pathname} onNavigate={closeMobile} onLogout={handleLogout} />
       </aside>
 
       {/* ── Mobile: top bar with hamburger ──────────────────── */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-gray-950 border-b border-gray-800 px-4 py-3">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-ink-900 border-b border-white/10 px-4 py-3">
         <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-primary-700 flex items-center justify-center text-white font-bold text-xs">AE</div>
-          <span className="text-white font-bold text-sm">Admin Portal</span>
+          <div className="w-7 h-7 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-xs">AE</div>
+          <span className="text-white font-display font-semibold text-sm">Admin Portal</span>
         </Link>
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          className="text-gray-300 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+          className="text-ink-300 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors"
           aria-label="Toggle navigation"
         >
           {mobileOpen ? (
@@ -137,7 +159,7 @@ export default function AdminSidebar() {
             onClick={closeMobile}
           />
           {/* Slide-in panel */}
-          <aside className="lg:hidden fixed top-0 left-0 bottom-0 z-40 w-64 bg-gray-950 text-gray-300 flex flex-col shadow-2xl">
+          <aside className="lg:hidden fixed top-0 left-0 bottom-0 z-40 w-64 bg-ink-900 text-ink-300 flex flex-col shadow-2xl">
             <SidebarContent pathname={pathname} onNavigate={closeMobile} onLogout={handleLogout} />
           </aside>
         </>

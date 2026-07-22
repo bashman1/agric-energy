@@ -134,3 +134,157 @@ export function BuildingIcon(props: IconProps) {
     </Base>
   );
 }
+
+// ── Admin / dashboard icons ─────────────────────────────────────────
+export function DashboardIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+    </Base>
+  );
+}
+
+export function ChartIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M4 20V4M4 20h16" />
+      <path d="M8 16v-4M12 16V8M16 16v-6" />
+    </Base>
+  );
+}
+
+export function UsersIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="9" cy="8" r="3.25" />
+      <path d="M3.5 20a5.5 5.5 0 0 1 11 0" />
+      <path d="M16 5.2a3.25 3.25 0 0 1 0 5.6M17 14.5a5.5 5.5 0 0 1 3.5 5.5" />
+    </Base>
+  );
+}
+
+export function NewspaperIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M4 5h12v14a1 1 0 0 0 1 1H6a2 2 0 0 1-2-2V5Z" />
+      <path d="M16 8h3a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2M7 8h6M7 11.5h6M7 15h4" />
+    </Base>
+  );
+}
+
+export function CoinsIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="9" cy="9" r="5.5" />
+      <path d="M14.5 4.2a5.5 5.5 0 0 1 0 10.6M9 6.5v5M7.5 8h2.2a1.25 1.25 0 0 1 0 2.5H8" />
+    </Base>
+  );
+}
+
+export function ScaleIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M12 3v18M7 21h10M5 7h14M8 7 5 13a3 3 0 0 0 6 0L8 7ZM16 7l-3 6a3 3 0 0 0 6 0l-3-6Z" />
+    </Base>
+  );
+}
+
+export function MailIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m4 7 8 5.5L20 7" />
+    </Base>
+  );
+}
+
+export function CheckCircleIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m8.5 12 2.5 2.5 4.5-5" />
+    </Base>
+  );
+}
+
+export function InboxIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M4 13.5 6 5h12l2 8.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5.5Z" />
+      <path d="M4 13.5h4a2 2 0 0 0 4 0h.5a2 2 0 0 0 4 0H20" />
+    </Base>
+  );
+}
+
+export function HistoryIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M3.5 12a8.5 8.5 0 1 1 2.6 6.1M3.5 12H7M3.5 12V8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </Base>
+  );
+}
+
+export function SettingsIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2.5v3M12 18.5v3M4.2 7l2.6 1.5M17.2 15.5l2.6 1.5M4.2 17l2.6-1.5M17.2 8.5 19.8 7" />
+    </Base>
+  );
+}
+
+export function GlobeIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.5 12h17M12 3.5c2.5 2.4 2.5 14.6 0 17M12 3.5c-2.5 2.4-2.5 14.6 0 17" />
+    </Base>
+  );
+}
+
+export function LogOutIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M15 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3" />
+      <path d="M10 8 6 12l4 4M6 12h10" />
+    </Base>
+  );
+}
+
+export function PlusIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M12 5v14M5 12h14" />
+    </Base>
+  );
+}
+
+export function PencilIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M4 20h4L18.5 9.5a2 2 0 0 0-2.8-2.8L5 17.5V20Z" />
+      <path d="M14 8l2.8 2.8" />
+    </Base>
+  );
+}
+
+export function TrashIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" />
+    </Base>
+  );
+}
+
+export function EyeIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </Base>
+  );
+}

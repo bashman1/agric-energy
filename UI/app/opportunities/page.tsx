@@ -1,5 +1,7 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import PageHeader from "@/components/public/PageHeader";
+import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getPublishedOpportunities } from "@/lib/data/opportunities";
@@ -49,20 +51,11 @@ export default async function OpportunitiesPage({ searchParams }: PageProps) {
     <>
       <Header />
       <main>
-        <section className="bg-primary-800 text-white py-12">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="text-primary-300 text-sm font-semibold mb-2 uppercase tracking-wider">
-              Funding &amp; Investment
-            </div>
-            <h1 className="text-3xl font-extrabold mb-3">
-              Opportunities for Agri-Energy
-            </h1>
-            <p className="text-primary-100 max-w-2xl">
-              Grants, financing and investment opportunities to support renewable energy
-              in Uganda&rsquo;s agricultural value chains.
-            </p>
-          </div>
-        </section>
+        <PageHeader
+          eyebrow="Funding & Investment"
+          title="Opportunities for Agri-Energy"
+          lead="Grants, financing and investment opportunities to support renewable energy in Uganda's agricultural value chains."
+        />
 
         {/* Type toggle — plain links so the page stays a server component */}
         <section className="bg-white border-b border-gray-100">
@@ -94,8 +87,8 @@ export default async function OpportunitiesPage({ searchParams }: PageProps) {
           </div>
         </section>
 
-        <section className="bg-gray-50 py-10 min-h-[50vh]">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <section className="bg-ink-50 py-10 min-h-[50vh]">
+          <div className="container-page">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-gray-500">
                 <span className="font-bold text-gray-800">
@@ -126,7 +119,7 @@ export default async function OpportunitiesPage({ searchParams }: PageProps) {
                 }
               />
             ) : (
-              <div className="grid md:grid-cols-2 gap-5">
+              <StaggerGrid className="grid md:grid-cols-2 gap-5">
                 {opportunities.map((o) => {
                   const status = daysLeft(o.deadline);
                   const closed = status === "Closed";
@@ -177,7 +170,7 @@ export default async function OpportunitiesPage({ searchParams }: PageProps) {
                     </Link>
                   );
                 })}
-              </div>
+              </StaggerGrid>
             )}
           </div>
         </section>

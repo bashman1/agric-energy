@@ -109,6 +109,28 @@ export interface Partner {
   featured: boolean;
   published: boolean;
   updatedAt: string;
+  // ── Organization profile (from partner self-registration) ──
+  category?: string;
+  acronym?: string;
+  registrationNumber?: string;
+  taxId?: string;
+  yearEstablished?: string;
+  physicalAddress?: string;
+  postalAddress?: string;
+  mission?: string;
+  employeesBand?: string;
+  branchesBand?: string;
+  beneficiariesBand?: string;
+  annualBudgetRange?: string;
+  contactName?: string;
+  contactPosition?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  coverageScope?: string[];
+  countries?: string[];
+  sectors?: string[];
+  valueChains?: string[];
+  expertise?: string[];
 }
 
 // ─── Resource ─────────────────────────────────────────────

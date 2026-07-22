@@ -22,12 +22,12 @@ export default async function AdminEventEditPage({ params }: Props) {
   if (slug === "new") {
     return (
       <div>
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <nav className="flex items-center gap-2 text-sm text-ink-500 mb-6">
           <Link href="/admin/events" className="hover:text-primary-700">Events</Link>
           <span>/</span>
-          <span className="text-gray-800 font-medium">New Event</span>
+          <span className="text-ink-800 font-medium">New Event</span>
         </nav>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">New Event</h1>
+        <h1 className="text-2xl font-display font-semibold text-ink-900 mb-6">New Event</h1>
         <AdminContentForm module="events" item={{}} mode="new" />
       </div>
     );
@@ -38,12 +38,12 @@ export default async function AdminEventEditPage({ params }: Props) {
 
   return (
     <div>
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+      <nav className="flex items-center gap-2 text-sm text-ink-500 mb-6">
         <Link href="/admin/events" className="hover:text-primary-700">Events</Link>
         <span>/</span>
-        <span className="text-gray-800 font-medium truncate max-w-xs">{event.title}</span>
+        <span className="text-ink-800 font-medium truncate max-w-xs">{event.title}</span>
       </nav>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Event</h1>
+      <h1 className="text-2xl font-display font-semibold text-ink-900 mb-6">Edit Event</h1>
       <AdminContentForm module="events" item={{ ...event }} mode="edit" />
     </div>
   );

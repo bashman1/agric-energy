@@ -1,5 +1,7 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import PageHeader from "@/components/public/PageHeader";
+import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import NewsletterSignup from "@/components/public/NewsletterSignup";
 import EmptyState from "@/components/shared/EmptyState";
 import Link from "next/link";
@@ -35,20 +37,11 @@ export default async function NewsPage({ searchParams }: PageProps) {
     <>
       <Header />
       <main>
-        <section className="bg-primary-800 text-white py-12">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="text-primary-300 text-sm font-semibold mb-2 uppercase tracking-wider">
-              Newsroom
-            </div>
-            <h1 className="text-3xl font-extrabold mb-3">
-              News, stories &amp; announcements
-            </h1>
-            <p className="text-primary-100 max-w-2xl">
-              Updates from the Agri-Energy Desk — sector news, impact stories from
-              the field, press releases and platform announcements.
-            </p>
-          </div>
-        </section>
+        <PageHeader
+          eyebrow="Newsroom"
+          title="News, stories & announcements"
+          lead="Updates from the Agri-Energy Desk — sector news, impact stories from the field, press releases and platform announcements."
+        />
 
         {/* Category tabs — plain links so the page stays a server component */}
         <section className="bg-white border-b border-gray-100">
@@ -78,8 +71,8 @@ export default async function NewsPage({ searchParams }: PageProps) {
           </div>
         </section>
 
-        <section className="bg-gray-50 py-10 min-h-[50vh]">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <section className="bg-ink-50 py-10 min-h-[50vh]">
+          <div className="container-page">
             <div className="mb-5">
               <p className="text-sm text-gray-500">
                 <span className="font-bold text-gray-800">{posts.length}</span>{" "}
@@ -100,11 +93,11 @@ export default async function NewsPage({ searchParams }: PageProps) {
                 <div className="lg:col-span-2">
                   {lead && <LeadCard post={lead} />}
                   {rest.length > 0 && (
-                    <div className="grid sm:grid-cols-2 gap-5 mt-6">
+                    <StaggerGrid className="grid sm:grid-cols-2 gap-5 mt-6">
                       {rest.map((p) => (
                         <PostCard key={p.slug} post={p} />
                       ))}
-                    </div>
+                    </StaggerGrid>
                   )}
                 </div>
 

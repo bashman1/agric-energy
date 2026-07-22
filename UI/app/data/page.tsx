@@ -1,6 +1,11 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import PageHeader from "@/components/public/PageHeader";
 import EmptyState from "@/components/shared/EmptyState";
+import StaggerGrid from "@/components/shared/motion/StaggerGrid";
+import Reveal from "@/components/shared/motion/Reveal";
+import BarChartH from "@/components/shared/charts/BarChartH";
+import ChartFrame from "@/components/shared/charts/ChartFrame";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
@@ -8,24 +13,13 @@ import {
   OPEN_DATA_DOWNLOADS,
   PUBLIC_API_URL,
 } from "@/lib/data/open-data";
+import { fmtNumber, fmtBudget } from "@/lib/utils/format";
 
 export const metadata: Metadata = {
   title: "Open Data & Downloads — Agri-Energy Desk",
   description:
     "Download the Agri-Energy Desk project dataset as CSV or GeoJSON, and browse regional aggregates for Uganda's agri-energy projects.",
 };
-
-function fmtNumber(value: number): string {
-  return new Intl.NumberFormat("en-GB").format(value);
-}
-
-function fmtBudget(value: number): string {
-  if (!value) return "—";
-  return new Intl.NumberFormat("en-GB", {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
-}
 
 export default async function OpenDataPage() {
   const regions = await getRegionStats();
@@ -39,29 +33,27 @@ export default async function OpenDataPage() {
     { count: 0, totalBudget: 0, beneficiaries: 0 }
   );
 
+  // Chart series (formatted server-side; BarChartH just renders the strings).
+  const budgetByRegion = [...regions]
+    .sort((a, b) => b.totalBudget - a.totalBudget)
+    .map((r) => ({ label: r.region, value: r.totalBudget, display: fmtBudget(r.totalBudget) }));
+  const beneficiariesByRegion = [...regions]
+    .sort((a, b) => b.beneficiaries - a.beneficiaries)
+    .map((r) => ({ label: r.region, value: r.beneficiaries, display: fmtNumber(r.beneficiaries) }));
+
   return (
     <>
       <Header />
       <main>
-        <section className="bg-primary-800 text-white py-12">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="text-primary-300 text-sm font-semibold mb-2 uppercase tracking-wider">
-              Open Data
-            </div>
-            <h1 className="text-3xl font-extrabold mb-3">
-              Open Data &amp; Downloads
-            </h1>
-            <p className="text-primary-100 max-w-2xl">
-              The Agri-Energy Desk publishes its project register as open,
-              machine-readable data. Download the full dataset, or explore the
-              regional aggregates below.
-            </p>
-          </div>
-        </section>
+        <PageHeader
+          eyebrow="Open Data"
+          title="Open Data & Downloads"
+          lead="The Agri-Energy Desk publishes its project register as open, machine-readable data. Download the full dataset, or explore the regional aggregates below."
+        />
 
         {/* ── Datasets ─────────────────────────────────────── */}
-        <section className="bg-gray-50 py-10">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <section className="bg-ink-50 py-10">
+          <div className="container-page">
             <h2 className="text-lg font-bold text-gray-900 mb-1">
               Available datasets
             </h2>
@@ -71,7 +63,7 @@ export default async function OpenDataPage() {
               always current. Unpublished and draft records are never included.
             </p>
 
-            <div className="grid md:grid-cols-2 gap-5">
+            <StaggerGrid className="grid md:grid-cols-2 gap-5">
               {OPEN_DATA_DOWNLOADS.map((d) => (
                 <div
                   key={d.id}
@@ -103,13 +95,13 @@ export default async function OpenDataPage() {
                   </a>
                 </div>
               ))}
-            </div>
+            </StaggerGrid>
           </div>
         </section>
 
         {/* ── Regional aggregates ──────────────────────────── */}
         <section className="bg-white py-10">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="container-page">
             <h2 className="text-lg font-bold text-gray-900 mb-1">
               Projects by region
             </h2>
@@ -130,7 +122,30 @@ export default async function OpenDataPage() {
                 message="Regional aggregates will appear once projects with a region are published."
               />
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-gray-100">
+              <>
+                {/* Visual summary — bars animate in when scrolled into view. */}
+                <StaggerGrid className="grid md:grid-cols-2 gap-5 mb-8">
+                  <div className="card p-6">
+                    <ChartFrame
+                      eyebrow="By region"
+                      title="Committed budget"
+                      caption="Sum of recorded project budgets per region (indicative; mixed currencies)."
+                    >
+                      <BarChartH data={budgetByRegion} />
+                    </ChartFrame>
+                  </div>
+                  <div className="card p-6">
+                    <ChartFrame
+                      eyebrow="By region"
+                      title="Reported beneficiaries"
+                      caption="Sum of reported beneficiaries per region across published projects."
+                    >
+                      <BarChartH data={beneficiariesByRegion} />
+                    </ChartFrame>
+                  </div>
+                </StaggerGrid>
+
+                <Reveal className="overflow-x-auto rounded-xl border border-gray-100">
                 <table className="w-full text-sm">
                   <caption className="sr-only">
                     Published agri-energy projects by region, with project
@@ -187,7 +202,8 @@ export default async function OpenDataPage() {
                     </tr>
                   </tfoot>
                 </table>
-              </div>
+                </Reveal>
+              </>
             )}
 
             <p className="text-xs text-gray-400 mt-3 leading-relaxed">
@@ -199,9 +215,9 @@ export default async function OpenDataPage() {
         </section>
 
         {/* ── Using the data ───────────────────────────────── */}
-        <section className="bg-gray-50 py-10">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="grid md:grid-cols-2 gap-6">
+        <section className="bg-ink-50 py-10">
+          <div className="container-page">
+            <StaggerGrid className="grid md:grid-cols-2 gap-6">
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-card">
                 <h2 className="font-bold text-gray-900 mb-3">
                   Licence &amp; attribution
@@ -248,7 +264,7 @@ export default async function OpenDataPage() {
                   .
                 </p>
               </div>
-            </div>
+            </StaggerGrid>
           </div>
         </section>
       </main>

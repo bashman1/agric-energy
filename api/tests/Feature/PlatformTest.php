@@ -69,6 +69,7 @@ class PlatformTest extends TestCase
     public function test_partner_registration_creates_pending_account(): void
     {
         $res = $this->postJson('/api/v1/auth/register', [
+            'accountType' => 'individual',
             'name' => 'Green Farms',
             'email' => 'gf@example.test',
             'password' => 'secret123',
@@ -79,8 +80,52 @@ class PlatformTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'gf@example.test',
             'status' => User::STATUS_PENDING,
+            'account_type' => 'individual',
+            'partner_id' => null,
         ]);
         $this->assertTrue(User::where('email', 'gf@example.test')->first()->hasRole('partner'));
+    }
+
+    public function test_organization_registration_creates_pending_partner(): void
+    {
+        $res = $this->postJson('/api/v1/auth/register', [
+            'accountType' => 'organization',
+            'name' => 'Jane Admin',
+            'email' => 'admin@greenenergy.test',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+            'category' => 'Non-Governmental Organization (NGO)',
+            'orgName' => 'Green Energy Uganda',
+            'contactEmail' => 'contact@greenenergy.test',
+            'sectors' => ['Renewable Energy', 'Agriculture'],
+            'valueChains' => ['Coffee', 'Maize'],
+            'coverageScope' => ['National'],
+            'expertise' => ['Research'],
+        ]);
+
+        $res->assertCreated();
+
+        $partner = \App\Models\Partner::where('name', 'Green Energy Uganda')->first();
+        $this->assertNotNull($partner);
+        $this->assertFalse((bool) $partner->published);
+        $this->assertEquals('pending', $partner->workflow_status);
+        $this->assertEquals(['Renewable Energy', 'Agriculture'], $partner->sectors);
+        $this->assertEquals('Non-Governmental Organization (NGO)', $partner->category);
+
+        $user = User::where('email', 'admin@greenenergy.test')->first();
+        $this->assertEquals('organization', $user->account_type);
+        $this->assertEquals($partner->id, $user->partner_id);
+    }
+
+    public function test_organization_registration_requires_org_fields(): void
+    {
+        $this->postJson('/api/v1/auth/register', [
+            'accountType' => 'organization',
+            'name' => 'No Org',
+            'email' => 'noorg@example.test',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+        ])->assertStatus(422);
     }
 
     public function test_pending_partner_cannot_login(): void

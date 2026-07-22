@@ -1,6 +1,8 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import PageHeader from "@/components/public/PageHeader";
 import ResourceCard from "@/components/public/ResourceCard";
+import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import EmptyState from "@/components/shared/EmptyState";
 import { filterResources } from "@/lib/data/resources";
 import { getTaxonomy } from "@/lib/data/taxonomy";
@@ -25,16 +27,13 @@ export default async function ResourcesPage({ searchParams }: PageProps) {
     <>
       <Header />
       <main>
-        <section className="bg-primary-800 text-white py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-primary-300 text-sm font-semibold mb-1 uppercase tracking-wider">Platform</div>
-            <h1 className="text-3xl font-extrabold mb-2">Resources Library</h1>
-            <p className="text-green-200 max-w-xl">Reports, policy briefs, case studies, practical guides, and datasets on agri-energy in Uganda.</p>
-          </div>
-        </section>
+        <PageHeader
+          title="Resources Library"
+          lead="Reports, policy briefs, case studies, practical guides, and datasets on agri-energy in Uganda."
+        />
 
-        <section className="py-8 bg-gray-50 min-h-screen">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-8 bg-ink-50 min-h-screen">
+          <div className="container-page">
             <div className="bg-white rounded-xl border border-gray-100 p-4 mb-6 shadow-card">
               <form method="GET" className="flex flex-wrap gap-3 items-end">
                 <div className="flex-1 min-w-40">
@@ -62,9 +61,9 @@ export default async function ResourcesPage({ searchParams }: PageProps) {
             </div>
 
             {resources.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <StaggerGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {resources.map((r) => <ResourceCard key={r.id} resource={r} />)}
-              </div>
+              </StaggerGrid>
             ) : (
               <EmptyState title="No resources found" message="Try adjusting your filters." icon="📄" action={{ label: "Clear Filters", href: "/resources" }} />
             )}

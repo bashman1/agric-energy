@@ -91,21 +91,21 @@ function MultiDropdown({ placeholder, options, selected, onAdd, loading, disable
           value={search}
           onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
           placeholder={loading ? "Loading from OpenStreetMap…" : placeholder}
-          className="flex-1 bg-transparent outline-none text-sm text-gray-700 placeholder:text-gray-400"
+          className="flex-1 bg-transparent outline-none text-sm text-ink-700 placeholder:text-ink-400"
           onClick={(e) => e.stopPropagation()}
         />
         {loading && <div className="w-3.5 h-3.5 border-2 border-primary-400 border-t-transparent rounded-full animate-spin shrink-0" />}
         {!loading && (
-          <svg className={`w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor">
+          <svg className={`w-3.5 h-3.5 text-ink-400 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.09 1.03l-4.25 4.5a.75.75 0 01-1.09 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
           </svg>
         )}
       </div>
 
       {open && (
-        <ul className="absolute z-[9999] top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-52 overflow-y-auto text-sm">
+        <ul className="absolute z-[9999] top-full left-0 right-0 mt-1 bg-white border border-ink-200 rounded-xl shadow-xl max-h-52 overflow-y-auto text-sm">
           {filtered.length === 0 ? (
-            <li className="px-3 py-2.5 text-gray-400 text-xs">
+            <li className="px-3 py-2.5 text-ink-400 text-xs">
               {selected.length && !search ? "All options selected" : "No matches found"}
             </li>
           ) : (
@@ -113,7 +113,7 @@ function MultiDropdown({ placeholder, options, selected, onAdd, loading, disable
               <li key={opt}>
                 <button
                   type="button"
-                  className="w-full text-left px-3 py-2.5 hover:bg-primary-50 cursor-pointer text-gray-800 transition-colors"
+                  className="w-full text-left px-3 py-2.5 hover:bg-primary-50 cursor-pointer text-ink-800 transition-colors"
                   onMouseDown={(e) => { e.preventDefault(); onAdd(opt); setSearch(""); setOpen(false); }}
                 >
                   {opt}
@@ -199,8 +199,8 @@ export default function LocationPicker({ value, onChange }: Props) {
 
       {/* ── Regions (ADM1) ── */}
       <div>
-        <label htmlFor={`${uid}-regions`} className="block text-xs font-semibold text-gray-600 mb-1.5">
-          Regions <span className="font-normal text-gray-400">(ADM1 · select all that apply)</span>
+        <label htmlFor={`${uid}-regions`} className="block text-xs font-semibold text-ink-600 mb-1.5">
+          Regions <span className="font-normal text-ink-400">(ADM1 · select all that apply)</span>
         </label>
         <MultiDropdown
           inputId={`${uid}-regions`}
@@ -212,7 +212,7 @@ export default function LocationPicker({ value, onChange }: Props) {
         {value.regions.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {value.regions.map((r) => (
-              <Chip key={r} label={`🌍 ${r}`} onRemove={() => removeRegion(r)} />
+              <Chip key={r} label={r} onRemove={() => removeRegion(r)} />
             ))}
           </div>
         )}
@@ -220,11 +220,11 @@ export default function LocationPicker({ value, onChange }: Props) {
 
       {/* ── Districts (ADM2) ── */}
       <div>
-        <label htmlFor={`${uid}-districts`} className="block text-xs font-semibold text-gray-600 mb-1.5">
-          Districts <span className="font-normal text-gray-400">(ADM2 · OpenStreetMap live data)</span>
+        <label htmlFor={`${uid}-districts`} className="block text-xs font-semibold text-ink-600 mb-1.5">
+          Districts <span className="font-normal text-ink-400">(ADM2 · OpenStreetMap live data)</span>
         </label>
         {districtError ? (
-          <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">⚠ {districtError}</p>
+          <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{districtError}</p>
         ) : (
           <MultiDropdown
             inputId={`${uid}-districts`}
@@ -240,7 +240,7 @@ export default function LocationPicker({ value, onChange }: Props) {
         {value.districts.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {value.districts.map((d) => (
-              <Chip key={d} label={`📍 ${d}`} onRemove={() => removeDistrict(d)} />
+              <Chip key={d} label={d} onRemove={() => removeDistrict(d)} />
             ))}
           </div>
         )}
@@ -259,8 +259,8 @@ export default function LocationPicker({ value, onChange }: Props) {
                 <div><span className="font-semibold">{value.districts.length} district{value.districts.length > 1 ? "s" : ""}:</span> {value.districts.join(", ")}</div>
               )}
               {value.lat !== "" && value.lng !== "" && (
-                <div className="font-mono text-[10px] text-gray-500 mt-0.5">
-                  📌 {Number(value.lat).toFixed(4)}°, {Number(value.lng).toFixed(4)}° (map marker)
+                <div className="font-mono text-[10px] text-ink-500 mt-0.5">
+                  {Number(value.lat).toFixed(4)}°, {Number(value.lng).toFixed(4)}° (map marker)
                 </div>
               )}
             </div>
@@ -274,18 +274,18 @@ export default function LocationPicker({ value, onChange }: Props) {
 
       {/* ── Coordinate overrides ── */}
       <div>
-        <div className="text-xs font-semibold text-gray-600 mb-1.5">
-          Map Marker Coordinates <span className="font-normal text-gray-400">(auto-filled from first district)</span>
+        <div className="text-xs font-semibold text-ink-600 mb-1.5">
+          Map Marker Coordinates <span className="font-normal text-ink-400">(auto-filled from first district)</span>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor={`${uid}-lat`} className="block text-[10px] text-gray-500 mb-1">Latitude</label>
+            <label htmlFor={`${uid}-lat`} className="block text-[10px] text-ink-500 mb-1">Latitude</label>
             <input id={`${uid}-lat`} type="number" step="0.0001" value={value.lat}
               onChange={(e) => onChange({ ...value, lat: e.target.value ? parseFloat(e.target.value) : "" })}
               placeholder="e.g. 2.7747" className="form-input text-sm font-mono" />
           </div>
           <div>
-            <label htmlFor={`${uid}-lng`} className="block text-[10px] text-gray-500 mb-1">Longitude</label>
+            <label htmlFor={`${uid}-lng`} className="block text-[10px] text-ink-500 mb-1">Longitude</label>
             <input id={`${uid}-lng`} type="number" step="0.0001" value={value.lng}
               onChange={(e) => onChange({ ...value, lng: e.target.value ? parseFloat(e.target.value) : "" })}
               placeholder="e.g. 32.2990" className="form-input text-sm font-mono" />
@@ -295,8 +295,8 @@ export default function LocationPicker({ value, onChange }: Props) {
 
       {/* ── Location note ── */}
       <div>
-        <label htmlFor={`${uid}-note`} className="block text-xs font-semibold text-gray-600 mb-1">
-          Location Note <span className="font-normal text-gray-400">(optional)</span>
+        <label htmlFor={`${uid}-note`} className="block text-xs font-semibold text-ink-600 mb-1">
+          Location Note <span className="font-normal text-ink-400">(optional)</span>
         </label>
         <input id={`${uid}-note`} type="text" value={value.locationNote}
           onChange={(e) => onChange({ ...value, locationNote: e.target.value })}

@@ -22,12 +22,12 @@ export default async function AdminPolicyEditPage({ params }: Props) {
   if (slug === "new") {
     return (
       <div>
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <nav className="flex items-center gap-2 text-sm text-ink-500 mb-6">
           <Link href="/admin/policies" className="hover:text-primary-700">Policies</Link>
           <span>/</span>
-          <span className="text-gray-800 font-medium">New Policy</span>
+          <span className="text-ink-800 font-medium">New Policy</span>
         </nav>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">New Policy</h1>
+        <h1 className="text-2xl font-display font-semibold text-ink-900 mb-6">New Policy</h1>
         <AdminContentForm module="policies" item={{}} mode="new" />
       </div>
     );
@@ -38,12 +38,12 @@ export default async function AdminPolicyEditPage({ params }: Props) {
 
   return (
     <div>
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+      <nav className="flex items-center gap-2 text-sm text-ink-500 mb-6">
         <Link href="/admin/policies" className="hover:text-primary-700">Policies</Link>
         <span>/</span>
-        <span className="text-gray-800 font-medium truncate max-w-xs">{policy.title}</span>
+        <span className="text-ink-800 font-medium truncate max-w-xs">{policy.title}</span>
       </nav>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Policy</h1>
+      <h1 className="text-2xl font-display font-semibold text-ink-900 mb-6">Edit Policy</h1>
       <AdminContentForm module="policies" item={{ ...policy }} mode="edit" />
     </div>
   );

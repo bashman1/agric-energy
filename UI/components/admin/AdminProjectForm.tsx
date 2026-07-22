@@ -82,8 +82,8 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const inputClass = "w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100";
-  const labelClass = "block text-xs font-semibold text-gray-600 mb-1";
+  const inputClass = "w-full px-3 py-2 bg-ink-50 border border-ink-200 rounded-lg text-sm text-ink-800 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100";
+  const labelClass = "block text-xs font-semibold text-ink-600 mb-1";
   const uid = useId();
 
   // ── Submit ─────────────────────────────────────────────────────────────────
@@ -139,7 +139,7 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
         <div className={`mb-6 px-4 py-3 rounded-lg text-sm font-medium ${msg.type === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
             : "bg-red-50 text-red-700 border border-red-200"
           }`}>
-          {msg.type === "success" ? "✓" : "✗"} {msg.text}
+          {msg.text}
         </div>
       )}
 
@@ -148,8 +148,8 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
         <div className="lg:col-span-2 space-y-5">
 
           {/* Core info */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="font-bold text-gray-900 text-sm mb-4">Core Information</h2>
+          <div className="bg-white rounded-xl border border-ink-200 shadow-card p-5">
+            <h2 className="font-bold text-ink-900 text-sm mb-4">Core Information</h2>
             <div className="space-y-4">
               <div>
                 <label htmlFor={`${uid}-title`} className={labelClass}>Title *</label>
@@ -171,17 +171,17 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
           </div>
 
           {/* Location */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="font-bold text-gray-900 text-sm mb-1">Geographic Location</h2>
-            <p className="text-xs text-gray-500 mb-4">
+          <div className="bg-white rounded-xl border border-ink-200 shadow-card p-5">
+            <h2 className="font-bold text-ink-900 text-sm mb-1">Geographic Location</h2>
+            <p className="text-xs text-ink-500 mb-4">
               Search any place in Uganda — region, district, town, or sub-county. Coordinates are filled automatically.
             </p>
             <LocationPicker value={locationState} onChange={(val) => setLocationState(val)} />
           </div>
 
           {/* Partners & Technologies — now with smart combos */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="font-bold text-gray-900 text-sm mb-4">Partners &amp; Technologies</h2>
+          <div className="bg-white rounded-xl border border-ink-200 shadow-card p-5">
+            <h2 className="font-bold text-ink-900 text-sm mb-4">Partners &amp; Technologies</h2>
             <div className="space-y-5">
 
               {/* Funding Partner (single select, free-text or existing partner) */}
@@ -198,7 +198,7 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
                   createLabel="Use as funding partner (free text)"
                   onCreateNew={(name) => openPartnerPanel("funding", name)}
                 />
-                <p className="text-[11px] text-gray-400 mt-1">Pick from the list, type a freeform name, or create a new partner profile.</p>
+                <p className="text-[11px] text-ink-400 mt-1">Pick from the list, type a freeform name, or create a new partner profile.</p>
                 {panel.open && panel.field === "funding" && (
                   <PartnerCreatePanel
                     initialName={panel.initialName}
@@ -269,8 +269,8 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
 
         {/* ── Sidebar ── */}
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-bold text-gray-900 text-sm mb-4">Status &amp; Visibility</h3>
+          <div className="bg-white rounded-xl border border-ink-200 shadow-card p-5">
+            <h3 className="font-bold text-ink-900 text-sm mb-4">Status &amp; Visibility</h3>
             <div className="space-y-3">
               <div>
                 <label htmlFor={`${uid}-status`} className={labelClass}>Project Status</label>
@@ -291,24 +291,24 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={!!form.published} onChange={(e) => set("published", e.target.checked)} className="w-4 h-4 rounded accent-primary-700" />
-                <span className="text-sm text-gray-700">Published (visible on public site)</span>
+                <span className="text-sm text-ink-700">Published (visible on public site)</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={!!form.featured} onChange={(e) => set("featured", e.target.checked)} className="w-4 h-4 rounded accent-primary-700" />
-                <span className="text-sm text-gray-700">Featured (shown on homepage)</span>
+                <span className="text-sm text-ink-700">Featured (shown on homepage)</span>
               </label>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-bold text-gray-900 text-sm mb-3">External URL</h3>
+          <div className="bg-white rounded-xl border border-ink-200 shadow-card p-5">
+            <h3 className="font-bold text-ink-900 text-sm mb-3">External URL</h3>
             <input type="url" aria-label="External URL" className={inputClass} value={form.externalUrl ?? ""} onChange={(e) => set("externalUrl", e.target.value)} placeholder="https://..." />
           </div>
 
           {/* Location preview */}
           {(locationState.region || locationState.district) && (
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-xs text-emerald-700">
-              <div className="font-semibold mb-1.5">📍 Location</div>
+              <div className="font-semibold mb-1.5">Location</div>
               {locationState.district && <div>{locationState.district}</div>}
               {locationState.region && <div className="text-emerald-600">{locationState.region}</div>}
               {locationState.lat !== "" && (
@@ -328,11 +328,11 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
             </button>
             {mode === "edit" && (
               <Link href={`/projects/${project.slug}`} target="_blank"
-                className="w-full py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors text-center">
+                className="w-full py-2 border border-ink-200 text-ink-600 text-sm font-medium rounded-lg hover:bg-ink-50 transition-colors text-center">
                 Preview Public Page →
               </Link>
             )}
-            <Link href="/admin/projects" className="w-full py-2 text-gray-400 hover:text-gray-600 text-sm text-center transition-colors">
+            <Link href="/admin/projects" className="w-full py-2 text-ink-400 hover:text-ink-600 text-sm text-center transition-colors">
               ← Back to Projects
             </Link>
           </div>

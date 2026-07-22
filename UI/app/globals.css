@@ -60,6 +60,10 @@
   --shadow-card: 0 1px 2px rgba(26,24,21,0.04), 0 1px 3px rgba(26,24,21,0.03);
   --shadow-card-hover: 0 6px 20px rgba(26,24,21,0.08), 0 2px 6px rgba(26,24,21,0.04);
   --shadow-raise: 0 10px 40px rgba(26,24,21,0.10);
+
+  /* Content width — widened from the default 80rem so pages use more of the
+     viewport (less side margin). Drives every `max-w-7xl` utility too. */
+  --container-7xl: 90rem;
 }
 
 /* ─── Base resets ───────────────────────────────────────────────────── */
@@ -121,7 +125,7 @@ footer :focus-visible,
 
 /* ─── Layout primitives ─────────────────────────────────────────────── */
 .container-page {
-  max-width: 80rem; /* 1280px */
+  max-width: 90rem; /* 1440px — matches the widened --container-7xl */
   margin-inline: auto;
   padding-inline: 1rem;
 }
@@ -148,6 +152,49 @@ footer :focus-visible,
 }
 .eyebrow.on-dark { color: var(--color-primary-300); }
 .eyebrow.on-dark::before { background: var(--color-primary-400); }
+
+/* ─── Motion — scroll-reveal + chart draw (CSS-only, house idiom) ────── */
+/* Elements tagged [data-reveal] start hidden and fade/rise into view when
+   the shared IntersectionObserver (components/shared/motion) sets
+   [data-visible]. Only opacity/transform animate (compositor-friendly).
+   A <noscript> rule in the layout un-hides these for no-JS users. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+}
+[data-reveal][data-visible] {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Horizontal chart bars (BarChartH): each fill carries its target width as
+   --w. Inside a revealed wrapper they grow from 0 → --w; outside one (or
+   before hydration paints) they sit at full width so data is never lost. */
+.bar-fill {
+  width: var(--w, 0);
+}
+[data-reveal]:not([data-visible]) .bar-fill {
+  width: 0;
+}
+[data-reveal][data-visible] .bar-fill {
+  width: var(--w, 0);
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Honor the OS "reduce motion" setting — show everything, animate nothing. */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  [data-reveal] .bar-fill,
+  .bar-fill {
+    width: var(--w, 0);
+    transition: none;
+  }
+}
 
 /* ─── Card — white, border-led, restrained lift ─────────────────────── */
 .card {
@@ -198,21 +245,23 @@ footer :focus-visible,
 .btn-ghost:hover { background: var(--color-primary-50); }
 .btn-lg { padding: 0.875rem 1.5rem; font-size: 1rem; border-radius: 0.625rem; }
 
-/* ─── Admin sidebar (unchanged surface) ─────────────────────────────── */
+/* ─── Admin sidebar — warm dark, primary accent (matches design system) ─ */
 .admin-nav-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.625rem 1rem;
+  padding: 0.55rem 0.75rem;
   border-radius: 0.5rem;
-  color: #94a3b8;
+  color: var(--color-ink-400);
   font-size: 0.875rem;
   font-weight: 500;
   transition: background 0.15s, color 0.15s;
   text-decoration: none;
 }
-.admin-nav-link:hover { background: #1e293b; color: #f1f5f9; }
-.admin-nav-link.active { background: #1e3a5f; color: #60a5fa; }
+.admin-nav-link:hover { background: rgba(255, 255, 255, 0.06); color: #ffffff; }
+.admin-nav-link.active { background: rgba(34, 197, 94, 0.14); color: var(--color-primary-300); }
+/* Sidebar icons render slightly larger than 1em for balance. */
+.admin-nav-link svg { width: 1.15em; height: 1.15em; flex-shrink: 0; }
 
 /* ─── Form inputs ───────────────────────────────────────────────────── */
 .form-input {

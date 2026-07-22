@@ -30,12 +30,12 @@ export default async function AdminPartnerEditPage({ params }: Props) {
     if (slug === "new") {
         return (
             <div>
-                <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+                <nav className="flex items-center gap-2 text-sm text-ink-500 mb-6">
                     <Link href="/admin/partners" className="hover:text-primary-700">Partners</Link>
                     <span>/</span>
-                    <span className="text-gray-800 font-medium">New Partner</span>
+                    <span className="text-ink-800 font-medium">New Partner</span>
                 </nav>
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">New Partner</h1>
+                <h1 className="text-2xl font-display font-semibold text-ink-900 mb-6">New Partner</h1>
                 <AdminPartnerForm
                     partner={{}}
                     mode="new"
@@ -51,23 +51,23 @@ export default async function AdminPartnerEditPage({ params }: Props) {
 
     return (
         <div>
-            <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+            <nav className="flex items-center gap-2 text-sm text-ink-500 mb-6">
                 <Link href="/admin/partners" className="hover:text-primary-700">Partners</Link>
                 <span>/</span>
-                <span className="text-gray-800 font-medium truncate max-w-xs">{partner.name}</span>
+                <span className="text-ink-800 font-medium truncate max-w-xs">{partner.name}</span>
             </nav>
 
             {/* Header with logo if available */}
             <div className="flex items-center gap-4 mb-6">
                 {partner.logo && (
-                    <div className="w-12 h-12 rounded-xl border border-gray-100 bg-white p-1.5 shrink-0 flex items-center justify-center shadow-sm">
+                    <div className="w-12 h-12 rounded-xl border border-ink-100 bg-white p-1.5 shrink-0 flex items-center justify-center shadow-sm">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={partner.logo} alt="" className="max-h-full max-w-full object-contain" />
                     </div>
                 )}
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Edit Partner</h1>
-                    <p className="text-sm text-gray-500">{partner.type}</p>
+                    <h1 className="text-2xl font-display font-semibold text-ink-900">Edit Partner</h1>
+                    <p className="text-sm text-ink-500">{partner.type}</p>
                 </div>
             </div>
 

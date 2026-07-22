@@ -207,6 +207,23 @@ export async function fetchDistrictGeoJSON(): Promise<any> {
     return cached;
   }
 
+  // Primary: bundled boundary file — instant and reliable, no external call.
+  // (Districts use `shapeName`; the map's getDistrictName handles that.)
+  try {
+    const res = await fetch("/geo/uga-adm2.geojson");
+    if (res.ok) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const geojson = (await res.json()) as any;
+      if (geojson?.features?.length) {
+        console.log(`[geo] GeoJSON: ${geojson.features.length} districts (local)`);
+        return geojson;
+      }
+    }
+  } catch (e) {
+    console.warn("[geo] local district GeoJSON unavailable — falling back to Overpass", e);
+  }
+
+  // Fallback: live Overpass mirrors (only if the bundled file is missing).
   console.log("[geo] GeoJSON: fetching from Overpass (trying multiple mirrors)…");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const raw = await overpassPost(GEOJSON_QUERY) as any;
@@ -245,6 +262,21 @@ function pip([px, py]: [number, number], ring: number[][]): boolean {
   return inside;
 }
 
+/** Rough centroid (mean of the outer ring) of a Polygon/MultiPolygon geometry. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ringCentroid(geom: any): [number, number] | null {
+  try {
+    const ring: number[][] =
+      geom.type === "MultiPolygon" ? geom.coordinates[0][0] : geom.coordinates[0];
+    if (!ring?.length) return null;
+    let x = 0, y = 0;
+    for (const c of ring) { x += c[0]; y += c[1]; }
+    return [x / ring.length, y / ring.length];
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fetch lightweight district metadata (name + region) for dropdowns.
  * Much faster than the full GeoJSON query.
@@ -255,6 +287,56 @@ export async function fetchDistrictMeta(): Promise<DistrictMeta[]> {
   if (cached) {
     console.log(`[geo] meta: ${cached.length} items (cache)`);
     return cached;
+  }
+
+  // Primary: derive names + regions from the bundled boundary files by
+  // point-in-polygon of each district centroid against the region polygons.
+  // No external call — the district dropdown always populates.
+  try {
+    const [adm2Res, adm1Res] = await Promise.all([
+      fetch("/geo/uga-adm2.geojson"),
+      fetch("/geo/uga-adm1.geojson"),
+    ]);
+    if (adm2Res.ok && adm1Res.ok) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const adm2 = (await adm2Res.json()) as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const adm1 = (await adm1Res.json()) as any;
+      const out: DistrictMeta[] = [];
+      const seen = new Set<string>();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const f of (adm2.features ?? []) as any[]) {
+        const name: string = f.properties?.shapeName || f.properties?.name;
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        const center = ringCentroid(f.geometry);
+        let region: UgandaRegion | "" = "";
+        if (center) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          for (const r of adm1.features as any[]) {
+            const rings: number[][][] =
+              r.geometry.type === "MultiPolygon"
+                ? r.geometry.coordinates.map((p: number[][][]) => p[0])
+                : [r.geometry.coordinates[0]];
+            if (rings.some((ring) => pip(center, ring))) {
+              region = ADM1_SHAPE_TO_REGION[r.properties?.shapeName as string] ?? "";
+              break;
+            }
+          }
+        }
+        out.push({ name, region });
+      }
+      if (out.length) {
+        out.sort((a, b) =>
+          (a.region || "zzz").localeCompare(b.region || "zzz") || a.name.localeCompare(b.name)
+        );
+        console.log(`[geo] meta: ${out.length} items (local) — caching`);
+        cacheSet(META_CACHE_KEY, out);
+        return out;
+      }
+    }
+  } catch (e) {
+    console.warn("[geo] local meta unavailable — falling back to Overpass", e);
   }
 
   console.log("[geo] meta: fetching from Overpass (multiple mirrors)…");

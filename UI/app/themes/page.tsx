@@ -1,6 +1,8 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import PageHeader from "@/components/public/PageHeader";
 import ThemeCard from "@/components/public/ThemeCard";
+import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import EmptyState from "@/components/shared/EmptyState";
 import { filterThemes } from "@/lib/data/themes";
 import Link from "next/link";
@@ -23,18 +25,13 @@ export default async function ThemesPage({ searchParams }: PageProps) {
     <>
       <Header />
       <main>
-        <section className="bg-primary-800 text-white py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-primary-300 text-sm font-semibold mb-1 uppercase tracking-wider">Platform</div>
-            <h1 className="text-3xl font-extrabold mb-2">Thematic Knowledge Hub</h1>
-            <p className="text-green-200 max-w-xl">
-              Explore agri-energy knowledge, evidence, and resources organised around key thematic areas.
-            </p>
-          </div>
-        </section>
+        <PageHeader
+          title="Thematic Knowledge Hub"
+          lead="Explore agri-energy knowledge, evidence, and resources organised around key thematic areas."
+        />
 
-        <section className="py-8 bg-gray-50 min-h-screen">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-8 bg-ink-50 min-h-screen">
+          <div className="container-page">
             <div className="bg-white rounded-xl border border-gray-100 p-4 mb-6 shadow-card">
               <form method="GET" className="flex gap-3 items-end">
                 <div className="flex-1 max-w-sm">
@@ -50,9 +47,9 @@ export default async function ThemesPage({ searchParams }: PageProps) {
             </div>
 
             {themes.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <StaggerGrid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {themes.map((t) => <ThemeCard key={t.id} theme={t} />)}
-              </div>
+              </StaggerGrid>
             ) : (
               <EmptyState title="No themes found" message="Try adjusting your search." icon="📚" action={{ label: "Clear Search", href: "/themes" }} />
             )}

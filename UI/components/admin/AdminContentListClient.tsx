@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import AdminTableSearch from "@/components/admin/AdminTableSearch";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { CONTENT_SCHEMAS, type ContentModule } from "@/components/admin/contentSchemas";
 
 /**
@@ -36,20 +37,11 @@ export default function AdminContentListClient({ module, rows, badgeLabel, dateL
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{schema.plural}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {rows.length} total · {rows.filter((r) => r.published).length} published
-          </p>
-        </div>
-        <Link
-          href={`${schema.adminPath}/new`}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-700 text-white text-sm font-semibold rounded-lg hover:bg-primary-800 transition-colors"
-        >
-          + New {schema.singular}
-        </Link>
-      </div>
+      <AdminPageHeader
+        title={schema.plural}
+        subtitle={`${rows.length} total · ${rows.filter((r) => r.published).length} published`}
+        action={{ label: `New ${schema.singular}`, href: `${schema.adminPath}/new` }}
+      />
 
       <AdminTableSearch
         items={rows}
@@ -59,52 +51,52 @@ export default function AdminContentListClient({ module, rows, badgeLabel, dateL
         {(filtered) => {
           const items = filtered as unknown as ContentRow[];
           return (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <table className="responsive-table min-w-full divide-y divide-gray-100">
+            <div className="bg-white rounded-xl border border-ink-200 shadow-card overflow-hidden">
+              <table className="responsive-table min-w-full divide-y divide-ink-100">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Title</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{badgeLabel}</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{dateLabel}</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Published</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Featured</th>
+                  <tr className="bg-ink-50">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Title</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">{badgeLabel}</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">{dateLabel}</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Published</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Featured</th>
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-ink-100">
                   {items.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center text-gray-400 py-10 text-sm">
+                      <td colSpan={6} className="text-center text-ink-400 py-10 text-sm">
                         No {schema.plural.toLowerCase()} found.
                       </td>
                     </tr>
                   ) : (
                     items.map((r) => (
-                      <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={r.id} className="hover:bg-ink-50 transition-colors">
                         <td className="px-4 py-3">
-                          <div className="font-medium text-gray-900 text-sm max-w-xs truncate">{r.title}</div>
-                          <div className="text-xs text-gray-400 mt-0.5">{r.subtitle || "—"}</div>
+                          <div className="font-medium text-ink-900 text-sm max-w-xs truncate">{r.title}</div>
+                          <div className="text-xs text-ink-400 mt-0.5">{r.subtitle || "—"}</div>
                         </td>
                         <td className="px-4 py-3">
                           {r.badge ? (
-                            <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full border bg-gray-50 text-gray-600 border-gray-200">
+                            <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full border bg-ink-50 text-ink-600 border-ink-200">
                               {r.badge}
                             </span>
                           ) : (
-                            <span className="text-xs text-gray-400">—</span>
+                            <span className="text-xs text-ink-400">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-500">{r.date || "—"}</td>
+                        <td className="px-4 py-3 text-xs text-ink-500">{r.date || "—"}</td>
                         <td className="px-4 py-3">
-                          <span className={`text-xs font-semibold ${r.published ? "text-emerald-600" : "text-gray-400"}`}>
-                            {r.published ? "✓ Live" : "Draft"}
+                          <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded-full ${r.published ? "text-primary-700 bg-primary-50" : "text-ink-500 bg-ink-100"}`}>
+                            {r.published ? "Live" : "Draft"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-400">{r.featured ? "★ Yes" : "—"}</td>
+                        <td className="px-4 py-3 text-xs text-ink-400">{r.featured ? "Yes" : "—"}</td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <Link href={`${schema.adminPath}/${r.slug}`} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</Link>
-                            <Link href={`${schema.publicPath}/${r.slug}`} target="_blank" className="text-xs text-gray-400 hover:text-gray-600">View →</Link>
+                          <div className="flex items-center gap-3">
+                            <Link href={`${schema.adminPath}/${r.slug}`} className="text-xs text-primary-700 hover:text-primary-800 font-semibold">Edit</Link>
+                            <Link href={`${schema.publicPath}/${r.slug}`} target="_blank" className="text-xs text-ink-400 hover:text-ink-600">View</Link>
                           </div>
                         </td>
                       </tr>

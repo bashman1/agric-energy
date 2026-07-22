@@ -15,6 +15,11 @@ class Partner extends Model
     protected $casts = [
         'regions' => 'array',
         'district_coverage' => 'array',
+        'coverage_scope' => 'array',
+        'countries' => 'array',
+        'sectors' => 'array',
+        'value_chains' => 'array',
+        'expertise' => 'array',
         'featured' => 'boolean',
         'published' => 'boolean',
         'reviewed_at' => 'datetime',

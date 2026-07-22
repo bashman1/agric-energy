@@ -212,7 +212,8 @@ function applyIsolation(map: any, regionFilter: string | undefined, districtFilt
   // regional choropleth is the active view, which draws over the districts.
   const regionsVisible = !!map.getLayer("regions-fill")
     && map.getLayoutProperty("regions-fill", "visibility") === "visible";
-  map.setPaintProperty("districts-fill", "fill-opacity", regionsVisible ? 0 : 0.85);
+  // Translucent so the Voyager basemap (roads/towns) reads through the choropleth.
+  map.setPaintProperty("districts-fill", "fill-opacity", regionsVisible ? 0 : 0.55);
 
   // Uganda base fill: hide when any filter is active
   if (map.getLayer("uganda-fill")) {
@@ -398,8 +399,27 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
           style: {
             version: 8 as const,
             glyphs: "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
-            sources: {},
-            layers: [{ id: "background", type: "background", paint: { "background-color": "#0d1b2a" } }],
+            // Carto "Voyager" raster basemap — roads, towns, water and terrain
+            // for geographic context. Free, key-less; choropleth sits on top at
+            // reduced opacity so the streets read through.
+            sources: {
+              basemap: {
+                type: "raster",
+                tiles: [
+                  "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+                  "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+                  "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+                  "https://d.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+                ],
+                tileSize: 256,
+                attribution:
+                  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+              },
+            },
+            layers: [
+              { id: "background", type: "background", paint: { "background-color": "#e8edf0" } },
+              { id: "basemap", type: "raster", source: "basemap" },
+            ],
           },
           center: UGANDA_CENTER, zoom: 6.5, minZoom: 5, maxZoom: 14,
           maxBounds: [[26, -5], [37, 7]] as [[number, number], [number, number]],
@@ -421,32 +441,37 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
           // Note: no separate "projects" source — project data is embedded in adm2 properties
 
           // Layers: back → front
+          // Faint wash to lift Uganda from its neighbours without hiding roads.
           map.addLayer({ id: "uganda-fill", type: "fill", source: "adm0",
-            paint: { "fill-color": "#c8bfa0", "fill-opacity": 1 } });
+            paint: { "fill-color": "#ffffff", "fill-opacity": 0.12 } });
 
           map.addLayer({ id: "districts-fill", type: "fill", source: "adm2",
             paint: { "fill-color": ["interpolate",["linear"],["get","projectCount"],
               ...rampStops(DISTRICT_STOPS, DISTRICT_RAMP)],
-              "fill-opacity": 0.75 } });
+              "fill-opacity": 0.55 } });
 
           // (districts-dim removed — isolation approach hides non-matching features instead)
 
           map.addLayer({ id: "districts-hover", type: "fill", source: "adm2",
-            paint: { "fill-color": "#fbbf24",
-              "fill-opacity": ["case",["boolean",["feature-state","hover"],false],0.45,0] } });
+            paint: { "fill-color": "#f59e0b",
+              "fill-opacity": ["case",["boolean",["feature-state","hover"],false],0.4,0] } });
 
           map.addLayer({ id: "districts-line", type: "line", source: "adm2",
-            paint: { "line-color": "#6b7280", "line-width": 0.6, "line-opacity": 0.8 } });
+            paint: { "line-color": "#4b5563", "line-width": 0.5, "line-opacity": 0.45 } });
 
           // Regional choropleth (open-data aggregates) — hidden until selected.
           map.addLayer({ id: "regions-fill", type: "fill", source: "adm1",
             layout: { visibility: "none" },
             paint: { "fill-color": ["interpolate",["linear"],["get","projectCount"],
               ...rampStops(REGION_STOPS, REGION_RAMP)],
-              "fill-opacity": ["case",["boolean",["feature-state","hover"],false],0.95,0.8] } });
+              "fill-opacity": ["case",["boolean",["feature-state","hover"],false],0.75,0.55] } });
 
           map.addLayer({ id: "regions-line", type: "line", source: "adm1",
-            paint: { "line-color": "#1f2937", "line-width": 2 } });
+            paint: { "line-color": "#1f2937", "line-width": 1.5, "line-opacity": 0.6 } });
+
+          // Crisp national outline on top for a clear country boundary.
+          map.addLayer({ id: "uganda-border", type: "line", source: "adm0",
+            paint: { "line-color": "#0f3d23", "line-width": 1.5, "line-opacity": 0.75 } });
 
 
           // ── Apply initial filter (read from refs to avoid stale closure) ──
