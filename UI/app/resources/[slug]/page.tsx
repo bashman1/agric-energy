@@ -1,5 +1,6 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import DownloadDetail from "@/components/public/DownloadDetail";
 import Badge from "@/components/shared/Badge";
 import { getResourceBySlug } from "@/lib/data/resources";
 import { notFound } from "next/navigation";
@@ -51,12 +52,17 @@ export default async function ResourceDetailPage({ params }: Props) {
         {/* Header */}
         <section className="bg-primary-800 text-white py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Badge label={resource.type} color={color} size="md" />
-            <h1 className="text-3xl lg:text-4xl font-extrabold mt-3 mb-3 leading-tight">{resource.title}</h1>
-            <p className="text-green-200 text-lg max-w-3xl">{resource.summary}</p>
-            {resource.publicationDate && (
-              <p className="text-green-300 text-sm mt-3">Published: {resource.publicationDate}</p>
-            )}
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <Badge label={resource.type} color={color} size="md" />
+                <h1 className="text-3xl lg:text-4xl font-extrabold mt-3 mb-3 leading-tight">{resource.title}</h1>
+                <p className="text-green-200 text-lg max-w-3xl">{resource.summary}</p>
+                {resource.publicationDate && (
+                  <p className="text-green-300 text-sm mt-3">Published: {resource.publicationDate}</p>
+                )}
+              </div>
+              <DownloadDetail type="resources" slug={resource.slug} label="resource" className="shrink-0" />
+            </div>
           </div>
         </section>
 

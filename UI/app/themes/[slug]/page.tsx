@@ -3,6 +3,7 @@ import Footer from "@/components/public/Footer";
 import ResourceCard from "@/components/public/ResourceCard";
 import ProjectCard from "@/components/public/ProjectCard";
 import TechCard from "@/components/public/TechCard";
+import DownloadDetail from "@/components/public/DownloadDetail";
 import { getThemeBySlug } from "@/lib/data/themes";
 import { getProjectBySlug } from "@/lib/data/projects";
 import { getTechnologyBySlug } from "@/lib/data/technologies";
@@ -51,9 +52,14 @@ export default async function ThemeDetailPage({ params }: Props) {
         {/* Header */}
         <section className="bg-primary-800 text-white py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-5xl mb-4">{theme.icon}</div>
-            <h1 className="text-3xl lg:text-4xl font-extrabold mb-3">{theme.name}</h1>
-            <p className="text-green-200 text-lg max-w-2xl leading-relaxed">{theme.summary}</p>
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <div className="text-5xl mb-4">{theme.icon}</div>
+                <h1 className="text-3xl lg:text-4xl font-extrabold mb-3">{theme.name}</h1>
+                <p className="text-green-200 text-lg max-w-2xl leading-relaxed">{theme.summary}</p>
+              </div>
+              <DownloadDetail type="themes" slug={theme.slug} label="theme" className="shrink-0" />
+            </div>
           </div>
         </section>
 

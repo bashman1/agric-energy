@@ -1,5 +1,6 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import DownloadDetail from "@/components/public/DownloadDetail";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -48,8 +49,18 @@ export default async function OpportunityDetailPage({ params }: Props) {
             >
               ← All opportunities
             </Link>
-            <h1 className="text-3xl font-extrabold mt-4">{o.title}</h1>
-            {o.funder && <p className="text-primary-100 mt-2">Offered by {o.funder}</p>}
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <h1 className="text-3xl font-extrabold mt-4">{o.title}</h1>
+                {o.funder && <p className="text-primary-100 mt-2">Offered by {o.funder}</p>}
+              </div>
+              <DownloadDetail
+                type="opportunities"
+                slug={o.slug}
+                label="opportunity"
+                className="mt-4 shrink-0"
+              />
+            </div>
           </div>
         </section>
 

@@ -1,5 +1,6 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import DownloadDetail from "@/components/public/DownloadDetail";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -53,7 +54,10 @@ export default async function EventDetailPage({ params }: Props) {
                 </span>
               )}
             </div>
-            <h1 className="text-3xl font-extrabold">{event.title}</h1>
+            <div className="flex items-start justify-between gap-6">
+              <h1 className="text-3xl font-extrabold">{event.title}</h1>
+              <DownloadDetail type="events" slug={event.slug} label="event" className="shrink-0" />
+            </div>
           </div>
         </section>
 

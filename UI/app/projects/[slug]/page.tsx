@@ -1,6 +1,7 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import Badge from "@/components/shared/Badge";
+import DownloadDetail from "@/components/public/DownloadDetail";
 import { getProjectBySlug } from "@/lib/data/projects";
 import { getTechnologyBySlug } from "@/lib/data/technologies";
 import { getPartnerBySlug } from "@/lib/data/partners";
@@ -75,16 +76,21 @@ export default async function ProjectDetailPage({ params }: Props) {
         {/* Page header */}
         <section className="bg-primary-800 text-white py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap gap-2 mb-3">
-              <Badge label={project.status} color={statusColor} size="md" />
-              {project.featured && (
-                <span className="bg-secondary-500/20 text-secondary-200 border border-secondary-400/30 px-3 py-1 rounded-full text-sm font-semibold">
-                  ★ Featured
-                </span>
-              )}
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  <Badge label={project.status} color={statusColor} size="md" />
+                  {project.featured && (
+                    <span className="bg-secondary-500/20 text-secondary-200 border border-secondary-400/30 px-3 py-1 rounded-full text-sm font-semibold">
+                      ★ Featured
+                    </span>
+                  )}
+                </div>
+                <h1 className="text-3xl lg:text-4xl font-extrabold mb-3 leading-tight">{project.title}</h1>
+                <p className="text-green-200 text-lg max-w-3xl leading-relaxed">{project.summary}</p>
+              </div>
+              <DownloadDetail type="projects" slug={project.slug} label="project" className="shrink-0" />
             </div>
-            <h1 className="text-3xl lg:text-4xl font-extrabold mb-3 leading-tight">{project.title}</h1>
-            <p className="text-green-200 text-lg max-w-3xl leading-relaxed">{project.summary}</p>
             <div className="flex flex-wrap gap-4 mt-4 text-sm text-green-300">
               <span>📍 {project.district || project.region || "Uganda"}{project.district && project.region ? ` · ${project.region}` : ""}</span>
               {project.valueChain && <span>🌾 {project.valueChain}</span>}

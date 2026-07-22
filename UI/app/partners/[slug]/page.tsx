@@ -1,5 +1,6 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import DownloadDetail from "@/components/public/DownloadDetail";
 import Badge from "@/components/shared/Badge";
 import { getPartnerBySlug } from "@/lib/data/partners";
 import { getProjectBySlug } from "@/lib/data/projects";
@@ -62,6 +63,12 @@ export default async function PartnerDetailPage({ params }: Props) {
                 <h1 className="text-3xl lg:text-4xl font-extrabold mt-3 mb-3 leading-tight">{partner.name}</h1>
                 <p className="text-green-200 text-lg max-w-2xl">{partner.summary}</p>
               </div>
+              <DownloadDetail
+                type="partners"
+                slug={partner.slug}
+                label="partner profile"
+                className="shrink-0 sm:ml-auto"
+              />
             </div>
           </div>
         </section>

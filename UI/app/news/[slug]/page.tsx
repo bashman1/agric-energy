@@ -1,5 +1,6 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import DownloadDetail from "@/components/public/DownloadDetail";
 import Gallery from "@/components/shared/Gallery";
 import NewsletterSignup from "@/components/public/NewsletterSignup";
 import Link from "next/link";
@@ -51,7 +52,10 @@ export default async function PostDetailPage({ params }: Props) {
                 </time>
               </span>
             </div>
-            <h1 className="text-3xl font-extrabold leading-tight">{post.title}</h1>
+            <div className="flex items-start justify-between gap-6">
+              <h1 className="text-3xl font-extrabold leading-tight">{post.title}</h1>
+              <DownloadDetail type="news" slug={post.slug} label="article" className="shrink-0" />
+            </div>
           </div>
         </section>
 

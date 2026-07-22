@@ -1,6 +1,7 @@
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import Badge from "@/components/shared/Badge";
+import DownloadDetail from "@/components/public/DownloadDetail";
 import { getTechnologyBySlug } from "@/lib/data/technologies";
 import { getProjectBySlug } from "@/lib/data/projects";
 import { notFound } from "next/navigation";
@@ -45,9 +46,14 @@ export default async function TechDetailPage({ params }: Props) {
         {/* Page header */}
         <section className="bg-primary-800 text-white py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Badge label={tech.category} color="green" size="md" />
-            <h1 className="text-3xl lg:text-4xl font-extrabold mt-3 mb-3">{tech.name}</h1>
-            <p className="text-green-200 text-lg max-w-3xl">{tech.summary}</p>
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <Badge label={tech.category} color="green" size="md" />
+                <h1 className="text-3xl lg:text-4xl font-extrabold mt-3 mb-3">{tech.name}</h1>
+                <p className="text-green-200 text-lg max-w-3xl">{tech.summary}</p>
+              </div>
+              <DownloadDetail type="technologies" slug={tech.slug} label="technology" className="shrink-0" />
+            </div>
           </div>
         </section>
 
