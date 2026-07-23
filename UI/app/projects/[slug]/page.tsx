@@ -8,6 +8,7 @@ import { getPartnerBySlug } from "@/lib/data/partners";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { projectParams } from "@/lib/data/staticParams";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -21,6 +22,11 @@ function fmtBudget(value: number, currency?: string): string {
 
 function fmtNumber(value: number): string {
   return new Intl.NumberFormat("en-GB").format(value);
+}
+
+/** One page per published record, resolved from Laravel at build time. */
+export async function generateStaticParams() {
+  return projectParams();
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

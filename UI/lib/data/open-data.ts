@@ -15,19 +15,19 @@ const EMPTY: RegionStat[] = [];
 
 /** Per-region project aggregates (published projects only). */
 export async function getRegionStats(): Promise<RegionStat[]> {
-  const rows = await apiGet<RegionStat[]>("open-data/regions", EMPTY, {
-    revalidate: 300,
-  });
+  // No revalidate window: these aggregates are baked into the export at
+  // build time and refresh on the next build like everything else.
+  const rows = await apiGet<RegionStat[]>("open-data/regions", EMPTY);
   return [...rows].sort((a, b) => b.count - a.count);
 }
 
 /**
- * Public API base used for direct browser downloads. Unlike `API_URL`
- * (server-only, used by lib/api/client.ts), this must be reachable from
- * the user's browser, so it comes from the NEXT_PUBLIC_ variable.
+ * The exported frontend is served by Laravel, so the API is same-origin
+ * and a relative base works everywhere — in <a href> download links as
+ * well as in fetch(). No NEXT_PUBLIC_API_URL to keep in sync, and no
+ * host baked into the bundle at build time.
  */
-export const PUBLIC_API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api/v1";
+export const PUBLIC_API_URL = "/api/v1";
 
 export const PROJECTS_CSV_URL = `${PUBLIC_API_URL}/open-data/projects.csv`;
 export const PROJECTS_GEOJSON_URL = `${PUBLIC_API_URL}/open-data/projects.geojson`;

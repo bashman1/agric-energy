@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
+import { apiUpload } from "@/lib/api/client";
 
 /**
- * Reusable upload widget. Uploads to /api/media (which proxies to the Laravel
- * API with the server-side token) and calls onUploaded with the public URL.
+ * Reusable upload widget. Uploads straight to Laravel's /api/v1/media with
+ * the caller's Sanctum token, then calls onUploaded with the public URL.
+ * The API accepts raster images only — SVG is rejected as an XSS vector.
  * Drop into any form: <FileUpload kind="image" value={url} onUploaded={setUrl} />
  */
 export default function FileUpload({
@@ -32,10 +34,10 @@ export default function FileUpload({
       const fd = new FormData();
       fd.append("file", file);
       fd.append("kind", kind);
-      const res = await fetch("/api/media", { method: "POST", body: fd });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Upload failed");
-      onUploaded(json.data.url as string);
+      // apiUpload leaves Content-Type unset so the browser supplies the
+      // multipart boundary, and attaches the Sanctum token.
+      const media = await apiUpload<{ url: string }>("media", fd);
+      onUploaded(media!.url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {

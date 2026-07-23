@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { login } from "@/lib/auth/actions";
 
 export default function PartnerLoginPage() {
   const [email, setEmail] = useState("");
@@ -15,14 +16,8 @@ export default function PartnerLoginPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Sign in failed");
-      router.push("/partner");
-      router.refresh();
+      await login(email, password);
+      router.replace("/partner");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");
     } finally {

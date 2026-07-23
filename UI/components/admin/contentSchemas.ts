@@ -58,6 +58,7 @@ export interface ContentModuleDef {
   /** Public detail route prefix, e.g. /news */
   publicPath: string;
   /** Next proxy write route prefix, e.g. /api/posts */
+  /** Laravel resource segment, e.g. "posts". lib/api/client adds /api/v1. */
   apiPath: string;
   fields: ContentFieldDef[];
 }
@@ -69,7 +70,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
     plural: "Posts",
     adminPath: "/admin/posts",
     publicPath: "/news",
-    apiPath: "/api/posts",
+    apiPath: "posts",
     fields: [
       { key: "title", label: "Title", type: "text", required: true, placeholder: "e.g. Solar irrigation reaches 500 farmers in Dokolo" },
       {
@@ -99,7 +100,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
     plural: "Events",
     adminPath: "/admin/events",
     publicPath: "/events",
-    apiPath: "/api/events",
+    apiPath: "events",
     fields: [
       { key: "title", label: "Title", type: "text", required: true, placeholder: "e.g. Agri-Energy Financing Webinar" },
       { key: "type", label: "Type", type: "text", half: true, placeholder: "Webinar, workshop, conference…" },
@@ -120,7 +121,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
     plural: "Opportunities",
     adminPath: "/admin/opportunities",
     publicPath: "/opportunities",
-    apiPath: "/api/opportunities",
+    apiPath: "opportunities",
     fields: [
       { key: "title", label: "Title", type: "text", required: true, placeholder: "e.g. Solar Irrigation Equipment Tender — Lira" },
       {
@@ -156,7 +157,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
     plural: "Policies",
     adminPath: "/admin/policies",
     publicPath: "/policies",
-    apiPath: "/api/policies",
+    apiPath: "policies",
     fields: [
       { key: "title", label: "Title", type: "text", required: true, placeholder: "e.g. National Renewable Energy Policy" },
       { key: "category", label: "Category", type: "text", half: true, placeholder: "Policy, Regulation, Strategy…" },
@@ -173,7 +174,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
     plural: "Themes",
     adminPath: "/admin/themes",
     publicPath: "/themes",
-    apiPath: "/api/themes",
+    apiPath: "themes",
     fields: [
       { key: "name", label: "Name", type: "text", required: true, placeholder: "e.g. Productive Use of Energy" },
       { key: "icon", label: "Icon", type: "text", half: true, placeholder: "Emoji or icon key" },
@@ -189,7 +190,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
     plural: "Technologies",
     adminPath: "/admin/technologies",
     publicPath: "/technologies",
-    apiPath: "/api/technologies",
+    apiPath: "technologies",
     fields: [
       { key: "name", label: "Name", type: "text", required: true, placeholder: "e.g. Solar Water Pumping" },
       { key: "category", label: "Category", type: "text", half: true, placeholder: "e.g. Solar Energy" },
@@ -209,7 +210,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
     plural: "Resources",
     adminPath: "/admin/resources",
     publicPath: "/resources",
-    apiPath: "/api/resources",
+    apiPath: "resources",
     fields: [
       { key: "title", label: "Title", type: "text", required: true, placeholder: "e.g. Solar Irrigation Field Guide" },
       { key: "type", label: "Type", type: "text", half: true, placeholder: "Report, Guide, Policy brief…" },

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AnalyticsController;
+use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\AuditController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\EmailVerificationController;
@@ -107,6 +108,10 @@ Route::prefix('v1')->group(function () {
         // Analytics & reporting.
         Route::get('analytics/overview', [AnalyticsController::class, 'overview']);
         Route::get('analytics/export/{type}', [AnalyticsController::class, 'export']);
+
+        // Reporting module: catalogue + a single period-scoped report.
+        Route::get('reports', [ReportController::class, 'index']);
+        Route::get('reports/{report}', [ReportController::class, 'show']);
 
         // Newsletter subscriber management.
         Route::get('newsletter/subscribers', [NewsletterController::class, 'index']);

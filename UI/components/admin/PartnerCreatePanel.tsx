@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useId } from "react";
+import { ApiError, apiSend } from "@/lib/api/client";
 
 const PARTNER_TYPES = [
     "Government Institution",
@@ -53,33 +54,21 @@ export default function PartnerCreatePanel({ initialName = "", onCreated, onCanc
         setError(null);
 
         try {
-            const res = await fetch("/api/partners", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...form,
-                    description: "",
-                    logo: "",
-                    regions: [],
-                    districtCoverage: [],
-                    technologyIds: [],
-                    themeIds: [],
-                    projectIds: [],
-                    featured: false,
-                    published: true,
-                }),
+            const created = await apiSend<{ slug?: string }>("POST", "partners", {
+                ...form,
+                description: "",
+                logo: "",
+                regions: [],
+                districtCoverage: [],
+                technologyIds: [],
+                themeIds: [],
+                projectIds: [],
+                featured: false,
+                published: true,
             });
-
-            if (res.ok) {
-                const data = await res.json();
-                const slug = data.data?.slug ?? "";
-                onCreated(slug, form.name);
-            } else {
-                const err = await res.json();
-                setError(err.error ?? "Failed to create partner.");
-            }
-        } catch {
-            setError("Network error. Please try again.");
+            onCreated(created?.slug ?? "", form.name);
+        } catch (err) {
+            setError(err instanceof ApiError ? err.message : "Network error. Please try again.");
         } finally {
             setSaving(false);
         }

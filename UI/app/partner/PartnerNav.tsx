@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { logout } from "@/lib/auth/actions";
 
 export default function PartnerNav({
   loggedIn,
@@ -11,10 +12,9 @@ export default function PartnerNav({
 }) {
   const router = useRouter();
 
-  const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/partner/login");
-    router.refresh();
+  const signOut = async () => {
+    await logout();
+    router.replace("/partner/login");
   };
 
   if (!loggedIn) {
@@ -40,7 +40,7 @@ export default function PartnerNav({
       </Link>
       <span className="text-primary-200 text-xs hidden sm:inline">{name}</span>
       <button
-        onClick={logout}
+        onClick={signOut}
         className="text-primary-100 hover:text-white text-xs"
       >
         Sign out

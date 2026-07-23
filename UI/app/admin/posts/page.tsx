@@ -1,9 +1,8 @@
-import { getAllPosts } from "@/lib/data/posts";
-import { getAuthToken } from "@/lib/auth/session";
-import type { Metadata } from "next";
-import AdminContentListClient, { type ContentRow } from "@/components/admin/AdminContentListClient";
+"use client";
 
-export const metadata: Metadata = { title: "Manage Posts" };
+import { getAllPosts } from "@/lib/data/posts";
+import AdminDataPage from "@/components/admin/AdminDataPage";
+import AdminContentListClient, { type ContentRow } from "@/components/admin/AdminContentListClient";
 
 const CATEGORY_LABELS: Record<string, string> = {
   news: "News",
@@ -12,24 +11,27 @@ const CATEGORY_LABELS: Record<string, string> = {
   announcement: "Announcement",
 };
 
-export default async function AdminPostsPage() {
-  const token = await getAuthToken();
-  const posts = await getAllPosts(token);
-
-  const rows: ContentRow[] = [...posts]
-    .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
-    .map((p) => ({
-      id: p.id,
-      slug: p.slug,
-      title: p.title,
-      subtitle: p.excerpt ?? "",
-      badge: CATEGORY_LABELS[p.category] ?? p.category ?? "",
-      date: p.publishedAt?.slice(0, 10) ?? "",
-      published: p.published,
-      featured: p.featured,
-    }));
-
+export default function AdminPostsPage() {
   return (
-    <AdminContentListClient module="posts" rows={rows} badgeLabel="Category" dateLabel="Published" />
+    <AdminDataPage title="Manage Posts" load={() => getAllPosts()}>
+      {(posts) => {
+      const rows: ContentRow[] = [...posts]
+        .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
+        .map((p) => ({
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          subtitle: p.excerpt ?? "",
+          badge: CATEGORY_LABELS[p.category] ?? p.category ?? "",
+          date: p.publishedAt?.slice(0, 10) ?? "",
+          published: p.published,
+          featured: p.featured,
+        }));
+
+      return (
+        <AdminContentListClient module="posts" rows={rows} badgeLabel="Category" dateLabel="Published" />
+      );
+      }}
+    </AdminDataPage>
   );
 }

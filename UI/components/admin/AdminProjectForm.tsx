@@ -6,6 +6,7 @@ import LocationPicker, { type LocationValue } from "@/components/admin/LocationP
 import ComboSelect, { type ComboOption } from "@/components/admin/ComboSelect";
 import PartnerCreatePanel from "@/components/admin/PartnerCreatePanel";
 import Link from "next/link";
+import { ApiError, apiSend } from "@/lib/api/client";
 
 interface Props {
   project: Partial<Project>;
@@ -110,24 +111,17 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
 
     try {
       const isNew = mode === "new";
-      const url = isNew ? "/api/projects" : `/api/projects/${project.slug}`;
+      const path = isNew ? "projects" : `projects/${project.slug}`;
       const method = isNew ? "POST" : "PUT";
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setMsg({ type: "success", text: isNew ? "Project created successfully!" : "Project updated successfully!" });
-        router.refresh();
-        if (isNew && data.data?.slug) router.push(`/admin/projects/${data.data.slug}`);
-      } else {
-        const err = await res.json();
-        setMsg({ type: "error", text: err.error ?? "Failed to save project." });
+      const saved = await apiSend<{ slug?: string }>(method, path, payload);
+      setMsg({ type: "success", text: isNew ? "Project created successfully!" : "Project updated successfully!" });
+      // A new record has no page until it is loaded by slug, so send the
+      // editor to its own URL rather than refreshing an inert route.
+      if (isNew && saved?.slug) {
+        router.replace(`/admin/projects/edit?slug=${encodeURIComponent(saved.slug)}`);
       }
-    } catch {
-      setMsg({ type: "error", text: "Network error. Please try again." });
+    } catch (err) {
+      setMsg({ type: "error", text: err instanceof ApiError ? err.message : "Network error. Please try again." });
     } finally {
       setSaving(false);
     }

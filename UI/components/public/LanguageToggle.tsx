@@ -1,19 +1,14 @@
 "use client";
 // ============================================================
-// LanguageToggle — switches the UI locale by writing the `locale`
-// cookie and refreshing the server components (next-intl resolves
-// the locale from that cookie; there is no URL prefix).
+// LanguageToggle — switches the UI locale.
+// Under the static build there are no server components to refresh, so
+// this calls into IntlProvider, which swaps the message catalogue and
+// persists the choice to the `locale` cookie.
 // ============================================================
-import { useId, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useId, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import {
-  LOCALE_COOKIE,
-  LOCALE_COOKIE_MAX_AGE,
-  localeNames,
-  locales,
-  type Locale,
-} from "@/lib/i18n";
+import { useSwitchLocale } from "@/components/i18n/IntlProvider";
+import { localeNames, locales, type Locale } from "@/lib/i18n";
 
 interface Props {
   /** Colour treatment — light chrome (header) or dark chrome (footer). */
@@ -26,16 +21,14 @@ export default function LanguageToggle({
   className = "",
 }: Props) {
   const t = useTranslations("Language");
-  const router = useRouter();
   const active = useLocale();
+  const switchLocale = useSwitchLocale();
   const [value, setValue] = useState(active);
-  const [isPending, startTransition] = useTransition();
   const selectId = `${useId()}-locale`;
 
   const onChange = (next: Locale) => {
     setValue(next);
-    document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
-    startTransition(() => router.refresh());
+    switchLocale(next);
   };
 
   const isDark = variant === "dark";
@@ -51,7 +44,6 @@ export default function LanguageToggle({
       <select
         id={selectId}
         value={value}
-        disabled={isPending}
         onChange={(e) => onChange(e.target.value as Locale)}
         className={`text-sm font-medium rounded-md py-1.5 pl-2 pr-6 border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:opacity-60 ${
           isDark

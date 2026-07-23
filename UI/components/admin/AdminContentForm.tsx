@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import FileUpload from "@/components/shared/FileUpload";
+import { ApiError, apiSend } from "@/lib/api/client";
 import {
   CONTENT_SCHEMAS,
   type ContentFieldDef,
@@ -234,27 +235,20 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
 
     try {
       const isNew = mode === "new";
-      const url = isNew ? schema.apiPath : `${schema.apiPath}/${slug}`;
+      const path = isNew ? schema.apiPath : `${schema.apiPath}/${slug}`;
       const method = isNew ? "POST" : "PUT";
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+      const saved = await apiSend<{ slug?: string }>(method, path, form);
+      setMsg({
+        type: "success",
+        text: isNew ? `${schema.singular} created successfully!` : `${schema.singular} updated successfully!`,
       });
-      if (res.ok) {
-        const data = await res.json();
-        setMsg({
-          type: "success",
-          text: isNew ? `${schema.singular} created successfully!` : `${schema.singular} updated successfully!`,
-        });
-        router.refresh();
-        if (isNew && data.data?.slug) router.push(`${schema.adminPath}/${data.data.slug}`);
-      } else {
-        const err = await res.json();
-        setMsg({ type: "error", text: err.error ?? `Failed to save ${schema.singular.toLowerCase()}.` });
+      // A new record has no page until it is loaded by slug, so send the
+      // editor to its own URL rather than refreshing an inert route.
+      if (isNew && saved?.slug) {
+        router.replace(`${schema.adminPath}/edit?slug=${encodeURIComponent(saved.slug)}`);
       }
-    } catch {
-      setMsg({ type: "error", text: "Network error. Please try again." });
+    } catch (err) {
+      setMsg({ type: "error", text: err instanceof ApiError ? err.message : "Network error. Please try again." });
     } finally {
       setSaving(false);
     }

@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { CheckCircleIcon } from "@/components/shared/icons";
 import type { ReviewQueueItem } from "@/lib/data/admin";
+import { approveContent, rejectContent } from "@/lib/data/admin";
 
 const TYPE_LABEL: Record<string, string> = {
   projects: "Project",
@@ -20,10 +20,12 @@ const TYPE_LABEL: Record<string, string> = {
 
 export default function ReviewQueueClient({
   items,
+  onChanged,
 }: {
   items: ReviewQueueItem[];
+  /** Refetch the queue — router.refresh() is inert in a static export. */
+  onChanged: () => void;
 }) {
-  const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
 
@@ -33,13 +35,8 @@ export default function ReviewQueueClient({
     setBusy(key(i));
     setError("");
     try {
-      const res = await fetch(`/api/review/${i.type}/${i.slug}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
-      router.refresh();
+      await approveContent(i.type, i.slug);
+      onChanged();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to approve");
     } finally {
@@ -53,13 +50,8 @@ export default function ReviewQueueClient({
     setBusy(key(i));
     setError("");
     try {
-      const res = await fetch(`/api/review/${i.type}/${i.slug}/reject`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
-      router.refresh();
+      await rejectContent(i.type, i.slug, notes);
+      onChanged();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to reject");
     } finally {

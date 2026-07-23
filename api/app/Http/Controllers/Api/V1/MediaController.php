@@ -15,11 +15,21 @@ use Illuminate\Support\Str;
  */
 class MediaController extends Controller
 {
-    private const IMAGE_MIMES = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
+    /**
+     * SVG is deliberately excluded. An SVG is executable markup: a crafted
+     * one served from /storage runs script on the app's own origin, where
+     * it can read the admin's Sanctum token out of sessionStorage. The
+     * frontend is served by this same Laravel instance under the static
+     * build, so there is no origin separation left to blunt that. Raster
+     * formats only — logos should be uploaded as PNG or WebP.
+     */
+    private const IMAGE_MIMES = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
     private const DOC_MIMES = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'csv', 'txt'];
 
     public function store(Request $request): JsonResponse
     {
+        $this->authorize('upload-media');
+
         $kind = $request->input('kind', 'image'); // image | document
         $allowed = $kind === 'document' ? self::DOC_MIMES : self::IMAGE_MIMES;
 

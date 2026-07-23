@@ -7,7 +7,7 @@
 // organizations get a structured multi-step profile (category → info →
 // coverage → sectors/value-chains → profile → expertise → contact →
 // account & review). One flat state object is posted to
-// /api/auth/register on the final step. Reuses ComboSelect for
+// Laravel's /api/v1/auth/register on the final step. Reuses ComboSelect for
 // multi-selects and fetchDistrictMeta/UGANDA_REGIONS for coverage.
 // ============================================================
 
@@ -17,6 +17,7 @@ import ComboSelect from "@/components/admin/ComboSelect";
 import { TextField, TextArea, SelectField, CheckboxGroup, labelClass } from "./fields";
 import { UGANDA_REGIONS } from "@/lib/geography/nominatim";
 import { fetchDistrictMeta } from "@/lib/geo/ugandaGeo";
+import { register } from "@/lib/auth/actions";
 import {
   ORG_CATEGORIES,
   SECTORS,
@@ -241,15 +242,7 @@ export default function RegisterWizard() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildBody()),
-      });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j.error ?? "Registration failed. Please review your details.");
-      }
+      await register(buildBody());
       setDone(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Registration failed");

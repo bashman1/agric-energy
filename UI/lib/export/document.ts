@@ -12,7 +12,14 @@ export type DetailBlock =
   /** A bulleted list (applications, benefits, beneficiaries). */
   | { kind: "list"; heading: string; items: string[] }
   /** Related records — rendered as a table in both formats. */
-  | { kind: "table"; heading: string; columns: string[]; rows: string[][] };
+  | {
+      kind: "table";
+      heading: string;
+      columns: string[];
+      rows: string[][];
+      /** Caption printed under the table (scope, caveats, cut-offs). */
+      note?: string;
+    };
 
 export interface DetailField {
   label: string;
@@ -57,7 +64,8 @@ export function pushBlock(blocks: DetailBlock[], block: DetailBlock | null) {
   if (block.kind === "fields" && block.fields.length === 0) return;
   if (block.kind === "text" && !block.body.trim()) return;
   if (block.kind === "list" && block.items.filter(Boolean).length === 0) return;
-  if (block.kind === "table" && block.rows.length === 0) return;
+  // A table with a note still says something useful when it has no rows.
+  if (block.kind === "table" && block.rows.length === 0 && !block.note) return;
   blocks.push(block);
 }
 

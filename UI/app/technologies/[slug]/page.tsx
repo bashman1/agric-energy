@@ -7,8 +7,14 @@ import { getProjectBySlug } from "@/lib/data/projects";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { technologyParams } from "@/lib/data/staticParams";
 
 interface Props { params: Promise<{ slug: string }> }
+
+/** One page per published record, resolved from Laravel at build time. */
+export async function generateStaticParams() {
+  return technologyParams();
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

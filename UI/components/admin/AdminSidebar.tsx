@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { logout } from "@/lib/auth/actions";
 import {
   DashboardIcon,
   ChartIcon,
@@ -27,6 +28,7 @@ import {
 const navItems: { href: string; label: string; icon: ReactNode; exact?: boolean }[] = [
   { href: "/admin", label: "Dashboard", icon: <DashboardIcon />, exact: true },
   { href: "/admin/analytics", label: "Analytics", icon: <ChartIcon /> },
+  { href: "/admin/reports", label: "Reports", icon: <DocumentIcon /> },
   { href: "/admin/projects", label: "Projects", icon: <SproutIcon /> },
   { href: "/admin/technologies", label: "Technologies", icon: <BoltIcon /> },
   { href: "/admin/themes", label: "Themes", icon: <LayersIcon /> },
@@ -109,9 +111,8 @@ export default function AdminSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-    router.refresh();
+    await logout();
+    router.replace("/admin/login");
   };
 
   const closeMobile = () => setMobileOpen(false);

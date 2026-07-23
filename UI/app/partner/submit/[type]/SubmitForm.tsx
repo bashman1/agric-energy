@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FIELD_SCHEMAS, TYPE_LABELS } from "./schemas";
 import FileUpload from "@/components/shared/FileUpload";
+import { apiSend } from "@/lib/api/client";
 
 export default function SubmitForm({ type }: { type: string }) {
   const router = useRouter();
@@ -18,14 +19,10 @@ export default function SubmitForm({ type }: { type: string }) {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`/api/partner/submit/${type}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Submission failed");
-      router.push("/partner");
-      router.refresh();
+      // Laravel forces partner-authored content into the `pending`
+      // review state, so this posts straight to the content endpoint.
+      await apiSend("POST", type, values);
+      router.replace("/partner");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Submission failed");
     } finally {

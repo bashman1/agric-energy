@@ -169,10 +169,10 @@ export default function AboutPage() {
         {/* Managed by NREP */}
         <section className="py-14 bg-primary-900 text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="font-display text-2xl font-semibold mb-4">Managed by NREP</h2>
+            {/* <h2 className="font-display text-2xl font-semibold mb-4">Managed by NREP</h2>
             <p className="text-primary-100 max-w-2xl mx-auto mb-6 leading-relaxed">
               The Agri-Energy Desk is owned and managed by the National Renewable Energy Platform (NREP) Secretariat as Uganda&apos;s steward of renewable energy knowledge and coordination.
-            </p>
+            </p> */}
             <Link href="/contact" className="inline-flex items-center px-6 py-3 bg-white text-primary-800 font-bold rounded-xl hover:bg-primary-50 transition-colors">
               Contact NREP →
             </Link>

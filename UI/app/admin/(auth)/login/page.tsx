@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { login } from "@/lib/auth/actions";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -15,20 +16,12 @@ export default function AdminLoginPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      if (res.ok) {
-        router.push("/admin");
-        router.refresh();
-      } else {
-        const data = await res.json();
-        setError(data.error ?? "Login failed");
-      }
-    } catch {
-      setError("Network error — please try again");
+      await login(email, password);
+      // The session store has emitted by now, so the guard on /admin
+      // will let the navigation through.
+      router.replace("/admin");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }

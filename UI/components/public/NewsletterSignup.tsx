@@ -6,6 +6,7 @@
 // Two visual variants: "footer" (dark) and "inline" (card).
 // ============================================================
 import { useId, useState } from "react";
+import { ApiError, apiSend } from "@/lib/api/client";
 
 type FormState = "idle" | "loading" | "success" | "error";
 
@@ -38,30 +39,26 @@ export default function NewsletterSignup({
     setState("loading");
     setMessage("");
     try {
-      const res = await fetch("/api/newsletter/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        setState("success");
-        setMessage(
-          data.message ??
-            "Almost there — check your inbox for a confirmation link to complete your subscription."
-        );
-        setEmail("");
-        setName("");
-      } else {
-        setState("error");
-        setMessage(
-          data.error ?? data.message ?? "Subscription failed. Please try again."
-        );
-      }
-    } catch {
-      setState("error");
+      const data =
+        (await apiSend<{ message?: string }>("POST", "newsletter/subscribe", {
+          email,
+          name,
+        })) ?? {};
+      setState("success");
       setMessage(
-        "Network error — please check your connection and try again."
+        data.message ??
+          "Almost there — check your inbox for a confirmation link to complete your subscription."
+      );
+      setEmail("");
+      setName("");
+    } catch (err) {
+      setState("error");
+      // apiSend throws ApiError with the API's own message (duplicate
+      // address, throttled, invalid); anything else is a transport failure.
+      setMessage(
+        err instanceof ApiError
+          ? err.message
+          : "Network error — please check your connection and try again."
       );
     }
   };

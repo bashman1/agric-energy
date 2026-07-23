@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import type { AdminUser } from "@/lib/data/admin";
+import { apiSend } from "@/lib/api/client";
 
 const ALL_ROLES = ["super-admin", "editor", "reviewer", "partner"];
 
@@ -11,18 +11,23 @@ const STATUS_STYLE: Record<string, string> = {
   suspended: "bg-red-50 text-red-700 border-red-200",
 };
 
-export default function UsersClient({ users }: { users: AdminUser[] }) {
-  const router = useRouter();
+export default function UsersClient({
+  users,
+  onChanged,
+}: {
+  users: AdminUser[];
+  /** Refetch the list — router.refresh() is inert in a static export. */
+  onChanged: () => void;
+}) {
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState("");
 
-  const call = async (id: number, run: () => Promise<Response>) => {
+  const call = async (id: number, run: () => Promise<unknown>) => {
     setBusy(id);
     setError("");
     try {
-      const res = await run();
-      if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
-      router.refresh();
+      await run();
+      onChanged();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Action failed");
     } finally {
@@ -31,22 +36,16 @@ export default function UsersClient({ users }: { users: AdminUser[] }) {
   };
 
   const approve = (u: AdminUser) =>
-    call(u.id, () => fetch(`/api/users/${u.id}/approve`, { method: "POST" }));
+    call(u.id, () => apiSend("POST", `users/${u.id}/approve`));
 
   const suspend = (u: AdminUser) =>
-    call(u.id, () => fetch(`/api/users/${u.id}/suspend`, { method: "POST" }));
+    call(u.id, () => apiSend("POST", `users/${u.id}/suspend`));
 
   const toggleRole = (u: AdminUser, role: string) => {
     const roles = u.roles.includes(role)
       ? u.roles.filter((r) => r !== role)
       : [...u.roles, role];
-    call(u.id, () =>
-      fetch(`/api/users/${u.id}/roles`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roles }),
-      })
-    );
+    call(u.id, () => apiSend("PUT", `users/${u.id}/roles`, { roles }));
   };
 
   const pending = users.filter((u) => u.status === "pending");

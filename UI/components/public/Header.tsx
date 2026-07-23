@@ -7,18 +7,36 @@ import SearchAutocomplete from "./SearchAutocomplete";
 import LanguageToggle from "./LanguageToggle";
 
 // `key` indexes the Nav message catalog; `href` is the route.
-const navLinks = [
+interface NavLink {
+  href: string;
+  key: string;
+}
+
+/** A nav entry is either a link or a group rendered as a dropdown. */
+type NavEntry = NavLink | { key: string; children: NavLink[] };
+
+const navEntries: NavEntry[] = [
   { href: "/projects", key: "projects" },
   { href: "/technologies", key: "technologies" },
+  { href: "/themes", key: "themes" },
   { href: "/partners", key: "partners" },
   { href: "/resources", key: "resources" },
-  { href: "/events", key: "events" },
-  { href: "/opportunities", key: "opportunities" },
-  { href: "/news", key: "news" },
-  { href: "/tenders", key: "tenders" },
+  {
+    // Tenders live under Opportunities, so they stay out of the top level.
+    key: "updates",
+    children: [
+      { href: "/events", key: "events" },
+      { href: "/opportunities", key: "opportunities" },
+      { href: "/news", key: "news" },
+    ],
+  },
   { href: "/map", key: "map" },
   { href: "/about", key: "about" },
-] as const;
+];
+
+function isGroup(entry: NavEntry): entry is { key: string; children: NavLink[] } {
+  return "children" in entry;
+}
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -111,16 +129,30 @@ export default function Header() {
               aria-label={t("label")}
               className="hidden xl:flex items-center gap-0.5 mr-auto"
             >
-              {navLinks.map((link) => {
-                const isActive = pathname.startsWith(link.href);
+              {navEntries.map((entry) => {
+                if (isGroup(entry)) {
+                  return (
+                    <NavDropdown
+                      key={entry.key}
+                      label={t(entry.key)}
+                      items={entry.children.map((child) => ({
+                        href: child.href,
+                        label: t(child.key),
+                      }))}
+                      pathname={pathname}
+                      linkClass={navLinkClass}
+                    />
+                  );
+                }
+                const isActive = pathname.startsWith(entry.href);
                 return (
                   <Link
-                    key={link.href}
-                    href={link.href}
+                    key={entry.href}
+                    href={entry.href}
                     aria-current={isActive ? "page" : undefined}
                     className={navLinkClass(isActive)}
                   >
-                    {t(link.key)}
+                    {t(entry.key)}
                   </Link>
                 );
               })}
@@ -173,24 +205,35 @@ export default function Header() {
             >
               <SearchAutocomplete className="mb-3" />
               <nav aria-label={t("mobileLabel")} className="grid grid-cols-2 gap-1">
-                {navLinks.map((link) => {
-                  const isActive = pathname.startsWith(link.href);
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      aria-current={isActive ? "page" : undefined}
-                      onClick={() => setMenuOpen(false)}
-                      className={`block px-3 py-2.5 rounded-md text-sm font-medium ${
-                        isActive
-                          ? "text-primary-700 bg-primary-50"
-                          : "text-ink-700 hover:text-primary-700 hover:bg-ink-50"
-                      }`}
-                    >
-                      {t(link.key)}
-                    </Link>
-                  );
-                })}
+                {navEntries.map((entry) =>
+                  isGroup(entry) ? (
+                    // Groups keep their heading on mobile — no nested dropdown.
+                    <div key={entry.key} className="col-span-2 mt-2">
+                      <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
+                        {t(entry.key)}
+                      </p>
+                      <div className="grid grid-cols-2 gap-1">
+                        {entry.children.map((child) => (
+                          <MobileNavLink
+                            key={child.href}
+                            href={child.href}
+                            label={t(child.key)}
+                            active={pathname.startsWith(child.href)}
+                            onNavigate={() => setMenuOpen(false)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <MobileNavLink
+                      key={entry.href}
+                      href={entry.href}
+                      label={t(entry.key)}
+                      active={pathname.startsWith(entry.href)}
+                      onNavigate={() => setMenuOpen(false)}
+                    />
+                  )
+                )}
               </nav>
               <div className="mt-3 pt-3 border-t border-ink-100 flex flex-col gap-2">
                 <Link
@@ -214,5 +257,132 @@ export default function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+// ─── Desktop nav dropdown ─────────────────────────────────────
+
+interface NavDropdownProps {
+  label: string;
+  items: { href: string; label: string }[];
+  pathname: string;
+  linkClass: (active: boolean) => string;
+}
+
+function NavDropdown({ label, items, pathname, linkClass }: NavDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const isActive = items.some((item) => pathname.startsWith(item.href));
+
+  // Close when the route changes so the panel never outlives its page.
+  const [seenPathname, setSeenPathname] = useState(pathname);
+  if (seenPathname !== pathname) {
+    setSeenPathname(pathname);
+    setOpen(false);
+  }
+
+  useEffect(() => {
+    if (!open) return;
+
+    // A click or a tab-stop outside the group dismisses the panel.
+    const onPointerDown = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onFocusIn = (e: FocusEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    // Click toggles the panel — predictable on touch as well as pointer.
+    <div ref={containerRef} className="relative">
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={`${linkClass(isActive)} inline-flex items-center gap-1`}
+      >
+        {label}
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <ul className="absolute left-0 top-full z-50 w-52 rounded-lg border border-ink-200 bg-white py-1 shadow-lg">
+          {items.map((item) => {
+            const active = pathname.startsWith(item.href);
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  onClick={() => setOpen(false)}
+                  className={`block px-3 py-2 text-[13px] font-medium transition-colors ${
+                    active
+                      ? "text-primary-700 bg-primary-50"
+                      : "text-ink-700 hover:text-primary-700 hover:bg-ink-50"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// ─── Mobile nav link ──────────────────────────────────────────
+
+interface MobileNavLinkProps {
+  href: string;
+  label: string;
+  active: boolean;
+  onNavigate: () => void;
+}
+
+function MobileNavLink({ href, label, active, onNavigate }: MobileNavLinkProps) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      onClick={onNavigate}
+      className={`block px-3 py-2.5 rounded-md text-sm font-medium ${
+        active
+          ? "text-primary-700 bg-primary-50"
+          : "text-ink-700 hover:text-primary-700 hover:bg-ink-50"
+      }`}
+    >
+      {label}
+    </Link>
   );
 }

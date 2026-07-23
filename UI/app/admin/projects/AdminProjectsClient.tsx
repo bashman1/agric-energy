@@ -10,7 +10,7 @@ export default function AdminProjectsClient({ projects }: { projects: Project[] 
       <AdminPageHeader
         title="Projects"
         subtitle={`${projects.length} total · ${projects.filter((p) => p.published).length} published`}
-        action={{ label: "New Project", href: "/admin/projects/new" }}
+        action={{ label: "New Project", href: "/admin/projects/edit" }}
       />
 
       <AdminTableSearch
@@ -63,7 +63,7 @@ export default function AdminProjectsClient({ projects }: { projects: Project[] 
                         <td className="px-4 py-3 text-xs text-ink-400">{p.featured ? "Yes" : "—"}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <Link href={`/admin/projects/${p.slug}`} className="text-xs text-primary-700 hover:text-primary-800 font-semibold">Edit</Link>
+                            <Link href={`/admin/projects/edit?slug=${encodeURIComponent(p.slug)}`} className="text-xs text-primary-700 hover:text-primary-800 font-semibold">Edit</Link>
                             <Link href={`/projects/${p.slug}`} target="_blank" className="text-xs text-ink-400 hover:text-ink-600">View</Link>
                           </div>
                         </td>

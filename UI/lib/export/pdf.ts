@@ -14,14 +14,32 @@ const INK_50: [number, number, number] = [248, 248, 246];
 const PRIMARY_800: [number, number, number] = [22, 101, 52];
 const PRIMARY_100: [number, number, number] = [220, 252, 231];
 
-const PAGE_W = 210;
-const PAGE_H = 297;
 const MARGIN = 18;
-const CONTENT_W = PAGE_W - MARGIN * 2;
-const BOTTOM_LIMIT = PAGE_H - 22;
+
+// A4 in mm. Page size is module state rather than a threaded parameter:
+// rendering is fully synchronous, so two documents can never interleave.
+let PAGE_W = 210;
+let PAGE_H = 297;
+let CONTENT_W = PAGE_W - MARGIN * 2;
+let BOTTOM_LIMIT = PAGE_H - 22;
+
+/** Wide tables (report matrices) are unreadable in portrait. */
+function pickOrientation(doc: DetailDocument): "portrait" | "landscape" {
+  const widest = doc.blocks.reduce(
+    (max, block) => (block.kind === "table" ? Math.max(max, block.columns.length) : max),
+    0
+  );
+  return widest > 6 ? "landscape" : "portrait";
+}
 
 export function renderDetailPdf(doc: DetailDocument, generatedAt: Date): ArrayBuffer {
-  const pdf = new jsPDF({ unit: "mm", format: "a4", compress: true });
+  const orientation = pickOrientation(doc);
+  PAGE_W = orientation === "landscape" ? 297 : 210;
+  PAGE_H = orientation === "landscape" ? 210 : 297;
+  CONTENT_W = PAGE_W - MARGIN * 2;
+  BOTTOM_LIMIT = PAGE_H - 22;
+
+  const pdf = new jsPDF({ unit: "mm", format: "a4", orientation, compress: true });
   const masthead = drawMasthead(pdf, doc);
   let y = masthead.y;
 
@@ -39,6 +57,7 @@ export function renderDetailPdf(doc: DetailDocument, generatedAt: Date): ArrayBu
       y = drawList(pdf, block.items, y);
     } else {
       y = drawTable(pdf, block.columns, block.rows, y);
+      if (block.note) y = drawNote(pdf, block.note, y);
     }
     y += 4;
   }
@@ -236,6 +255,23 @@ function drawParagraph(pdf: jsPDF, body: string, y: number): number {
   }
 
   return y;
+}
+
+/** Small grey caption under a table. */
+function drawNote(pdf: jsPDF, note: string, y: number): number {
+  pdf.setFont("helvetica", "italic");
+  pdf.setFontSize(8);
+  pdf.setTextColor(...INK_500);
+
+  y += 1.5;
+  for (const line of pdf.splitTextToSize(note, CONTENT_W) as string[]) {
+    y = ensureSpace(pdf, y, 4.5);
+    pdf.text(line, MARGIN, y);
+    y += 4;
+  }
+
+  pdf.setFont("helvetica", "normal");
+  return y + 1;
 }
 
 function drawList(pdf: jsPDF, items: string[], y: number): number {

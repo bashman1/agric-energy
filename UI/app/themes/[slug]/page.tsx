@@ -11,8 +11,14 @@ import { getResourceBySlug } from "@/lib/data/resources";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { themeParams } from "@/lib/data/staticParams";
 
 interface Props { params: Promise<{ slug: string }> }
+
+/** One page per published record, resolved from Laravel at build time. */
+export async function generateStaticParams() {
+  return themeParams();
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import { ApiError, apiSend } from "@/lib/api/client";
 
 type FormState = "idle" | "loading" | "success" | "error";
 
@@ -20,20 +21,16 @@ export default function ContactPage() {
     setState("loading");
     setErrorMsg("");
     try {
-      const res = await fetch("/api/submissions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionType, name, organisation, email, subject, message }),
+      await apiSend("POST", "submissions", {
+        submissionType, name, organisation, email, subject, message,
       });
-      if (res.ok) {
-        setState("success");
-      } else {
-        const data = await res.json();
-        setErrorMsg(data.error ?? "Submission failed. Please try again.");
-        setState("error");
-      }
-    } catch {
-      setErrorMsg("Network error — please check your connection and try again.");
+      setState("success");
+    } catch (err) {
+      setErrorMsg(
+        err instanceof ApiError
+          ? err.message
+          : "Network error — please check your connection and try again."
+      );
       setState("error");
     }
   };

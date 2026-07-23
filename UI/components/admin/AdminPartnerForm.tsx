@@ -17,6 +17,7 @@ import {
     toOptions,
 } from "@/lib/data/partnerOptions";
 import Link from "next/link";
+import { ApiError, apiSend } from "@/lib/api/client";
 
 const PARTNER_TYPES = [
     "Government Institution",
@@ -103,24 +104,15 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
         setMsg(null);
         try {
             const isNew = mode === "new";
-            const url = isNew ? "/api/partners" : `/api/partners/${partner.slug}`;
+            const path = isNew ? "partners" : `partners/${partner.slug}`;
             const method = isNew ? "POST" : "PUT";
-            const res = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setMsg({ type: "success", text: isNew ? "Partner created!" : "Partner updated!" });
-                router.refresh();
-                if (isNew && data.data?.slug) router.push(`/admin/partners/${data.data.slug}`);
-            } else {
-                const err = await res.json();
-                setMsg({ type: "error", text: err.error ?? "Failed to save." });
+            const saved = await apiSend<{ slug?: string }>(method, path, form);
+            setMsg({ type: "success", text: isNew ? "Partner created!" : "Partner updated!" });
+            if (isNew && saved?.slug) {
+                router.replace(`/admin/partners/edit?slug=${encodeURIComponent(saved.slug)}`);
             }
-        } catch {
-            setMsg({ type: "error", text: "Network error. Please try again." });
+        } catch (err) {
+            setMsg({ type: "error", text: err instanceof ApiError ? err.message : "Network error. Please try again." });
         } finally {
             setSaving(false);
         }
@@ -130,15 +122,10 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
         if (!confirm(`Delete "${form.name}"? This cannot be undone.`)) return;
         setDeleting(true);
         try {
-            const res = await fetch(`/api/partners/${partner.slug}`, { method: "DELETE" });
-            if (res.ok) {
-                router.push("/admin/partners");
-                router.refresh();
-            } else {
-                setMsg({ type: "error", text: "Failed to delete partner." });
-            }
-        } catch {
-            setMsg({ type: "error", text: "Network error." });
+            await apiSend("DELETE", `partners/${partner.slug}`);
+            router.replace("/admin/partners");
+        } catch (err) {
+            setMsg({ type: "error", text: err instanceof ApiError ? err.message : "Network error." });
         } finally {
             setDeleting(false);
         }

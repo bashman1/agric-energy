@@ -51,6 +51,12 @@ class AppServiceProvider extends ServiceProvider
         // Contact-form inbox: editors and reviewers may triage.
         Gate::define('viewAny', fn (User $user) => $user->hasAnyRole(['editor', 'reviewer']));
 
+        // Uploads: any approved contributor. Mirrors ContentPolicy::create —
+        // the admin bundle is publicly downloadable under the static build, so
+        // `auth:sanctum` alone would let a pending or suspended account upload.
+        Gate::define('upload-media', fn (User $user) => $user->isApproved()
+            && $user->hasAnyRole(['editor', 'reviewer', 'partner']));
+
         // Account management is restricted to super-admins (granted via before()).
         Gate::define('manage-users', fn (User $user) => false);
     }

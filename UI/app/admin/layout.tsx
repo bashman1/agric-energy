@@ -1,5 +1,6 @@
 "use client";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import RouteGuard from "@/components/auth/RouteGuard";
 import { usePathname } from "next/navigation";
 
 // Auth-only pages that should NOT show the admin shell
@@ -14,8 +15,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  // Authenticated admin pages — render full shell with sidebar
+  // Authenticated admin pages — render full shell with sidebar.
+  // Guarding here covers every page under /admin in one place, which is
+  // what the deleted middleware used to do. It gates rendering only —
+  // Laravel is what actually protects the data.
   return (
+    <RouteGuard area="admin">
     <div className="flex min-h-screen bg-ink-50">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
@@ -33,5 +38,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </main>
       </div>
     </div>
+    </RouteGuard>
   );
 }

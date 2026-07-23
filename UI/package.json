@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "build:install": "bash ../deploy/scripts/build-ui.sh",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint"
   },
   "dependencies": {

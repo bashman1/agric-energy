@@ -55,6 +55,7 @@ export async function renderDetailXlsx(
       for (const item of block.items) writeBullet(sheet, item);
     } else {
       writeTable(sheet, block.columns, block.rows);
+      if (block.note) writeNote(sheet, block.note);
     }
 
     sheet.addRow([]);
@@ -166,6 +167,15 @@ function writeTable(sheet: Sheet, columns: string[], rows: string[][]) {
       row.getCell(c).border = { bottom: { style: "hair", color: { argb: INK_200 } } };
     }
   }
+}
+
+/** Grey caption row under a table. */
+function writeNote(sheet: Sheet, note: string) {
+  const row = sheet.addRow([note]);
+  row.font = { size: 9, italic: true, color: { argb: INK_500 } };
+  mergeAcross(sheet, row);
+  row.alignment = { wrapText: true, vertical: "top" };
+  row.height = Math.min(120, 14 * Math.max(1, Math.ceil(note.length / 128)));
 }
 
 function writeFooter(sheet: Sheet, doc: DetailDocument, generatedAt: Date) {

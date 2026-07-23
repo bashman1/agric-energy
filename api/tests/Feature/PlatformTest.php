@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -226,5 +228,49 @@ class PlatformTest extends TestCase
         $admin = $this->makeUser('super-admin');
         Sanctum::actingAs($admin, ['*']);
         $this->getJson('/api/v1/analytics/overview')->assertOk();
+    }
+
+    /**
+     * Uploads must check approval, not just authentication. The static build
+     * ships the admin bundle to anyone, so `auth:sanctum` alone is not a guard.
+     */
+    public function test_media_upload_requires_an_approved_contributor(): void
+    {
+        Storage::fake('public');
+        $file = UploadedFile::fake()->image('logo.png');
+
+        $pending = $this->makeUser('partner', User::STATUS_PENDING);
+        Sanctum::actingAs($pending, ['*']);
+        $this->postJson('/api/v1/media', ['file' => $file, 'kind' => 'image'])
+            ->assertForbidden();
+
+        $approved = $this->makeUser('partner');
+        Sanctum::actingAs($approved, ['*']);
+        $this->postJson('/api/v1/media', ['file' => $file, 'kind' => 'image'])
+            ->assertCreated();
+    }
+
+    /**
+     * An SVG is executable markup. Served from /storage on the same origin
+     * as the app, a crafted one could read the admin's token, so uploads
+     * must reject it outright rather than rely on the kind check.
+     */
+    public function test_svg_upload_is_rejected(): void
+    {
+        Storage::fake('public');
+        $approved = $this->makeUser('editor');
+        Sanctum::actingAs($approved, ['*']);
+
+        $svg = UploadedFile::fake()->createWithContent(
+            'payload.svg',
+            '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
+        );
+
+        $this->postJson('/api/v1/media', ['file' => $svg, 'kind' => 'image'])
+            ->assertStatus(422);
+
+        // Also rejected when smuggled through the document path.
+        $this->postJson('/api/v1/media', ['file' => $svg, 'kind' => 'document'])
+            ->assertStatus(422);
     }
 }

@@ -1,6 +1,7 @@
+import { Suspense } from "react";
 import Header from "@/components/public/Header";
+import NewsletterStatus from "./NewsletterStatus";
 import Footer from "@/components/public/Footer";
-import NewsletterSignup from "@/components/public/NewsletterSignup";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -10,45 +11,9 @@ export const metadata: Metadata = {
     "Subscribe to the Agri-Energy Desk newsletter for monthly updates on projects, technologies, funding calls and events in Uganda.",
 };
 
-/** Confirmation states the API redirects back to via ?status=. */
-const STATUS_MESSAGES: Record<
-  string,
-  { icon: string; title: string; body: string; tone: "success" | "info" | "error" }
-> = {
-  confirmed: {
-    icon: "✅",
-    title: "Subscription confirmed",
-    body: "Thank you — your email address is verified and you are now on the Agri-Energy Desk newsletter list. Your first issue will arrive with the next monthly send.",
-    tone: "success",
-  },
-  unsubscribed: {
-    icon: "👋",
-    title: "You have been unsubscribed",
-    body: "Your email address has been removed from the newsletter list and you will not receive further issues. You are welcome to subscribe again at any time using the form below.",
-    tone: "info",
-  },
-  invalid: {
-    icon: "⚠️",
-    title: "That link is no longer valid",
-    body: "The confirmation or unsubscribe link has expired or has already been used. Please subscribe again below, or contact us if you need help.",
-    tone: "error",
-  },
-};
 
-const TONE_CLASSES: Record<string, string> = {
-  success: "bg-emerald-50 border-emerald-200 text-emerald-800",
-  info: "bg-blue-50 border-blue-200 text-blue-800",
-  error: "bg-amber-50 border-amber-200 text-amber-800",
-};
 
-interface PageProps {
-  searchParams: Promise<Record<string, string | undefined>>;
-}
-
-export default async function NewsletterPage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const status = params.status ? STATUS_MESSAGES[params.status] : undefined;
-
+export default function NewsletterPage() {
   return (
     <>
       <Header />
@@ -71,33 +36,11 @@ export default async function NewsletterPage({ searchParams }: PageProps) {
 
         <section className="bg-gray-50 py-10 min-h-[50vh]">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            {status && (
-              <div
-                role="status"
-                aria-live="polite"
-                className={`mb-8 rounded-2xl border p-6 ${TONE_CLASSES[status.tone]}`}
-              >
-                <div className="flex items-start gap-4">
-                  <span className="text-3xl shrink-0" aria-hidden="true">
-                    {status.icon}
-                  </span>
-                  <div>
-                    <h2 className="text-lg font-bold mb-1">{status.title}</h2>
-                    <p className="text-sm leading-relaxed">{status.body}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div className="grid lg:grid-cols-2 gap-8 items-start">
-              <NewsletterSignup
-                variant="inline"
-                heading={
-                  params.status === "unsubscribed"
-                    ? "Changed your mind? Subscribe again"
-                    : "Subscribe to the newsletter"
-                }
-              />
+              {/* useSearchParams needs a Suspense boundary to prerender. */}
+              <Suspense fallback={null}>
+                <NewsletterStatus />
+              </Suspense>
 
               <div className="space-y-6">
                 <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-card">

@@ -1,12 +1,15 @@
-import type { Metadata } from "next";
-import { getAuthToken } from "@/lib/auth/session";
+"use client";
+
+import AdminDataPage from "@/components/admin/AdminDataPage";
 import { getUsers } from "@/lib/data/admin";
 import UsersClient from "./UsersClient";
 
-export const metadata: Metadata = { title: "Users" };
-
-export default async function AdminUsersPage() {
-  const token = await getAuthToken();
-  const users = await getUsers(token);
-  return <UsersClient users={users} />;
+export default function AdminUsersPage() {
+  return (
+    <AdminDataPage title="Users" load={() => getUsers()}>
+      {(users, reload) => {
+      return <UsersClient users={users} onChanged={reload} />;
+      }}
+    </AdminDataPage>
+  );
 }

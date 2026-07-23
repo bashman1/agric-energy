@@ -40,7 +40,7 @@ export default function AdminContentListClient({ module, rows, badgeLabel, dateL
       <AdminPageHeader
         title={schema.plural}
         subtitle={`${rows.length} total · ${rows.filter((r) => r.published).length} published`}
-        action={{ label: `New ${schema.singular}`, href: `${schema.adminPath}/new` }}
+        action={{ label: `New ${schema.singular}`, href: `${schema.adminPath}/edit` }}
       />
 
       <AdminTableSearch
@@ -95,7 +95,7 @@ export default function AdminContentListClient({ module, rows, badgeLabel, dateL
                         <td className="px-4 py-3 text-xs text-ink-400">{r.featured ? "Yes" : "—"}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <Link href={`${schema.adminPath}/${r.slug}`} className="text-xs text-primary-700 hover:text-primary-800 font-semibold">Edit</Link>
+                            <Link href={`${schema.adminPath}/edit?slug=${encodeURIComponent(r.slug)}`} className="text-xs text-primary-700 hover:text-primary-800 font-semibold">Edit</Link>
                             <Link href={`${schema.publicPath}/${r.slug}`} target="_blank" className="text-xs text-ink-400 hover:text-ink-600">View</Link>
                           </div>
                         </td>
