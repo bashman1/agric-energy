@@ -24,6 +24,14 @@ function fmtNumber(value: number): string {
   return new Intl.NumberFormat("en-GB").format(value);
 }
 
+/** "1.2 MB" from a byte count; empty string when size is unknown. */
+function fmtFileSize(bytes?: number): string {
+  if (!bytes) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 /** One page per published record, resolved from Laravel at build time. */
 export async function generateStaticParams() {
   return projectParams();
@@ -113,6 +121,30 @@ export default async function ProjectDetailPage({ params }: Props) {
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Main column */}
               <div className="lg:col-span-2 space-y-6">
+                {/* Key figures */}
+                {(project.budget != null || project.beneficiaryCount != null) && (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {project.budget != null && (
+                      <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-card">
+                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Budget</div>
+                        <div className="mt-1 text-3xl font-extrabold text-primary-800 leading-tight">
+                          {fmtBudget(project.budget, project.budgetCurrency)}
+                        </div>
+                        <div className="mt-1 text-xs text-gray-400">Total investment in this project</div>
+                      </div>
+                    )}
+                    {project.beneficiaryCount != null && (
+                      <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-card">
+                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Beneficiaries Reached</div>
+                        <div className="mt-1 text-3xl font-extrabold text-gray-900 leading-tight">
+                          {fmtNumber(project.beneficiaryCount)}
+                        </div>
+                        <div className="mt-1 text-xs text-gray-400">People directly served</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Description */}
                 {project.description && (
                   <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-card">
@@ -156,6 +188,35 @@ export default async function ProjectDetailPage({ params }: Props) {
                     </div>
                   </div>
                 )}
+
+                {/* Downloads / attachments */}
+                {project.attachments && project.attachments.length > 0 && (
+                  <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-card">
+                    <h2 className="font-bold text-gray-900 text-lg mb-4">Documents & Downloads</h2>
+                    <ul className="space-y-2">
+                      {project.attachments.map((att, idx) => (
+                        <li key={`${att.url}-${idx}`}>
+                          <a
+                            href={att.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-primary-200 hover:bg-primary-50 transition-colors group"
+                          >
+                            <span className="text-xl shrink-0">📄</span>
+                            <span className="flex-1 min-w-0 truncate font-semibold text-gray-800 text-sm group-hover:text-primary-700 transition-colors">
+                              {att.name}
+                            </span>
+                            {att.size ? (
+                              <span className="text-xs text-gray-400 shrink-0">{fmtFileSize(att.size)}</span>
+                            ) : null}
+                            <span className="text-primary-600 text-sm shrink-0 group-hover:translate-x-0.5 transition-transform">↓</span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               {/* Sidebar */}
@@ -195,22 +256,6 @@ export default async function ProjectDetailPage({ params }: Props) {
                       <div>
                         <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Funding Partner</dt>
                         <dd className="text-gray-800 mt-0.5">{project.fundingPartner}</dd>
-                      </div>
-                    )}
-                    {project.budget != null && (
-                      <div>
-                        <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Budget</dt>
-                        <dd className="text-gray-800 mt-0.5 font-semibold">
-                          {fmtBudget(project.budget, project.budgetCurrency)}
-                        </dd>
-                      </div>
-                    )}
-                    {project.beneficiaryCount != null && (
-                      <div>
-                        <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Beneficiaries Reached</dt>
-                        <dd className="text-gray-800 mt-0.5 font-semibold">
-                          {fmtNumber(project.beneficiaryCount)}
-                        </dd>
                       </div>
                     )}
                   </dl>

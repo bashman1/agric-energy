@@ -5,6 +5,7 @@ import type { Project, Partner, Technology, Theme } from "@/lib/types";
 import LocationPicker, { type LocationValue } from "@/components/admin/LocationPicker";
 import ComboSelect, { type ComboOption } from "@/components/admin/ComboSelect";
 import PartnerCreatePanel from "@/components/admin/PartnerCreatePanel";
+import AttachmentsUpload from "@/components/shared/AttachmentsUpload";
 import Link from "next/link";
 import { ApiError, apiSend } from "@/lib/api/client";
 
@@ -35,6 +36,7 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
     themeIds: [],
     implementingPartnerIds: [],
     gallery: [],
+    attachments: [],
     status: "Active",
     published: false,
     featured: false,
@@ -258,6 +260,18 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
                 <input id={`${uid}-value-chain`} type="text" className={inputClass} value={form.valueChain ?? ""} onChange={(e) => set("valueChain", e.target.value)} placeholder="e.g. Dairy, Rice" />
               </div>
             </div>
+          </div>
+
+          {/* Attachments — downloadable documents shown on the public page */}
+          <div className="bg-white rounded-xl border border-ink-200 shadow-card p-5">
+            <h2 className="font-bold text-ink-900 text-sm mb-1">Attachments</h2>
+            <p className="text-xs text-ink-500 mb-4">
+              Upload documents (reports, factsheets, briefs) that visitors can download from the project page.
+            </p>
+            <AttachmentsUpload
+              value={form.attachments ?? []}
+              onChange={(attachments) => set("attachments", attachments)}
+            />
           </div>
         </div>
 

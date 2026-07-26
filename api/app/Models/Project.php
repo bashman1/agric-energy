@@ -17,6 +17,7 @@ class Project extends Model
         'districts' => 'array',
         'beneficiaries' => 'array',
         'gallery' => 'array',
+        'attachments' => 'array',
         'lat' => 'float',
         'lng' => 'float',
         'budget' => 'float',

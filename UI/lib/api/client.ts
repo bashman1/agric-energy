@@ -17,11 +17,17 @@
 // ============================================================
 import { clearSession, getToken } from "@/lib/auth/token";
 
-/** Browser: same-origin relative base. Node: absolute, from the env. */
+/**
+ * Browser: same-origin relative base in production (Laravel serves the
+ * static bundle). In split dev mode `next dev` runs on :3000 while Laravel
+ * is on :8000, so a relative base would hit the Next dev server — set
+ * NEXT_PUBLIC_API_URL to the absolute Laravel base to reach it directly.
+ * Node: absolute, from the env.
+ */
 const API_BASE =
   typeof window === "undefined"
     ? (process.env.API_URL ?? "http://127.0.0.1:8000/api/v1")
-    : "/api/v1";
+    : (process.env.NEXT_PUBLIC_API_URL ?? "/api/v1");
 
 type Params = Record<string, string | number | boolean | undefined | null>;
 
@@ -31,7 +37,7 @@ interface RequestOptions {
   token?: string;
 }
 
-function buildUrl(pathname: string, params?: Params): string {
+export function buildUrl(pathname: string, params?: Params): string {
   const path = pathname.replace(/^\//, "");
   // A relative base can't go through URL(), so build the query by hand.
   const search = new URLSearchParams();

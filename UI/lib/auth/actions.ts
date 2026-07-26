@@ -5,7 +5,7 @@
 // only to keep the Sanctum token server-side in an iron-session cookie;
 // with no Node server the browser holds it (see ./token.ts).
 // ============================================================
-import { ApiError, apiGet, apiSend } from "@/lib/api/client";
+import { ApiError, apiGet, apiSend, buildUrl } from "@/lib/api/client";
 import type { AuthUser } from "@/lib/types";
 import { clearSession, getToken, setSession } from "./token";
 
@@ -21,7 +21,7 @@ interface LoginResponse {
  * the login form can distinguish bad credentials from a pending account.
  */
 export async function login(email: string, password: string): Promise<AuthUser> {
-  const res = await fetch("/api/v1/auth/login", {
+  const res = await fetch(buildUrl("auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ email, password }),

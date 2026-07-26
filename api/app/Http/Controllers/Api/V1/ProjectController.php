@@ -64,6 +64,7 @@ class ProjectController extends ContentController
             'outcomes' => 'outcomes',
             'featuredImage' => 'featured_image',
             'gallery' => 'gallery',
+            'attachments' => 'attachments',
             'externalUrl' => 'external_url',
             'featured' => 'featured',
             'published' => 'published',

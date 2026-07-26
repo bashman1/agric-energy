@@ -45,6 +45,7 @@ class ProjectResource extends JsonResource
             'outcomes' => $this->outcomes ?? '',
             'featuredImage' => $this->featured_image ?? '',
             'gallery' => $this->gallery ?? [],
+            'attachments' => $this->attachments ?? [],
             'externalUrl' => $this->external_url ?? '',
             'featured' => (bool) $this->featured,
             'published' => (bool) $this->published,

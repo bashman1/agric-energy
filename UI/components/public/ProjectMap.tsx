@@ -510,11 +510,35 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
             if (hoveredId !== null) map.setFeatureState({ source:"adm2", id: hoveredId }, { hover: false });
             hoveredId = f.id as number;
             map.setFeatureState({ source:"adm2", id: hoveredId }, { hover: true });
-            const name = getDistrictName(f.properties), count = f.properties?.projectCount ?? 0;
+            const name = getDistrictName(f.properties);
+            const key = name.toLowerCase().replace(/\s*district\s*$/i, "").trim();
+            const activeStatus = statusFilterRef.current;
+            const allInDistrict = districtProjectMapRef.current[key] ?? [];
+            const distProjects = activeStatus.length > 0
+              ? allInDistrict.filter((p) => activeStatus.includes(p.status))
+              : allInDistrict;
+            const count = distProjects.length;
+
+            const MAX_LISTED = 6;
+            const listRows = distProjects.slice(0, MAX_LISTED).map((p) => {
+              const color = STATUS_COLORS[p.status] ?? "#6b7280";
+              return `<div style="display:flex;align-items:flex-start;gap:6px;font-size:11px;color:#374151;line-height:1.3;margin-top:3px">
+                <span style="color:${color};font-size:12px;line-height:1;margin-top:1px">●</span>
+                <span style="flex:1;min-width:0">${p.title}</span>
+              </div>`;
+            }).join("");
+            const moreRow = count > MAX_LISTED
+              ? `<div style="font-size:10px;color:#9ca3af;margin-top:4px">+${count - MAX_LISTED} more — click to see all</div>`
+              : "";
+            const listHtml = count > 0
+              ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #f3f4f6">${listRows}${moreRow}</div>`
+              : "";
+
             tooltip.setLngLat(e.lngLat).setHTML(
-              `<div style="font-family:system-ui,sans-serif;padding:6px 8px;min-width:120px">
+              `<div style="font-family:system-ui,sans-serif;padding:6px 8px;min-width:150px;max-width:250px">
                 <div style="font-weight:700;font-size:13px;color:#111">${name}</div>
                 <div style="font-size:11px;color:#16a34a;margin-top:2px;font-weight:600">${count} project${count!==1?"s":""}</div>
+                ${listHtml}
               </div>`
             ).addTo(map);
           });

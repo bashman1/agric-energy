@@ -10,6 +10,13 @@ export interface Coordinates {
 }
 
 // ─── Project ──────────────────────────────────────────────
+/** A downloadable file attached to a project, from the /media upload endpoint. */
+export interface ProjectAttachment {
+  url: string;
+  name: string;
+  size?: number;
+}
+
 export interface Project {
   id: string;
   slug: string;
@@ -46,6 +53,8 @@ export interface Project {
   outcomes: string;
   featuredImage: string;
   gallery: string[];
+  /** Downloadable files (PDFs, docs) shown on the project detail page. */
+  attachments?: ProjectAttachment[];
   externalUrl: string;
   featured: boolean;
   published: boolean;
