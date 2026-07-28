@@ -3,18 +3,19 @@
 namespace App\Policies;
 
 use App\Models\User;
+use App\Support\Roles;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Authorization for all publishable content entities (projects, technologies,
  * themes, partners, resources, events, opportunities, policies, posts).
  *
- * Roles:
- *  - super-admin : everything (granted in AppServiceProvider via Gate::before)
- *  - editor      : create/update/delete/publish any content
- *  - reviewer    : approve/reject submitted content
- *  - partner     : create content (enters review) and edit/delete OWN records
- *                  while not yet published
+ * Roles (see App\Support\Roles):
+ *  - super-admin         : everything (granted in AppServiceProvider via before)
+ *  - platform-admin      : create/update/delete/publish/review any content
+ *  - knowledge-manager   : create/update/delete/publish/review any content
+ *  - content-contributor : create content (enters review) and edit/delete OWN
+ *                          records while not yet published
  */
 class ContentPolicy
 {
@@ -32,38 +33,38 @@ class ContentPolicy
     public function create(User $user): bool
     {
         return $user->isApproved()
-            && $user->hasAnyRole(['editor', 'reviewer', 'partner']);
+            && $user->hasAnyRole(Roles::CONTENT_AUTHORS);
     }
 
     public function update(User $user, Model $model): bool
     {
-        if ($user->hasRole('editor')) {
+        if ($user->hasAnyRole(Roles::CONTENT_MANAGERS)) {
             return true;
         }
 
-        // Partners may edit their own content until it is published.
+        // Contributors may edit their own content until it is published.
         return $this->owns($user, $model) && ! $model->published;
     }
 
     public function delete(User $user, Model $model): bool
     {
-        if ($user->hasRole('editor')) {
+        if ($user->hasAnyRole(Roles::CONTENT_MANAGERS)) {
             return true;
         }
 
         return $this->owns($user, $model) && ! $model->published;
     }
 
-    /** Reviewers and editors move content through the workflow. */
+    /** Content managers move content through the review workflow. */
     public function review(User $user, Model $model): bool
     {
-        return $user->hasAnyRole(['reviewer', 'editor']);
+        return $user->hasAnyRole(Roles::CONTENT_MANAGERS);
     }
 
-    /** Publishing is an editor-level action. */
+    /** Publishing is a content-manager action. */
     public function publish(User $user, Model $model): bool
     {
-        return $user->hasRole('editor');
+        return $user->hasAnyRole(Roles::CONTENT_MANAGERS);
     }
 
     private function owns(User $user, Model $model): bool

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Support\Roles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -113,7 +114,7 @@ abstract class ContentController extends Controller
 
         $attributes['slug'] = $this->uniqueSlug($attributes['slug'] ?? ($attributes['title'] ?? $attributes['name'] ?? Str::random(8)));
         $attributes['created_by'] = $request->user()?->id;
-        $attributes = array_merge($attributes, $this->initialWorkflow($request));
+        $attributes = array_merge($attributes, $this->enforceWorkflow($request));
 
         /** @var Model $model */
         $model = $this->modelClass::create($attributes);
@@ -129,7 +130,11 @@ abstract class ContentController extends Controller
         $this->authorize('update', $model);
 
         $data = $this->validatePayload($request, updating: true);
-        $model->update($this->inboundAttributes($data, updating: true));
+        $attributes = $this->inboundAttributes($data, updating: true);
+        // A contributor cannot publish: any edit they make re-enters review,
+        // so they can never flip `published` on their own record via update.
+        $attributes = array_merge($attributes, $this->enforceWorkflow($request));
+        $model->update($attributes);
         $this->syncRelations($model, $data);
         $model->load($this->with);
 
@@ -163,14 +168,17 @@ abstract class ContentController extends Controller
     }
 
     /**
-     * Workflow state a newly created record starts in. Partner contributors'
-     * content enters review as `pending`; staff can publish directly.
+     * Workflow state forced onto a record on create/update. Content managers
+     * publish directly, so this is a no-op for them. Everyone else (i.e. a
+     * content-contributor) has their content held as `pending` and unpublished
+     * — applied on update too, so a contributor can never self-publish by
+     * flipping `published` in an edit payload.
      */
-    protected function initialWorkflow(Request $request): array
+    protected function enforceWorkflow(Request $request): array
     {
         $user = $request->user();
 
-        if ($user && $user->hasRole('partner') && ! $user->hasAnyRole(['super-admin', 'editor'])) {
+        if ($user && ! $user->hasAnyRole(Roles::CONTENT_MANAGERS)) {
             return [
                 'workflow_status' => $this->modelClass::STATUS_PENDING,
                 'published' => false,
@@ -182,8 +190,8 @@ abstract class ContentController extends Controller
 
     /**
      * True when the caller asked for — and is permitted to see — unpublished
-     * records. Only staff (editor/reviewer/super-admin) get full draft
-     * visibility; partners never see other authors' drafts this way.
+     * records. Only content managers get full draft visibility; contributors
+     * never see other authors' drafts this way.
      */
     protected function wantsAdmin(Request $request): bool
     {
@@ -193,7 +201,7 @@ abstract class ContentController extends Controller
 
         return $request->boolean('admin')
             && $user !== null
-            && $user->hasAnyRole(['super-admin', 'editor', 'reviewer']);
+            && $user->hasAnyRole(Roles::CONTENT_MANAGERS);
     }
 
     /** Generate a slug unique across the model's table. */

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Support\Roles;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -10,11 +11,12 @@ use Spatie\Permission\Models\Role;
 
 /**
  * Establishes the RBAC role set and the initial super-admin account.
- * Roles: super-admin, editor, reviewer (staff) and partner (contributor).
+ * Roles: super-admin, platform-admin, knowledge-manager, content-contributor
+ * (see App\Support\Roles).
  */
 class RolesAndAdminSeeder extends Seeder
 {
-    public const ROLES = ['super-admin', 'editor', 'reviewer', 'partner'];
+    public const ROLES = Roles::ALL;
 
     public function run(): void
     {

@@ -16,6 +16,7 @@ use App\Models\Technology;
 use App\Models\Theme;
 use App\Models\User;
 use App\Policies\ContentPolicy;
+use App\Support\Roles;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,27 +38,32 @@ class AppServiceProvider extends ServiceProvider
     {
         // Super-admins bypass every ability check.
         Gate::before(function (User $user, string $ability) {
-            return $user->hasRole('super-admin') ? true : null;
+            return $user->hasRole(Roles::SUPER_ADMIN) ? true : null;
         });
 
         foreach (self::CONTENT_MODELS as $model) {
             Gate::policy($model, ContentPolicy::class);
         }
 
-        // Site configuration & taxonomy management is an editor-level action.
-        $editor = fn (User $user) => $user->hasRole('editor');
-        Gate::define('manage', $editor); // used as authorize('manage', SiteConfig::class|TaxonomyItem::class)
+        // Taxonomy management (categories, tags, metadata): content managers.
+        Gate::define('manage', fn (User $user) => $user->hasAnyRole(Roles::CONTENT_MANAGERS));
 
-        // Contact-form inbox: editors and reviewers may triage.
-        Gate::define('viewAny', fn (User $user) => $user->hasAnyRole(['editor', 'reviewer']));
+        // Review queue + analytics dashboards: content managers.
+        Gate::define('viewAny', fn (User $user) => $user->hasAnyRole(Roles::CONTENT_MANAGERS));
 
-        // Uploads: any approved contributor. Mirrors ContentPolicy::create —
-        // the admin bundle is publicly downloadable under the static build, so
+        // Uploads: any approved author. Mirrors ContentPolicy::create — the
+        // admin bundle is publicly downloadable under the static build, so
         // `auth:sanctum` alone would let a pending or suspended account upload.
         Gate::define('upload-media', fn (User $user) => $user->isApproved()
-            && $user->hasAnyRole(['editor', 'reviewer', 'partner']));
+            && $user->hasAnyRole(Roles::CONTENT_AUTHORS));
 
-        // Account management is restricted to super-admins (granted via before()).
-        Gate::define('manage-users', fn (User $user) => false);
+        // User & role management: platform admins (super-admins via before()).
+        Gate::define('manage-users', fn (User $user) => $user->hasRole(Roles::PLATFORM_ADMIN));
+
+        // Core system settings and the audit trail are super-admin-only: the
+        // closures deny everyone, so only Gate::before() lets a super-admin
+        // through. Keeps them off-limits even to platform administrators.
+        Gate::define('manage-settings', fn (User $user) => false);
+        Gate::define('view-audit', fn (User $user) => false);
     }
 }

@@ -20,7 +20,7 @@ class SiteConfigController extends Controller
 
     public function update(Request $request): JsonResponse
     {
-        $this->authorize('manage', SiteConfig::class);
+        $this->authorize('manage-settings');
 
         $config = SiteConfig::current();
         $body = $request->all();

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { logout } from "@/lib/auth/actions";
+import { useSession } from "@/lib/auth/useSession";
 import {
   DashboardIcon,
   ChartIcon,
@@ -25,25 +26,29 @@ import {
   LogOutIcon,
 } from "@/components/shared/icons";
 
-const navItems: { href: string; label: string; icon: ReactNode; exact?: boolean }[] = [
-  { href: "/admin", label: "Dashboard", icon: <DashboardIcon />, exact: true },
-  { href: "/admin/analytics", label: "Analytics", icon: <ChartIcon /> },
-  { href: "/admin/reports", label: "Reports", icon: <DocumentIcon /> },
-  { href: "/admin/projects", label: "Projects", icon: <SproutIcon /> },
-  { href: "/admin/technologies", label: "Technologies", icon: <BoltIcon /> },
-  { href: "/admin/themes", label: "Themes", icon: <LayersIcon /> },
-  { href: "/admin/partners", label: "Partners", icon: <BuildingIcon /> },
-  { href: "/admin/resources", label: "Resources", icon: <DocumentIcon /> },
-  { href: "/admin/posts", label: "News & Stories", icon: <NewspaperIcon /> },
-  { href: "/admin/events", label: "Events", icon: <CalendarIcon /> },
-  { href: "/admin/opportunities", label: "Opportunities", icon: <CoinsIcon /> },
-  { href: "/admin/policies", label: "Policies", icon: <ScaleIcon /> },
-  { href: "/admin/newsletter", label: "Newsletter", icon: <MailIcon /> },
-  { href: "/admin/review", label: "Review Queue", icon: <CheckCircleIcon /> },
-  { href: "/admin/users", label: "Users", icon: <UsersIcon /> },
-  { href: "/admin/submissions", label: "Submissions", icon: <InboxIcon /> },
-  { href: "/admin/audit", label: "Audit Trail", icon: <HistoryIcon /> },
-  { href: "/admin/site-config", label: "Site Config", icon: <SettingsIcon /> },
+/** `cap` gates visibility: content managers, user managers, or super-admins. */
+type NavCap = "any" | "content" | "users" | "super";
+type NavItem = { href: string; label: string; icon: ReactNode; exact?: boolean; cap: NavCap };
+
+const navItems: NavItem[] = [
+  { href: "/admin", label: "Dashboard", icon: <DashboardIcon />, exact: true, cap: "any" },
+  { href: "/admin/analytics", label: "Analytics", icon: <ChartIcon />, cap: "content" },
+  { href: "/admin/reports", label: "Reports", icon: <DocumentIcon />, cap: "content" },
+  { href: "/admin/projects", label: "Projects", icon: <SproutIcon />, cap: "any" },
+  { href: "/admin/technologies", label: "Technologies", icon: <BoltIcon />, cap: "any" },
+  { href: "/admin/themes", label: "Themes", icon: <LayersIcon />, cap: "any" },
+  { href: "/admin/partners", label: "Partners", icon: <BuildingIcon />, cap: "any" },
+  { href: "/admin/resources", label: "Resources", icon: <DocumentIcon />, cap: "any" },
+  { href: "/admin/posts", label: "News & Stories", icon: <NewspaperIcon />, cap: "any" },
+  { href: "/admin/events", label: "Events", icon: <CalendarIcon />, cap: "any" },
+  { href: "/admin/opportunities", label: "Opportunities", icon: <CoinsIcon />, cap: "any" },
+  { href: "/admin/policies", label: "Policies", icon: <ScaleIcon />, cap: "any" },
+  { href: "/admin/newsletter", label: "Newsletter", icon: <MailIcon />, cap: "content" },
+  { href: "/admin/review", label: "Review Queue", icon: <CheckCircleIcon />, cap: "content" },
+  { href: "/admin/users", label: "Users", icon: <UsersIcon />, cap: "users" },
+  { href: "/admin/submissions", label: "Submissions", icon: <InboxIcon />, cap: "content" },
+  { href: "/admin/audit", label: "Audit Trail", icon: <HistoryIcon />, cap: "super" },
+  { href: "/admin/site-config", label: "Site Config", icon: <SettingsIcon />, cap: "super" },
 ];
 
 const isActive = (item: typeof navItems[0], pathname: string) =>
@@ -53,10 +58,12 @@ const isActive = (item: typeof navItems[0], pathname: string) =>
 
 function SidebarContent({
   pathname,
+  items,
   onNavigate,
   onLogout,
 }: {
   pathname: string;
+  items: NavItem[];
   onNavigate: () => void;
   onLogout: () => void;
 }) {
@@ -75,7 +82,7 @@ function SidebarContent({
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => (
+        {items.map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -109,6 +116,22 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { canManageContent, canManageUsers, isSuperAdmin } = useSession();
+
+  // Show only the sections this role can actually use. Mirrors the API gates
+  // and RouteGuard's per-path capability map.
+  const items = navItems.filter((item) => {
+    switch (item.cap) {
+      case "content":
+        return canManageContent;
+      case "users":
+        return canManageUsers;
+      case "super":
+        return isSuperAdmin;
+      default:
+        return true; // "any" — every staff role
+    }
+  });
 
   const handleLogout = async () => {
     await logout();
@@ -121,7 +144,7 @@ export default function AdminSidebar() {
     <>
       {/* ── Desktop sidebar (lg+) ────────────────────────────── */}
       <aside className="hidden lg:flex w-60 bg-ink-900 text-ink-300 flex-col min-h-screen shrink-0">
-        <SidebarContent pathname={pathname} onNavigate={closeMobile} onLogout={handleLogout} />
+        <SidebarContent pathname={pathname} items={items} onNavigate={closeMobile} onLogout={handleLogout} />
       </aside>
 
       {/* ── Mobile: top bar with hamburger ──────────────────── */}
@@ -161,7 +184,7 @@ export default function AdminSidebar() {
           />
           {/* Slide-in panel */}
           <aside className="lg:hidden fixed top-0 left-0 bottom-0 z-40 w-64 bg-ink-900 text-ink-300 flex flex-col shadow-2xl">
-            <SidebarContent pathname={pathname} onNavigate={closeMobile} onLogout={handleLogout} />
+            <SidebarContent pathname={pathname} items={items} onNavigate={closeMobile} onLogout={handleLogout} />
           </aside>
         </>
       )}

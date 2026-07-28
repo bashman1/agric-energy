@@ -9,7 +9,15 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { refreshUser } from "./actions";
-import { USER_KEY, getUser, isStaff, subscribe } from "./token";
+import {
+  USER_KEY,
+  canManageContent,
+  canManageUsers,
+  getUser,
+  isStaff,
+  isSuperAdmin,
+  subscribe,
+} from "./token";
 
 /** Server snapshot is always null — the export prerenders logged-out. */
 const serverSnapshot = () => null;
@@ -54,5 +62,8 @@ export function useSession() {
     loading,
     isLoggedIn: !!user,
     isStaff: isStaff(user),
+    canManageContent: canManageContent(user),
+    canManageUsers: canManageUsers(user),
+    isSuperAdmin: isSuperAdmin(user),
   };
 }

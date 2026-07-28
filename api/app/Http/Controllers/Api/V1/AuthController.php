@@ -87,7 +87,7 @@ class AuthController extends Controller
                 'partner_id' => $partner?->id,
             ]);
 
-            $user->assignRole('partner');
+            $user->assignRole(\App\Support\Roles::PARTNER);
 
             return $user;
         });

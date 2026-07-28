@@ -15,7 +15,7 @@ class AuditController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $this->authorize('manage-users'); // super-admin only
+        $this->authorize('view-audit'); // super-admin only
 
         $query = Activity::query()->with('causer')->latest();
 

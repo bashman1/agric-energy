@@ -2,8 +2,17 @@
 import { useState } from "react";
 import type { AdminUser } from "@/lib/data/admin";
 import { apiSend } from "@/lib/api/client";
+import { ROLE, ROLE_LABELS } from "@/lib/auth/token";
+import { useSession } from "@/lib/auth/useSession";
 
-const ALL_ROLES = ["super-admin", "editor", "reviewer", "partner"];
+/** Roles shown as assignable pills, in tier order. */
+const ALL_ROLES = [
+  ROLE.SUPER_ADMIN,
+  ROLE.PLATFORM_ADMIN,
+  ROLE.KNOWLEDGE_MANAGER,
+  ROLE.CONTENT_CONTRIBUTOR,
+  ROLE.PARTNER,
+];
 
 const STATUS_STYLE: Record<string, string> = {
   pending: "bg-secondary-50 text-secondary-700 border-secondary-200",
@@ -21,6 +30,7 @@ export default function UsersClient({
 }) {
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const { isSuperAdmin } = useSession();
 
   const call = async (id: number, run: () => Promise<unknown>) => {
     setBusy(id);
@@ -55,7 +65,7 @@ export default function UsersClient({
       <div className="mb-6">
         <h1 className="text-2xl font-display font-semibold text-ink-900">Users</h1>
         <p className="text-sm text-ink-500 mt-0.5">
-          Approve partner registrations and manage roles.
+          Approve registrations and manage roles.
           {pending.length > 0 && (
             <span className="ml-1 font-semibold text-secondary-700">
               {pending.length} pending approval.
@@ -103,18 +113,25 @@ export default function UsersClient({
                   <div className="flex flex-wrap gap-1.5">
                     {ALL_ROLES.map((role) => {
                       const on = u.roles.includes(role);
+                      // Only super-admins may grant the super-admin role or
+                      // change a super-admin's roles (mirrors the API guard).
+                      const locked =
+                        role === ROLE.SUPER_ADMIN && !isSuperAdmin
+                          ? true
+                          : u.roles.includes(ROLE.SUPER_ADMIN) && !isSuperAdmin;
                       return (
                         <button
                           key={role}
                           onClick={() => toggleRole(u, role)}
-                          disabled={busy === u.id}
-                          className={`text-[11px] font-medium px-2 py-0.5 rounded-full border transition-colors disabled:opacity-50 ${
+                          disabled={busy === u.id || locked}
+                          title={locked ? "Only super-administrators can change this" : undefined}
+                          className={`text-[11px] font-medium px-2 py-0.5 rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                             on
                               ? "bg-primary-600 text-white border-primary-600"
                               : "bg-white text-ink-500 border-ink-200 hover:border-primary-300"
                           }`}
                         >
-                          {role}
+                          {ROLE_LABELS[role] ?? role}
                         </button>
                       );
                     })}

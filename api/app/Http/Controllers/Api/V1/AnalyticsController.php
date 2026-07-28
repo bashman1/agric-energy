@@ -76,7 +76,7 @@ class AnalyticsController extends Controller
         $users = [
             'total' => User::count(),
             'pending' => User::where('status', User::STATUS_PENDING)->count(),
-            'partners' => User::role('partner')->count(),
+            'partners' => User::role(\App\Support\Roles::PARTNER)->count(),
         ];
 
         return response()->json([

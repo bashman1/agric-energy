@@ -20,10 +20,55 @@ import { SessionUser } from "@/lib/types";
 const TOKEN_KEY = "agri_energy_token";
 export const USER_KEY = "agri_energy_user";
 
-/** Roles that may enter /admin. Mirrors the old middleware's STAFF_ROLES. */
-export const STAFF_ROLES = ["super-admin", "editor", "reviewer"] as const;
+// ── Roles & capability groups ────────────────────────────────────────────
+// Mirrors api/app/Support/Roles.php. Laravel is the authority; these drive
+// UI affordances only (which nav links and pages a role can see).
+export const ROLE = {
+  SUPER_ADMIN: "super-admin",
+  PLATFORM_ADMIN: "platform-admin",
+  KNOWLEDGE_MANAGER: "knowledge-manager",
+  CONTENT_CONTRIBUTOR: "content-contributor",
+  PARTNER: "partner",
+} as const;
+
+/** Roles that manage content: publish, review queue, taxonomy, analytics. */
+export const CONTENT_MANAGER_ROLES = [
+  ROLE.SUPER_ADMIN,
+  ROLE.PLATFORM_ADMIN,
+  ROLE.KNOWLEDGE_MANAGER,
+] as const;
+
+/** Roles that manage user accounts and role assignment. */
+export const USER_MANAGER_ROLES = [ROLE.SUPER_ADMIN, ROLE.PLATFORM_ADMIN] as const;
+
+/**
+ * Roles that may enter /admin at all (content managers + contributors).
+ * `partner` is intentionally excluded — partners use the /partner portal.
+ */
+export const STAFF_ROLES = [
+  ROLE.SUPER_ADMIN,
+  ROLE.PLATFORM_ADMIN,
+  ROLE.KNOWLEDGE_MANAGER,
+  ROLE.CONTENT_CONTRIBUTOR,
+] as const;
+
+/** Human-readable labels for display in the UI. */
+export const ROLE_LABELS: Record<string, string> = {
+  "super-admin": "Super Administrator",
+  "platform-admin": "Platform Administrator",
+  "knowledge-manager": "Knowledge Manager",
+  "content-contributor": "Content Contributor",
+  partner: "Partner",
+};
 
 type StoredUser = Omit<SessionUser, "token" | "isLoggedIn">;
+
+function hasAnyRole(
+  user: Pick<StoredUser, "roles"> | null | undefined,
+  roles: readonly string[]
+): boolean {
+  return !!user?.roles?.some((r) => roles.includes(r));
+}
 
 /** Subscribers re-render when the session changes (login, logout, 401). */
 const listeners = new Set<() => void>();
@@ -70,9 +115,22 @@ export function isLoggedIn(): boolean {
   return !!getToken();
 }
 
-/** Staff = platform team (not partner contributors). */
+/** Staff = anyone with an admin-area role (all four roles qualify). */
 export function isStaff(user: Pick<StoredUser, "roles"> | null): boolean {
-  return !!user?.roles?.some((r) =>
-    (STAFF_ROLES as readonly string[]).includes(r)
-  );
+  return hasAnyRole(user, STAFF_ROLES);
+}
+
+/** Can publish/review content, manage taxonomy, and view analytics/reports. */
+export function canManageContent(user: Pick<StoredUser, "roles"> | null): boolean {
+  return hasAnyRole(user, CONTENT_MANAGER_ROLES);
+}
+
+/** Can manage user accounts and assign roles. */
+export function canManageUsers(user: Pick<StoredUser, "roles"> | null): boolean {
+  return hasAnyRole(user, USER_MANAGER_ROLES);
+}
+
+/** Super-admin only: system settings, audit trail, backups. */
+export function isSuperAdmin(user: Pick<StoredUser, "roles"> | null): boolean {
+  return !!user?.roles?.includes(ROLE.SUPER_ADMIN);
 }
