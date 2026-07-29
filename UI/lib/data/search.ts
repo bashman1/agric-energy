@@ -1,6 +1,7 @@
 // ============================================================
 // Unified search — backed by the Laravel ranked full-text endpoint.
 // ============================================================
+import { buildUrl } from "@/lib/api/client";
 
 export interface SearchHit {
   type: string; // projects | technologies | themes | partners | resources | events | opportunities
@@ -26,13 +27,13 @@ export async function searchAll(
   if (q.trim().length < 2) {
     return { data: [], facets: {}, total: 0, query: q };
   }
-  // apiGet unwraps `data`; we need the whole envelope, so fetch raw.
-  const base = process.env.API_URL ?? "http://127.0.0.1:8000/api/v1";
-  const url = new URL(`${base}/search`);
-  url.searchParams.set("q", q);
-  if (type) url.searchParams.set("type", type);
+  // apiGet unwraps `data`; we need the whole envelope, so fetch raw — but
+  // build the URL through the shared isomorphic base (relative /api/v1 in the
+  // browser, absolute API_URL at build time) so a static export never bakes a
+  // localhost URL into the client bundle.
+  const url = buildUrl("search", { q, type });
   try {
-    const res = await fetch(url.toString(), {
+    const res = await fetch(url, {
       headers: { Accept: "application/json" },
       cache: "no-store",
     });

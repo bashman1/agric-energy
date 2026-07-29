@@ -174,7 +174,7 @@ export default function AboutPage() {
               The Agri-Energy Desk is owned and managed by the National Renewable Energy Platform (NREP) Secretariat as Uganda&apos;s steward of renewable energy knowledge and coordination.
             </p> */}
             <Link href="/contact" className="inline-flex items-center px-6 py-3 bg-white text-primary-800 font-bold rounded-xl hover:bg-primary-50 transition-colors">
-              Contact NREP →
+              Contact Agric Energy Desk →
             </Link>
           </div>
         </section>
