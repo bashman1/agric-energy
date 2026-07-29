@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" role="img" aria-label="Solar-powered irrigation">
+  <defs>
+    <linearGradient id="w-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0e7490"/>
+      <stop offset="1" stop-color="#14532d"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="400" fill="url(#w-sky)"/>
+  <circle cx="150" cy="80" r="38" fill="#fde68a" opacity="0.9"/>
+  <path d="M0 292 Q75 264 150 286 T300 280 V400 H0 Z" fill="#166534"/>
+  <path d="M0 330 Q95 306 190 326 T300 322 V400 H0 Z" fill="#052e16"/>
+  <!-- water droplet -->
+  <path d="M150 150 C176 190 190 210 190 232 a40 40 0 0 1 -80 0 C110 210 124 190 150 150 Z" fill="#38bdf8" opacity="0.9"/>
+  <path d="M150 150 C176 190 190 210 190 232 a40 40 0 0 1 -80 0 C110 210 124 190 150 150 Z" fill="none" stroke="#e0f2fe" stroke-width="2" opacity="0.6"/>
+  <ellipse cx="136" cy="214" rx="8" ry="12" fill="#e0f2fe" opacity="0.55"/>
+  <!-- irrigation ripples -->
+  <g stroke="#7dd3fc" stroke-width="2.5" fill="none" opacity="0.6">
+    <path d="M60 300 q20 -12 40 0"/><path d="M120 306 q20 -12 40 0"/><path d="M200 300 q20 -12 40 0"/>
+  </g>
+</svg>

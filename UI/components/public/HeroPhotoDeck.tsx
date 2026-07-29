@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { Project } from "@/lib/types";
+import { coverImage } from "@/lib/utils/defaultCover";
 
 /**
  * A "twisted card deck" of up to three project photos, fanned and rotated,
  * for the empty right side of the homepage hero. Content-driven from the
- * featured projects; a project with no image falls back to a gradient tile so
- * the fan stays even. Pure CSS — hovering a card straightens and lifts it.
+ * featured projects; a project with no image falls back to a brand-themed
+ * default cover so the deck always looks intentional. Pure CSS — hovering a
+ * card straightens and lifts it.
  */
 type DeckProject = Pick<Project, "title" | "slug" | "featuredImage">;
 
@@ -32,27 +34,20 @@ export default function HeroPhotoDeck({ projects }: { projects: DeckProject[] })
         >
           <div className="w-56 rounded-2xl bg-white p-2 shadow-2xl ring-1 ring-black/5">
             <div className="relative overflow-hidden rounded-xl aspect-[3/4]">
-              {p.featuredImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={p.featuredImage}
-                  alt={p.title}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-600 to-primary-800 p-4 text-center">
-                  <span className="font-display text-base font-semibold leading-snug text-white">
-                    {p.title}
-                  </span>
-                </div>
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={coverImage(p.featuredImage, p.slug)}
+                alt={p.title}
+                loading="lazy"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              {/* Title scrim so the label reads over any image or default cover */}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
+                <span className="font-display text-sm font-semibold leading-snug text-white line-clamp-2">
+                  {p.title}
+                </span>
+              </div>
             </div>
-            {p.featuredImage && (
-              <p className="truncate px-1 pt-2 pb-1 text-xs font-semibold text-ink-700">
-                {p.title}
-              </p>
-            )}
           </div>
         </Link>
       ))}
