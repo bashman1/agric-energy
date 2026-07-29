@@ -6,6 +6,7 @@ import TechCard from "@/components/public/TechCard";
 import ThemeCard from "@/components/public/ThemeCard";
 import PartnersSlider from "@/components/public/PartnersSlider";
 import ResourceCard from "@/components/public/ResourceCard";
+import HeroPhotoDeck from "@/components/public/HeroPhotoDeck";
 import { ArrowRightIcon, SearchIcon, MapPinIcon } from "@/components/shared/icons";
 import Reveal from "@/components/shared/motion/Reveal";
 import StaggerGrid from "@/components/shared/motion/StaggerGrid";
@@ -143,7 +144,7 @@ export default async function HomePage() {
               backgroundSize: "22px 22px",
             }}
           />
-          <div className="container-page relative py-20 lg:py-28">
+          <div className="container-page relative py-20 lg:py-28 grid gap-10 lg:grid-cols-2 lg:gap-16 lg:items-center">
             <Reveal className="max-w-3xl">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-100 backdrop-blur-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-300" aria-hidden="true" />
@@ -207,6 +208,13 @@ export default async function HomePage() {
                 ))}
               </div>
             </Reveal>
+
+            {/* Fanned photo deck — fills the right side on large screens */}
+            {featuredProjects.length > 0 && (
+              <Reveal className="hidden lg:block">
+                <HeroPhotoDeck projects={featuredProjects} />
+              </Reveal>
+            )}
           </div>
         </section>
 
