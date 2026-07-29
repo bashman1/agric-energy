@@ -42,6 +42,7 @@ class ResourceController extends ContentController
             'type' => 'type',
             'summary' => 'summary',
             'description' => 'description',
+            'featuredImage' => 'featured_image',
             'fileUrl' => 'file_url',
             'externalUrl' => 'external_url',
             'publicationDate' => 'publication_date',

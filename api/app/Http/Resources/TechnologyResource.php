@@ -16,6 +16,7 @@ class TechnologyResource extends JsonResource
             'category' => $this->category ?? '',
             'summary' => $this->summary ?? '',
             'description' => $this->description ?? '',
+            'featuredImage' => $this->featured_image ?? '',
             'applications' => $this->applications ?? [],
             'benefits' => $this->benefits ?? [],
             'limitations' => $this->limitations ?? [],

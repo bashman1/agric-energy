@@ -16,6 +16,7 @@ class ResourceResource extends JsonResource
             'type' => $this->type ?? '',
             'summary' => $this->summary ?? '',
             'description' => $this->description ?? '',
+            'featuredImage' => $this->featured_image ?? '',
             'fileUrl' => $this->file_url ?? '',
             'externalUrl' => $this->external_url ?? '',
             'themeIds' => $this->whenLoaded('themes', fn () => $this->themes->pluck('slug')->all(), []),

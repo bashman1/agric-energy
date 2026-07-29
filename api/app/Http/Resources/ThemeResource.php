@@ -16,6 +16,7 @@ class ThemeResource extends JsonResource
             'icon' => $this->icon ?? '',
             'summary' => $this->summary ?? '',
             'description' => $this->description ?? '',
+            'featuredImage' => $this->featured_image ?? '',
             'whyItMatters' => $this->why_it_matters ?? '',
             'relatedTechnologyIds' => $this->whenLoaded('technologies', fn () => $this->technologies->pluck('slug')->all(), []),
             'relatedProjectIds' => $this->whenLoaded('projects', fn () => $this->projects->pluck('slug')->all(), []),

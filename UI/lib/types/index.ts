@@ -76,6 +76,7 @@ export interface Technology {
   maintenanceNotes: string[];
   relatedProjectIds: string[];
   relatedResourceIds: string[];
+  featuredImage?: string;
   featured: boolean;
   published: boolean;
   updatedAt: string;
@@ -93,6 +94,7 @@ export interface Theme {
   relatedTechnologyIds: string[];
   relatedProjectIds: string[];
   relatedResourceIds: string[];
+  featuredImage?: string;
   featured: boolean;
   published: boolean;
   updatedAt: string;
@@ -152,6 +154,7 @@ export interface Resource {
   description: string;
   fileUrl: string;
   externalUrl: string;
+  featuredImage?: string;
   themeIds: string[];
   technologyIds: string[];
   publicationDate: string;

@@ -6,6 +6,7 @@ import LocationPicker, { type LocationValue } from "@/components/admin/LocationP
 import ComboSelect, { type ComboOption } from "@/components/admin/ComboSelect";
 import PartnerCreatePanel from "@/components/admin/PartnerCreatePanel";
 import AttachmentsUpload from "@/components/shared/AttachmentsUpload";
+import FileUpload from "@/components/shared/FileUpload";
 import Link from "next/link";
 import { ApiError, apiSend } from "@/lib/api/client";
 
@@ -37,6 +38,7 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
     implementingPartnerIds: [],
     gallery: [],
     attachments: [],
+    featuredImage: "",
     status: "Active",
     published: false,
     featured: false,
@@ -277,6 +279,37 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
 
         {/* ── Sidebar ── */}
         <div className="space-y-4">
+          {/* Featured image — the cover photo shown on cards, the project page,
+              and the homepage hero deck */}
+          <div className="bg-white rounded-xl border border-ink-200 shadow-card p-5">
+            <h3 className="font-bold text-ink-900 text-sm mb-1">Featured Image</h3>
+            <p className="text-xs text-ink-500 mb-3">
+              Cover photo used on project cards, the project page, and the homepage.
+            </p>
+            {form.featuredImage ? (
+              <div className="mb-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={form.featuredImage}
+                  alt="Featured"
+                  className="w-full h-36 object-cover rounded-lg border border-ink-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => set("featuredImage", "")}
+                  className="mt-2 text-xs font-semibold text-red-600 hover:text-red-700"
+                >
+                  Remove image
+                </button>
+              </div>
+            ) : null}
+            <FileUpload
+              kind="image"
+              value={form.featuredImage}
+              onUploaded={(url) => set("featuredImage", url)}
+            />
+          </div>
+
           <div className="bg-white rounded-xl border border-ink-200 shadow-card p-5">
             <h3 className="font-bold text-ink-900 text-sm mb-4">Status &amp; Visibility</h3>
             <div className="space-y-3">

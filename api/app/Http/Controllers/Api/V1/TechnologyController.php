@@ -40,6 +40,7 @@ class TechnologyController extends ContentController
             'category' => 'category',
             'summary' => 'summary',
             'description' => 'description',
+            'featuredImage' => 'featured_image',
             'applications' => 'applications',
             'benefits' => 'benefits',
             'limitations' => 'limitations',

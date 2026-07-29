@@ -181,6 +181,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
       { key: "summary", label: "Summary", type: "textarea", required: true, rows: 2, placeholder: "One to two sentence description shown in listings" },
       { key: "description", label: "Description", type: "textarea", rows: 8 },
       { key: "whyItMatters", label: "Why it matters", type: "textarea", rows: 6, placeholder: "Why this theme matters for agri-energy in Uganda…" },
+      { key: "featuredImage", label: "Featured image", type: "upload-image", help: "Cover photo shown on cards and the theme page." },
     ],
   },
 
@@ -201,6 +202,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
       { key: "limitations", label: "Limitations", type: "list", help: "One per line." },
       { key: "operationalNotes", label: "Operational notes", type: "list", help: "One per line." },
       { key: "maintenanceNotes", label: "Maintenance notes", type: "list", help: "One per line." },
+      { key: "featuredImage", label: "Featured image", type: "upload-image", help: "Cover photo shown on cards and the technology page." },
     ],
   },
 
@@ -219,6 +221,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
       { key: "description", label: "Description", type: "textarea", rows: 8 },
       { key: "fileUrl", label: "File (PDF/document)", type: "upload-document", help: "Upload the file, or paste a link below." },
       { key: "externalUrl", label: "External link", type: "url", placeholder: "https://…" },
+      { key: "featuredImage", label: "Featured image", type: "upload-image", help: "Cover photo shown on cards and the resource page." },
     ],
   },
 };

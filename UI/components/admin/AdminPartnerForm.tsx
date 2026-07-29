@@ -3,6 +3,7 @@ import { useState, useId } from "react";
 import { useRouter } from "next/navigation";
 import type { Partner, Technology, Theme } from "@/lib/types";
 import ComboSelect, { type ComboOption } from "@/components/admin/ComboSelect";
+import FileUpload from "@/components/shared/FileUpload";
 import {
     ORG_CATEGORIES,
     SECTORS,
@@ -220,8 +221,11 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
                                 <input id={`${uid}-phone`} type="tel" className={inputClass} value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} placeholder="+256 ..." />
                             </div>
                             <div>
-                                <label htmlFor={`${uid}-logo`} className={labelClass}>Logo URL</label>
-                                <input id={`${uid}-logo`} type="url" className={inputClass} value={form.logo ?? ""} onChange={(e) => set("logo", e.target.value)} placeholder="https://... (external image URL)" />
+                                <label htmlFor={`${uid}-logo`} className={labelClass}>Logo</label>
+                                <div className="mb-2">
+                                    <FileUpload kind="image" value={form.logo ?? ""} onUploaded={(url) => set("logo", url)} />
+                                </div>
+                                <input id={`${uid}-logo`} type="url" className={inputClass} value={form.logo ?? ""} onChange={(e) => set("logo", e.target.value)} placeholder="…or paste an external image URL" />
                                 {form.logo && (
                                     <div className="mt-2 flex items-center gap-3">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}

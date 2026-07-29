@@ -37,6 +37,7 @@ class ThemeController extends ContentController
             'icon' => 'icon',
             'summary' => 'summary',
             'description' => 'description',
+            'featuredImage' => 'featured_image',
             'whyItMatters' => 'why_it_matters',
             'featured' => 'featured',
             'published' => 'published',
