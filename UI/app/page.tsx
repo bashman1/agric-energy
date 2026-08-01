@@ -414,7 +414,7 @@ export default async function HomePage() {
               the landscape, surface gaps, and direct funding to priority areas.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3">
-              <Link href="/contact" className="btn btn-lg bg-white text-primary-900 hover:bg-primary-50">
+              <Link href="/partner" className="btn btn-lg bg-white text-primary-900 hover:bg-primary-50">
                 Register your project
               </Link>
               <Link
