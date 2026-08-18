@@ -4,35 +4,12 @@ import type { Project } from "@/lib/types";
 import type { RegionStat } from "@/lib/data/open-data";
 import dynamic from "next/dynamic";
 import { UGANDA_REGIONS } from "@/lib/geography/nominatim";
+import { STATUS_CHIP, STATUS_COLOR, STATUS_ORDER, type ProjectStatus } from "@/lib/viz/status";
+import StatusBreakdown from "@/components/public/charts/StatusBreakdown";
+import RegionAggregates from "@/components/public/charts/RegionAggregates";
 
 // ProjectMapLoader is already a "use client" dynamic import wrapper
 const ProjectMapLoader = dynamic(() => import("@/components/public/ProjectMapLoader"), { ssr: false });
-
-const ALL_STATUSES = ["Active", "Completed", "Pipeline", "Suspended"] as const;
-
-const STATUS_STYLES: Record<string, { bg: string; text: string; border: string; dot: string }> = {
-  Active: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-300", dot: "#16a34a" },
-  Completed: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-300", dot: "#2563eb" },
-  Pipeline: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-300", dot: "#f59e0b" },
-  Suspended: { bg: "bg-gray-100", text: "text-gray-600", border: "border-gray-300", dot: "#9ca3af" },
-};
-
-/**
- * Compact money ("1.6M", "360K") for the regional aggregates table. Formatted
- * by hand rather than with `notation: "compact"` — this component is SSR-ed and
- * then hydrated, and Node's and the browser's ICU disagree on the compact
- * suffix casing ("1.6M" vs "1.6m"), which trips a hydration mismatch.
- */
-function fmtBudget(value: number): string {
-  if (!value) return "—";
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (value >= 1_000) return `${Math.round(value / 1_000)}K`;
-  return String(value);
-}
-
-function fmtNumber(value: number): string {
-  return new Intl.NumberFormat("en-GB").format(value);
-}
 
 interface Props {
   allProjects: Project[];
@@ -43,7 +20,7 @@ interface Props {
 export default function MapPageClient({ allProjects, regionStats = [] }: Props) {
   const [regionFilter, setRegionFilter] = useState("");
   const [districtSearch, setDistrictSearch] = useState("");
-  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [statusFilters, setStatusFilters] = useState<ProjectStatus[]>([]);
 
   // Instant client-side filter — no page reload
   const filteredProjects = useMemo(() =>
@@ -56,13 +33,13 @@ export default function MapPageClient({ allProjects, regionStats = [] }: Props) 
         const dists = (p.districts?.length ? p.districts : [p.district]).map(d => d.toLowerCase());
         if (!dists.some(d => d.includes(q))) return false;
       }
-      if (statusFilters.length > 0 && !statusFilters.includes(p.status)) return false;
+      if (statusFilters.length > 0 && !(statusFilters as readonly string[]).includes(p.status)) return false;
       return true;
     }),
     [allProjects, regionFilter, districtSearch, statusFilters]
   );
 
-  const toggleStatus = useCallback((s: string) => {
+  const toggleStatus = useCallback((s: ProjectStatus) => {
     setStatusFilters((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]);
   }, []);
 
@@ -153,9 +130,9 @@ export default function MapPageClient({ allProjects, regionStats = [] }: Props) 
           {/* Status chips */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold text-gray-500 mr-1">Status:</span>
-            {ALL_STATUSES.map((status) => {
+            {STATUS_ORDER.map((status) => {
               const isActive = statusFilters.includes(status);
-              const s = STATUS_STYLES[status];
+              const s = STATUS_CHIP[status];
               return (
                 <button
                   key={status}
@@ -168,7 +145,7 @@ export default function MapPageClient({ allProjects, regionStats = [] }: Props) 
                 >
                   <span
                     className="w-2 h-2 rounded-full shrink-0"
-                    style={{ background: isActive ? s.dot : "#d1d5db" }}
+                    style={{ background: isActive ? STATUS_COLOR[status] : "#d1d5db" }}
                   />
                   {status}
                   {isActive && <span className="ml-0.5 opacity-60">✓</span>}
@@ -201,7 +178,7 @@ export default function MapPageClient({ allProjects, regionStats = [] }: Props) 
               )}
               {statusFilters.map((s) => (
                 <button key={s} onClick={() => toggleStatus(s)}
-                  className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${STATUS_STYLES[s]?.bg} ${STATUS_STYLES[s]?.text} ${STATUS_STYLES[s]?.border} hover:opacity-80`}>
+                  className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${STATUS_CHIP[s]?.bg} ${STATUS_CHIP[s]?.text} ${STATUS_CHIP[s]?.border} hover:opacity-80`}>
                   ● {s} ×
                 </button>
               ))}
@@ -265,43 +242,19 @@ export default function MapPageClient({ allProjects, regionStats = [] }: Props) 
           </div>
 
           {/* Status breakdown bar */}
-          {stats.total > 0 && (
-            <div className="bg-white rounded-xl border border-gray-100 px-4 py-3 shadow-card">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Status breakdown</span>
-                <span className="text-[11px] text-gray-400">{stats.total} total</span>
-              </div>
-              {/* Segmented bar */}
-              <div className="flex rounded-full overflow-hidden h-2.5 gap-0.5">
-                {Object.entries(stats.byStatus).map(([status, count]) => {
-                  const pct = stats.total ? (count / stats.total) * 100 : 0;
-                  const colors: Record<string, string> = { Active: "bg-emerald-400", Completed: "bg-blue-400", Pipeline: "bg-amber-400", Suspended: "bg-gray-300" };
-                  return pct > 0 ? (
-                    <div key={status} className={`${colors[status]} transition-all`} style={{ width: `${pct}%` }} title={`${status}: ${count}`} />
-                  ) : null;
-                })}
-              </div>
-              {/* Legend */}
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-                {Object.entries(stats.byStatus).map(([status, count]) => {
-                  if (!count) return null;
-                  const s = STATUS_STYLES[status];
-                  return (
-                    <button key={status} onClick={() => toggleStatus(status)}
-                      className={`inline-flex items-center gap-1 text-[11px] font-semibold transition-all ${statusFilters.includes(status) ? `${s.text} underline` : "text-gray-500 hover:text-gray-700"
-                        }`}>
-                      <span className="w-2 h-2 rounded-full" style={{ background: s.dot }} />
-                      {status} <span className="font-normal text-gray-400">({count})</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <StatusBreakdown
+            byStatus={stats.byStatus}
+            total={stats.total}
+            activeFilters={statusFilters}
+            onToggle={toggleStatus}
+          />
         </div>
 
         {/* Map */}
-        <div className="rounded-2xl border border-gray-200 shadow-card" style={{ height: "520px" }}>
+        {/* Sized off the viewport so the country fills the space it is
+            given; the floor keeps it usable on short screens and the
+            ceiling stops it dwarfing the page on very tall ones. */}
+        <div className="rounded-2xl border border-gray-200 shadow-card h-[78vh] min-h-[480px] max-h-[1000px]">
           <ProjectMapLoader
             projects={filteredProjects}
             regionFilter={regionFilter || undefined}
@@ -310,77 +263,17 @@ export default function MapPageClient({ allProjects, regionStats = [] }: Props) 
           />
         </div>
 
-        {/* ── Regional aggregates ──
+        {/* Regional aggregates — small multiples plus a table view.
             Also the map's text alternative: the same figures the regional
-            choropleth encodes, in a form screen readers can navigate. */}
-        {regionStats.length > 0 && (
-          <div className="mt-5 bg-white rounded-xl border border-gray-100 shadow-card overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <h2 className="text-sm font-bold text-gray-800">Regional aggregates</h2>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Published projects per region — the figures shaded on the map&apos;s regional view.
-              </p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <caption className="sr-only">
-                  Project count, total budget and beneficiaries reached for each region of Uganda.
-                </caption>
-                <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-wide text-gray-500 bg-gray-50">
-                    <th scope="col" className="px-4 py-2 font-semibold">Region</th>
-                    <th scope="col" className="px-4 py-2 font-semibold text-right">Projects</th>
-                    <th scope="col" className="px-4 py-2 font-semibold text-right">Total budget</th>
-                    <th scope="col" className="px-4 py-2 font-semibold text-right">Beneficiaries</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {regionStats.map((r) => (
-                    <tr key={r.region} className="border-t border-gray-50">
-                      <th scope="row" className="px-4 py-2 font-medium text-gray-800 text-left">{r.region}</th>
-                      <td className="px-4 py-2 text-right text-gray-700">{fmtNumber(r.count)}</td>
-                      <td className="px-4 py-2 text-right text-gray-700">{fmtBudget(r.totalBudget)}</td>
-                      <td className="px-4 py-2 text-right text-gray-700">
-                        {r.beneficiaries ? fmtNumber(r.beneficiaries) : "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+            choropleth encodes, in forms a screen reader can navigate. */}
+        <RegionAggregates stats={regionStats} />
 
-        {/* Project list */}
-        {filteredProjects.length > 0 ? (
-          <div className="mt-6">
-            <h2 className="text-base font-bold text-gray-800 mb-3">
-              Projects in view ({filteredProjects.length})
-            </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {filteredProjects.map((p) => {
-                const s = STATUS_STYLES[p.status];
-                return (
-                  <a
-                    key={p.id}
-                    href={`/projects/${p.slug}`}
-                    className="bg-white rounded-xl border border-gray-100 p-3 hover:border-primary-200 hover:shadow-md transition-all group"
-                  >
-                    <div className="font-semibold text-gray-800 text-sm group-hover:text-primary-700 transition-colors leading-snug">
-                      {p.title}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">📍 {p.district} · {p.region}</div>
-                    <div className="mt-1">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${s?.bg} ${s?.text} ${s?.border}`}>
-                        {p.status}
-                      </span>
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
+        {/* The per-project grid that used to sit here has been removed:
+            the map already carries district-level project detail on click,
+            so the list duplicated it and pushed the map off-screen. The
+            empty state stays — it is the only feedback a user gets when a
+            filter combination matches nothing. */}
+        {filteredProjects.length === 0 && (
           <div className="mt-6 text-center py-12 bg-white rounded-2xl border border-gray-100">
             <div className="text-3xl mb-2">🗺️</div>
             <p className="text-gray-600 font-semibold">No projects match these filters</p>

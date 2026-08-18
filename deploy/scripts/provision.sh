@@ -2,8 +2,8 @@
 # ============================================================
 # Agri-Energy Desk — one-time droplet provisioning (Ubuntu 24.04)
 #
-# Installs nginx, PHP 8.3-FPM, PostgreSQL 16, Node 22 (build-time only),
-# composer and
+# Installs nginx, PHP 8.3-FPM, PostgreSQL 16, Node 22 (which both builds
+# and serves the frontend), composer and
 # certbot; creates the database and the /var/www/agrienergy layout.
 # Safe to re-run — every step is idempotent.
 #
@@ -115,10 +115,22 @@ fi
 
 chown -R www-data:www-data "${APP_ROOT}"
 
+# ── frontend service ─────────────────────────────────────────────────
+# The frontend is a long-running Node process that nginx proxies to, so
+# it needs supervising. Enabled but NOT started: deploy/env/ui.env.production
+# does not exist yet on a fresh droplet, and the unit needs it to boot.
+# deploy.sh starts it once the build and the env file are in place.
+UNIT_SRC="${APP_ROOT}/repo/deploy/systemd/agrienergy-ui.service"
+if [[ -f "$UNIT_SRC" ]]; then
+  log "Installing agrienergy-ui.service"
+  install -m 644 "$UNIT_SRC" /etc/systemd/system/agrienergy-ui.service
+  systemctl daemon-reload
+  systemctl enable agrienergy-ui >/dev/null
+else
+  log "No systemd unit at ${UNIT_SRC} — skipping (clone the repo first)"
+fi
+
 # ── nginx ────────────────────────────────────────────────────────────
-# No systemd unit: the frontend is a static export served by nginx off
-# disk, so there is no long-running Node process to supervise. Node is
-# still installed above because the export is BUILT on this droplet.
 CONF_SRC="${APP_ROOT}/repo/deploy/nginx/${DOMAIN}.conf"
 
 if [[ -f "$CONF_SRC" ]]; then

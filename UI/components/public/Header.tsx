@@ -10,6 +10,12 @@ import LanguageToggle from "./LanguageToggle";
 interface NavLink {
   href: string;
   key: string;
+  /**
+   * Path used for active-state matching, when it cannot be derived from
+   * `href` — i.e. when `href` carries a query string. `usePathname()`
+   * never includes the query, so `startsWith(href)` would never match.
+   */
+  match?: string;
 }
 
 /** A nav entry is either a link or a group rendered as a dropdown. */
@@ -19,7 +25,25 @@ const navEntries: NavEntry[] = [
   { href: "/projects", key: "projects" },
   { href: "/technologies", key: "technologies" },
   { href: "/themes", key: "themes" },
-  { href: "/partners", key: "partners" },
+  {
+    // The directory and the two ways to join it. Both register links land
+    // on the same wizard; `?type` picks the flow and skips its first step
+    // (see app/partner/register/RegisterWizard.tsx).
+    key: "ecosystem",
+    children: [
+      { href: "/partners", key: "partners" },
+      {
+        href: "/partner/register/?type=individual",
+        key: "registerIndividual",
+        match: "/partner/register",
+      },
+      {
+        href: "/partner/register/?type=organization",
+        key: "registerOrganization",
+        match: "/partner/register",
+      },
+    ],
+  },
   { href: "/resources", key: "resources" },
   {
     // Tenders live under Opportunities, so they stay out of the top level.
@@ -36,6 +60,11 @@ const navEntries: NavEntry[] = [
 
 function isGroup(entry: NavEntry): entry is { key: string; children: NavLink[] } {
   return "children" in entry;
+}
+
+/** Both register links share a path, so both highlight on the wizard. */
+function isLinkActive(link: Pick<NavLink, "href" | "match">, pathname: string) {
+  return pathname.startsWith(link.match ?? link.href);
 }
 
 export default function Header() {
@@ -137,6 +166,7 @@ export default function Header() {
                       label={t(entry.key)}
                       items={entry.children.map((child) => ({
                         href: child.href,
+                        match: child.match,
                         label: t(child.key),
                       }))}
                       pathname={pathname}
@@ -144,7 +174,7 @@ export default function Header() {
                     />
                   );
                 }
-                const isActive = pathname.startsWith(entry.href);
+                const isActive = isLinkActive(entry, pathname);
                 return (
                   <Link
                     key={entry.href}
@@ -218,7 +248,7 @@ export default function Header() {
                             key={child.href}
                             href={child.href}
                             label={t(child.key)}
-                            active={pathname.startsWith(child.href)}
+                            active={isLinkActive(child, pathname)}
                             onNavigate={() => setMenuOpen(false)}
                           />
                         ))}
@@ -229,7 +259,7 @@ export default function Header() {
                       key={entry.href}
                       href={entry.href}
                       label={t(entry.key)}
-                      active={pathname.startsWith(entry.href)}
+                      active={isLinkActive(entry, pathname)}
                       onNavigate={() => setMenuOpen(false)}
                     />
                   )
@@ -264,7 +294,7 @@ export default function Header() {
 
 interface NavDropdownProps {
   label: string;
-  items: { href: string; label: string }[];
+  items: { href: string; match?: string; label: string }[];
   pathname: string;
   linkClass: (active: boolean) => string;
 }
@@ -274,7 +304,7 @@ function NavDropdown({ label, items, pathname, linkClass }: NavDropdownProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const isActive = items.some((item) => pathname.startsWith(item.href));
+  const isActive = items.some((item) => isLinkActive(item, pathname));
 
   // Close when the route changes so the panel never outlives its page.
   const [seenPathname, setSeenPathname] = useState(pathname);
@@ -337,7 +367,7 @@ function NavDropdown({ label, items, pathname, linkClass }: NavDropdownProps) {
       {open && (
         <ul className="absolute left-0 top-full z-50 w-52 rounded-lg border border-ink-200 bg-white py-1 shadow-lg">
           {items.map((item) => {
-            const active = pathname.startsWith(item.href);
+            const active = isLinkActive(item, pathname);
             return (
               <li key={item.href}>
                 <Link

@@ -8,15 +8,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getPostBySlug } from "@/lib/data/posts";
 import { categoryLabel, formatPublished } from "../categories";
-import { postParams } from "@/lib/data/staticParams";
 
 interface Props {
   params: Promise<{ slug: string }>;
-}
-
-/** One page per published record, resolved from Laravel at build time. */
-export async function generateStaticParams() {
-  return postParams();
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

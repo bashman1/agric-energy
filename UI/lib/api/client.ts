@@ -3,14 +3,15 @@
 //
 // Two callers, two modes:
 //
-//  • Build time (Node). Public pages and generateStaticParams prerender
-//    against API_URL, an absolute URL pointing at Laravel. No token —
-//    only published content is baked into the export.
+//  • Server (Node, once per request). Public pages render against
+//    API_URL, an absolute URL pointing at Laravel — in production the
+//    127.0.0.1:8080 loopback vhost, so the call never leaves the droplet.
+//    No token is sent, so these see published content only.
 //
-//  • Runtime (browser). The static bundle is served by Laravel itself, so
-//    /api/v1 is SAME-ORIGIN: a relative base works, and there is no CORS
-//    configuration anywhere. The Sanctum token is attached from the
-//    session store for admin/partner calls.
+//  • Browser. nginx fronts both the Node server and Laravel on one
+//    origin, so /api/v1 is SAME-ORIGIN: a relative base works and there
+//    is no CORS configuration anywhere. The Sanctum token is attached
+//    from the session store for admin/partner calls.
 //
 // All /lib/data/* service functions call through here, so pages and
 // components keep their existing signatures.
@@ -18,11 +19,13 @@
 import { clearSession, getToken } from "@/lib/auth/token";
 
 /**
- * Browser: same-origin relative base in production (Laravel serves the
- * static bundle). In split dev mode `next dev` runs on :3000 while Laravel
- * is on :8000, so a relative base would hit the Next dev server — set
- * NEXT_PUBLIC_API_URL to the absolute Laravel base to reach it directly.
- * Node: absolute, from the env.
+ * Browser: same-origin relative base in production (nginx routes /api/v1
+ * to Laravel and everything else to Node). In split dev mode `next dev`
+ * runs on :3000 while Laravel is on :8000, so a relative base would hit
+ * the Next dev server — set NEXT_PUBLIC_API_URL to the absolute Laravel
+ * base to reach it directly.
+ * Node: absolute, from the env. Must be set in production (the systemd
+ * unit does it); the default only suits `php artisan serve` locally.
  */
 const API_BASE =
   typeof window === "undefined"
@@ -64,20 +67,22 @@ function headers(token?: string): HeadersInit {
 }
 
 /**
- * Build-time fetches must be CACHED, not `no-store`.
+ * Never cache, on either side.
  *
- * Next treats an uncached fetch as dynamic data. In an export that means
- * the page is emitted as an empty static shell with the content deferred
- * to the client — which silently destroys prerendering: the HTML ships
- * with no content and nothing fails. Prerendering is the entire point
- * here, so the build path opts into the cache.
+ * `no-store` on the server is what makes every public page dynamic: Next
+ * renders it per request against Laravel, so content approved in the
+ * admin panel is on the public site immediately. This is the whole point
+ * of running a Node server instead of the old static export, where an
+ * approval was invisible until someone re-ran the build.
  *
- * In the browser these options are meaningless; data must always be
- * fresh, so `no-store` is correct there.
+ * If Laravel ever struggles under this, the fix is a short revalidation
+ * window here (`{ next: { revalidate: 30 } }`) rather than going back to
+ * build-time caching — `force-cache` would silently re-freeze the site.
+ *
+ * In the browser these options mean the usual thing: always fetch fresh.
  */
 function cacheOptions(): RequestInit {
-  if (typeof window !== "undefined") return { cache: "no-store" };
-  return { cache: "force-cache" };
+  return { cache: "no-store" };
 }
 
 /**

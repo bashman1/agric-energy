@@ -5,27 +5,23 @@ import type { NextConfig } from "next";
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 /**
- * Static export. `next build` emits `out/`, which
- * deploy/scripts/build-ui.sh installs into api/public/static for Laravel
- * to serve (see api/app/Http/Controllers/StaticSiteController.php).
+ * Node server. `next build` emits `.next/`, and `next start` serves it
+ * behind nginx (see deploy/nginx/*.conf and deploy/systemd/*.service).
  *
- * There is no Node server in production: auth, locale and all data
- * loading happen in the browser against Laravel's /api/v1 on the same
- * origin. next-intl's plugin is deliberately absent — it only exists to
- * wire up the server-side getRequestConfig, and the locale is resolved
- * client-side by components/i18n/IntlProvider.tsx.
+ * This used to be a static export installed into api/public/static. It
+ * was replaced because the public site was frozen at build time: content
+ * approved in the admin panel did not appear until someone re-ran the
+ * build. Public pages now render per request against Laravel's /api/v1,
+ * so an approval is live immediately — see lib/api/client.ts.
+ *
+ * next-intl's plugin is still deliberately absent: the locale is resolved
+ * client-side by components/i18n/IntlProvider.tsx, and moving it to the
+ * server would change how every page is cached for no user-visible gain.
  */
 const nextConfig: NextConfig = {
-  output: "export",
-
-  // Assets live at public/static/_next, so their URLs must carry the
-  // prefix. Files from UI/public are copied to Laravel's public root
-  // instead (see build-ui.sh), so /logo.png still resolves.
-  assetPrefix: "/static",
-
-  // Emit `about/index.html` rather than `about.html`. Directory-style
-  // output is what makes the StaticSiteController lookup and the nginx
-  // `try_files $uri/index.html` rule line up.
+  // Directory-style URLs (`/projects/` not `/projects`). Unchanged from
+  // the export era on purpose — every existing link, bookmark and indexed
+  // URL carries the trailing slash, and Next 308-redirects to add it.
   trailingSlash: true,
 
   // Next otherwise walks up looking for a lockfile and can land on an
@@ -33,8 +29,9 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: projectRoot,
 
   images: {
-    // next/image has no optimizer without a Node server. Laravel serves
-    // uploads straight from /storage, so images pass through untouched.
+    // next/image optimisation needs `sharp`, which is not installed and
+    // would add a native build step to a 2GB droplet for no real gain:
+    // uploads are already modest and Laravel serves them off disk.
     unoptimized: true,
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },

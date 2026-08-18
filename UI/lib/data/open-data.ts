@@ -15,8 +15,8 @@ const EMPTY: RegionStat[] = [];
 
 /** Per-region project aggregates (published projects only). */
 export async function getRegionStats(): Promise<RegionStat[]> {
-  // No revalidate window: these aggregates are baked into the export at
-  // build time and refresh on the next build like everything else.
+  // Fetched per request like everything else on the public site, so a
+  // newly published project shows up in these aggregates immediately.
   const rows = await apiGet<RegionStat[]>("open-data/regions", EMPTY);
   return [...rows].sort((a, b) => b.count - a.count);
 }

@@ -1,0 +1,61 @@
+# ============================================================
+# Agri-Energy Desk — Next.js frontend (Node server)
+#
+# The public site renders per request against Laravel, so content
+# approved in the admin panel is live immediately. This replaced the old
+# static export, where an approval was invisible until someone re-ran the
+# build (see deploy/README.md, "How the frontend is served").
+#
+# Install:
+#   cp deploy/systemd/agrienergy-ui.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now agrienergy-ui
+#
+# Logs:  journalctl -u agrienergy-ui -f
+# ============================================================
+[Unit]
+Description=Agri-Energy Desk frontend (Next.js)
+Documentation=file:///var/www/agrienergy/repo/deploy/README.md
+# php-fpm serves the API this process renders against. Ordering only —
+# systemd cannot know when Laravel is actually answering, so the app also
+# has to survive the API being briefly unavailable (apiGet falls back).
+After=network-online.target php8.3-fpm.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/agrienergy/repo/UI
+
+# NEXT_PUBLIC_* were already inlined at build time; what matters here is
+# API_URL, read per request by lib/api/client.ts on the server side.
+EnvironmentFile=/var/www/agrienergy/repo/deploy/env/ui.env.production
+Environment=NODE_ENV=production
+
+# Bind to loopback only. nginx is the sole public entry point; a
+# 0.0.0.0 bind would expose the app on :3000 bypassing TLS.
+Environment=HOSTNAME=127.0.0.1
+Environment=PORT=3000
+
+ExecStart=/usr/bin/npx --no-install next start
+Restart=always
+RestartSec=3
+
+# A 2GB droplet also runs postgres and php-fpm; cap the heap so an
+# unbounded Node process cannot push them into swap.
+Environment=NODE_OPTIONS=--max-old-space-size=768
+
+# Hardening. The app only ever reads its own build output.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/agrienergy/repo/UI/.next
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=agrienergy-ui
+
+[Install]
+WantedBy=multi-user.target

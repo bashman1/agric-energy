@@ -117,6 +117,21 @@ export default function RegisterWizard() {
   const key = keys[step] ?? "account";
   const isLast = step === keys.length - 1;
 
+  // The "Eco System" nav links straight into a flow (?type=individual or
+  // ?type=organization), landing the user on the first real question
+  // instead of the account-type chooser. They can still step Back to it.
+  //
+  // Read from location rather than useSearchParams: the latter would bail
+  // this page's Suspense subtree out of prerendering, which is the same
+  // reason lib/hooks/useUrlFilters.ts does it this way.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("type");
+    if (requested === "individual" || requested === "organization") {
+      setForm((s) => ({ ...s, accountType: requested }));
+      setStep(1);
+    }
+  }, []);
+
   // Load district options lazily once the org flow is chosen.
   useEffect(() => {
     if (form.accountType !== "organization" || districtOpts.length) return;

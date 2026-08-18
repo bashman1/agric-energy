@@ -8,7 +8,6 @@ import { getPartnerBySlug } from "@/lib/data/partners";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { projectParams } from "@/lib/data/staticParams";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -30,11 +29,6 @@ function fmtFileSize(bytes?: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-/** One page per published record, resolved from Laravel at build time. */
-export async function generateStaticParams() {
-  return projectParams();
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

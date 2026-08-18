@@ -5,15 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getOpportunityBySlug } from "@/lib/data/opportunities";
-import { opportunityParams } from "@/lib/data/staticParams";
 
 interface Props {
   params: Promise<{ slug: string }>;
-}
-
-/** One page per published record, resolved from Laravel at build time. */
-export async function generateStaticParams() {
-  return opportunityParams();
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

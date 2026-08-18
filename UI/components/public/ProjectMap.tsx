@@ -3,20 +3,25 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import type { Project } from "@/lib/types";
 import type { RegionStat } from "@/lib/data/open-data";
 import { fetchDistrictGeoJSON, fetchDistrictMeta, type DistrictMeta } from "@/lib/geo/ugandaGeo";
+import { STATUS_COLOR } from "@/lib/viz/status";
 
 const REGIONS = ["Central Uganda","Eastern Uganda","Northern Uganda","Western Uganda"];
 
 // maplibre-gl CSS loaded globally in app/globals.css
 
-const STATUS_COLORS: Record<string, string> = {
-  Active:    "#16a34a",
-  Completed: "#2563eb",
-  Pipeline:  "#f59e0b",
-  Suspended: "#9ca3af",
-};
+// Markers share the canonical status palette, so a dot on the map is the
+// same colour as its segment in the breakdown chart and its filter chip.
+const STATUS_COLORS: Record<string, string> = STATUS_COLOR;
 
 const UGANDA_CENTER: [number, number] = [32.35, 1.35];
 const UGANDA_BOUNDS: [[number, number], [number, number]] = [[29.57, -1.55], [35.0, 4.23]];
+
+/**
+ * Breathing room around the country when the map is showing all of Uganda.
+ * Generous enough that the national outline never sits flush against the
+ * container edge, which read as the map being cut off.
+ */
+const UGANDA_FIT_PADDING = 32;
 
 const REGION_FILTER_MAP: Record<string, string> = {
   "northern uganda": "Northern Region",
@@ -251,6 +256,8 @@ interface Props {
 
 export default function ProjectMap({ projects, regionFilter, districtFilter, regionStats = [] }: Props) {
   const wrapperRef   = useRef<HTMLDivElement>(null);
+  /** Set once the user pans/zooms, so auto-refit backs off. */
+  const userMovedRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef          = useRef<any>(null);
@@ -430,6 +437,15 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
         map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
 
+        // Only a real gesture counts as "the user moved the map"; every
+        // programmatic fitBounds below arrives without an originalEvent.
+        const markMoved = (e: { originalEvent?: unknown }) => {
+          if (e.originalEvent) userMovedRef.current = true;
+        };
+        map.on("dragstart", markMoved);
+        map.on("zoomstart", markMoved);
+        map.on("rotatestart", markMoved);
+
         map.on("load", () => {
           if (destroyed) return;
 
@@ -490,10 +506,10 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
               wk(feat.geometry.coordinates);
               if (w < Infinity) { map.fitBounds([[w,s],[e,n]], { padding: 40, duration: 0 }); }
             } else {
-              map.fitBounds(UGANDA_BOUNDS, { padding: 20, duration: 0 });
+              map.fitBounds(UGANDA_BOUNDS, { padding: UGANDA_FIT_PADDING, duration: 0 });
             }
           } else {
-            map.fitBounds(UGANDA_BOUNDS, { padding: 20, duration: 0 });
+            map.fitBounds(UGANDA_BOUNDS, { padding: UGANDA_FIT_PADDING, duration: 0 });
           }
 
           // ── District hover tooltip ─────────────────────────────────────────
@@ -665,7 +681,7 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
 
     // ── Fit bounds ──
     if (!region && !district) {
-      map.fitBounds(UGANDA_BOUNDS, { padding: 20, duration: 800 }); return;
+      map.fitBounds(UGANDA_BOUNDS, { padding: UGANDA_FIT_PADDING, duration: 800 }); return;
     }
 
     if (district) {
@@ -710,6 +726,32 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
 
   // Keep applyFilterRef in sync so the fullscreen handler always has the latest
   useEffect(() => { applyFilterRef.current = applyFilter; }, [applyFilter]);
+
+  // ── Keep the viewport honest when the container resizes ──────────────
+  // MapLibre samples the container once, at construction. This one is a
+  // responsive box that keeps growing after the map is built (web fonts
+  // land, the stats row above reflows, the window changes), so the very
+  // first fitBounds was computed against a narrower box — which is what
+  // left Uganda zoomed in too far and clipped top and bottom.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+
+    const ro = new ResizeObserver(() => {
+      const map = mapRef.current;
+      if (!map) return;
+      map.resize();
+
+      // Re-home only while the view is untouched and unfiltered. Without
+      // that guard a resize would drag the user back off whatever
+      // district they had navigated to.
+      if (userMovedRef.current || regionRef.current || districtRef.current) return;
+      map.fitBounds(UGANDA_BOUNDS, { padding: UGANDA_FIT_PADDING, duration: 0 });
+    });
+
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // ── React to URL-based prop filter changes (non-fullscreen) ──────────────
   const onFilterChange = useCallback(() => {

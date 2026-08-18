@@ -5,15 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getEventBySlug } from "@/lib/data/events";
-import { eventParams } from "@/lib/data/staticParams";
 
 interface Props {
   params: Promise<{ slug: string }>;
-}
-
-/** One page per published record, resolved from Laravel at build time. */
-export async function generateStaticParams() {
-  return eventParams();
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

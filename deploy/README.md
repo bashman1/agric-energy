@@ -2,9 +2,14 @@
 
 Target: a single DigitalOcean droplet serving **https://menu.smartcollect.co.ug**.
 
-The frontend is a **Next.js static export** installed into Laravel's
-`api/public/static`. There is no Node process in production — Laravel and nginx
-serve everything from one origin.
+The frontend is a **Next.js Node server** (`agrienergy-ui.service`) behind nginx.
+Public pages render **per request** against Laravel, so content approved in the
+admin panel is on the public site immediately.
+
+> Until 2026-08, the frontend was a static export served off disk. It was
+> replaced because the public site was a snapshot: an approved partner, project
+> or theme stayed invisible until someone re-ran the build. If you are reading
+> older notes that say "publishing requires a rebuild", they are out of date.
 
 ---
 
@@ -15,10 +20,16 @@ serve everything from one origin.
   browser ───────►  │  /api/v1/*        ──────► php-fpm (Laravel)      │
                     │  /storage/*       ──────► disk (uploaded media)  │
                     │  /up              ──────► php-fpm (health)       │
-                    │  /static/_next/*  ──────► disk (build assets)    │
-                    │  /*               ──────► disk (prerendered HTML)│
-                    └─────────────────────────────────────────────────┘
+                    │  /*               ──────► Next.js :3000          │
+                    └──────────────────────────────┬──────────────────┘
+                                                   │ renders each page against
+                                                   ▼
+                               nginx 127.0.0.1:8080 ──► php-fpm (Laravel)
 ```
+
+The Node server binds to loopback only; nginx is the sole public entry point.
+Its server-side calls go to the internal `:8080` listener, so a page render
+never leaves the droplet.
 
 One origin, so there is **no CORS configuration anywhere** and the browser calls
 `/api/v1` directly. Auth is a Sanctum bearer token held in `sessionStorage`.
@@ -28,62 +39,64 @@ One origin, so there is **no CORS configuration anywhere** and the browser calls
 ```
 /var/www/agrienergy/repo/
 ├── api/                     Laravel (.env lives here); served from api/public
-│   └── public/static/       ← the exported frontend (gitignored)
 └── UI/                      Next.js source
+    └── .next/               ← the build the Node server serves (gitignored)
 ```
 
 ---
 
-## How the frontend is built
+## How the frontend is built and served
 
-`deploy/scripts/build-ui.sh` runs `next build` (with `output: "export"`) and
-copies `UI/out/` into `api/public/static/`. `UI/public/*` goes to the web root,
-not under `/static`, because the app references those with absolute paths.
+`deploy/scripts/build-ui.sh` runs `next build`, which emits `UI/.next`.
+`agrienergy-ui.service` then serves it with `next start` on `127.0.0.1:3000`.
 
-**The build prerenders every public page against a live Laravel instance.**
-`API_URL` must point at a reachable API or the export ships empty pages. The
-script refuses to start if it cannot reach the API, `generateStaticParams`
-throws if a content type returns zero records, and `deploy.sh` checks that
-`/projects` came back larger than 8 KB. A silently-empty export looks exactly
-like a successful deploy, which is why it is guarded three times.
+**The build no longer needs a live API.** Pages are rendered on demand, not
+baked, so nothing is fetched at build time. What the build *does* still inline
+is any `NEXT_PUBLIC_*` variable — there are none today.
 
-### Publishing requires a rebuild
+`API_URL` is now a **runtime** setting, read per request by
+`UI/lib/api/client.ts`. It is supplied by the systemd unit's `EnvironmentFile`.
 
-Public pages are baked at build time. An editor hitting **Publish** does not
-change the live site until the export is rebuilt:
+### Publishing is live
 
-```bash
-bash /var/www/agrienergy/repo/deploy/scripts/deploy.sh --skip-pull --skip-api
-```
+An editor hitting **Publish**, or an admin approving a submission, changes the
+public site on the next page load. No rebuild, no deploy, no cron job.
 
-Run that from cron (say nightly) or wire it to a button, but decide before real
-editors start using the admin panel. The admin and partner areas are
-client-rendered and always live — this only affects the public site.
+Run `deploy.sh` only when **source code** changes.
+
+The one failure mode worth knowing: if `API_URL` is unreachable, `apiGet`
+swallows the error and returns an empty list, so pages return 200 but render
+without content. `deploy.sh`'s final smoke test checks `/projects/` body size
+precisely to catch that.
 
 ---
 
-## What is static and what is client-rendered
+## What is server-rendered and what is client-rendered
 
 | Area | Rendering | Why |
 |---|---|---|
-| Public pages + detail pages | Prerendered HTML | SEO; content is in the HTML for crawlers |
-| Listing-page filters | Client, over prerendered data | Keeps the full list in the exported HTML |
-| `/search` | Client | Arbitrary queries cannot be prerendered |
-| `/admin/*`, `/partner/*` | Client SPA | Records created after the build have no prerendered page |
+| Public pages + detail pages | Server, per request (`ƒ`) | Live content, and it is in the HTML for crawlers |
+| Listing-page filters | Client, over server-rendered data | The full list arrives in the HTML; filtering is instant |
+| `/search` | Client | Arbitrary queries are not worth a round trip |
+| `/admin/*`, `/partner/*` | Client SPA | Authenticated, token-driven, nothing to gain from SSR |
 
-Admin editors are single routes keyed by query string — `/admin/projects/edit?slug=x`
-rather than `/admin/projects/x` — because a static export can only emit pages
-whose params are known at build time.
+`next build` prints the rendering mode per route. **Every public content route
+should show `ƒ (Dynamic)`.** If one shows `○ (Static)`, it has been frozen at
+build time and will stop reflecting new content — that is the regression to
+watch for.
 
-> **`useSearchParams` is banned on prerendered pages.** In an export it forces
-> its whole Suspense subtree to bail to the fallback at build time, so the page
-> ships as an empty shell. Use `lib/hooks/useUrlFilters.ts`, which reads
-> `location.search` in an effect instead.
+Admin editors are single routes keyed by query string —
+`/admin/projects/edit?slug=x` rather than `/admin/projects/x`. That is a
+leftover from the export era; it works fine and was left alone.
 
-> **Build-time fetches must be cached.** `lib/api/client.ts` uses
-> `cache: "force-cache"` on the Node path. An uncached fetch is treated as
-> dynamic data and the page is exported as an empty shell with the content
-> deferred to the client — silently losing the prerender.
+> **Never reintroduce `cache: "force-cache"` in `lib/api/client.ts`.** It is
+> what froze the old site. The server path uses `no-store` so each request
+> re-reads Laravel. If the API needs relief, use a short
+> `{ next: { revalidate: 30 } }` window instead — bounded staleness rather
+> than indefinite.
+
+> **`useSearchParams` still needs a Suspense boundary.** `lib/hooks/useUrlFilters.ts`
+> reads `location.search` in an effect to sidestep it; keep using it.
 
 ---
 
@@ -123,8 +136,8 @@ DB_PASS='<strong-password>' \
   bash /var/www/agrienergy/repo/deploy/scripts/provision.sh
 ```
 
-Installs nginx, PHP 8.3-FPM, PostgreSQL 16, Node 22 (needed to *build* the
-export, not to serve it), Composer and certbot; creates a 2 GB swapfile (a
+Installs nginx, PHP 8.3-FPM, PostgreSQL 16, Node 22 (which now both builds
+*and* serves the frontend), Composer and certbot; creates a 2 GB swapfile (a
 1–2 GB droplet OOMs during `next build` without it); creates the database and
 role; issues the TLS certificate; installs the vhost; closes the firewall to
 22/80/443.
@@ -135,6 +148,10 @@ cd /var/www/agrienergy/repo
 cp deploy/env/api.env.uat.example api/.env
 cp deploy/env/ui.env.uat.example  deploy/env/ui.env.production
 chmod 600 api/.env deploy/env/ui.env.production
+
+# install the frontend service (reads ui.env.production at runtime)
+cp deploy/systemd/agrienergy-ui.service /etc/systemd/system/
+systemctl daemon-reload && systemctl enable agrienergy-ui
 
 # replace every CHANGE_ME in both files
 nano api/.env
@@ -157,16 +174,19 @@ bash deploy/scripts/deploy.sh
 bash /var/www/agrienergy/repo/deploy/scripts/deploy.sh
 ```
 
-Pulls `main`, installs deps, migrates, rebuilds the export, and runs six smoke
-tests. Flags: `--skip-pull`, `--skip-api`, `--skip-ui`.
+Pulls `main`, installs deps, migrates, rebuilds the frontend, restarts
+`agrienergy-ui`, and runs six smoke tests. Flags: `--skip-pull`, `--skip-api`,
+`--skip-ui`.
 
-A failed build **restores the previous export** rather than leaving the site
-broken. To roll back manually:
+**Only run this for code changes.** Publishing content needs nothing.
+
+A failed build **restores the previous build** rather than leaving the site
+broken, and the running server keeps serving throughout. To roll back manually:
 
 ```bash
-rm -rf /var/www/agrienergy/repo/api/public/static
-mv /var/www/agrienergy/repo/api/public/static.old \
-   /var/www/agrienergy/repo/api/public/static
+cd /var/www/agrienergy/repo/UI
+rm -rf .next && mv .next.old .next
+systemctl restart agrienergy-ui
 ```
 
 ---
@@ -174,9 +194,11 @@ mv /var/www/agrienergy/repo/api/public/static.old \
 ## The build-time vs runtime env trap
 
 - **`NEXT_PUBLIC_*` are inlined into the bundle during the build**, so changing
-  them requires a rebuild.
-- **`API_URL` is build-time only.** It is where the export prerenders *from*.
-  At runtime the browser always uses the relative, same-origin `/api/v1`.
+  them requires a rebuild. (There are none today.)
+- **`API_URL` is runtime.** It is where the Node server renders pages *from*,
+  on every request, and it comes from the systemd unit's `EnvironmentFile` —
+  so changing it needs `systemctl restart agrienergy-ui`, not a rebuild. The
+  browser still uses the relative, same-origin `/api/v1`.
 - **`SESSION_SECRET` is gone.** There is no server session; the Sanctum token
   lives in the browser.
 
@@ -186,10 +208,13 @@ mv /var/www/agrienergy/repo/api/public/static.old \
 
 ```bash
 # logs
+journalctl -u agrienergy-ui -f
 tail -f /var/log/nginx/agrienergy.error.log
 tail -f /var/www/agrienergy/repo/api/storage/logs/laravel.log
 
 # service control
+systemctl status agrienergy-ui
+systemctl restart agrienergy-ui
 systemctl reload nginx
 nginx -t
 
@@ -197,8 +222,14 @@ nginx -t
 curl -I https://menu.smartcollect.co.ug/up
 curl -s https://menu.smartcollect.co.ug/api/v1/projects | head -c 300
 
-# is the export actually populated?
-curl -s https://menu.smartcollect.co.ug/projects | wc -c   # expect >> 8000
+# is the Node server up on loopback?
+curl -sI http://127.0.0.1:3000/ | head -1
+
+# can the Node server reach the API it renders from?
+curl -s http://127.0.0.1:8080/api/v1/projects | head -c 200
+
+# are pages actually rendering content?
+curl -s https://menu.smartcollect.co.ug/projects/ | wc -c   # expect >> 8000
 
 # clear Laravel caches after an out-of-band .env edit
 cd /var/www/agrienergy/repo/api && php artisan optimize:clear && php artisan optimize
@@ -213,10 +244,11 @@ TLS renews automatically via the `certbot.timer` systemd unit; verify with
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Every page 404s | export missing | `ls api/public/static/index.html`; re-run `deploy.sh` |
-| Pages render but are empty | export built against a dead/empty API | rebuild with `BUILD_API_URL` reachable; check `curl $BUILD_API_URL/projects` |
-| Pages render unstyled | `assetPrefix` mismatch | confirm `api/public/static/_next/` exists and the nginx `/static/_next/` block is present |
-| Newly published content missing | no rebuild since publish | re-run `deploy.sh --skip-pull --skip-api` |
+| Every page 502s | Node server down | `systemctl status agrienergy-ui`; `journalctl -u agrienergy-ui -n 50` |
+| Pages render but are empty | Node cannot reach the API it renders from | check `API_URL` in `ui.env.production`; `curl http://127.0.0.1:8080/api/v1/projects` |
+| Pages render unstyled | assets not reaching Node | confirm the nginx `location /` proxies to `:3000` and no stale `assetPrefix` is set in `next.config.ts` |
+| Newly published content missing | almost never a deploy problem now | confirm the record is actually published: `select slug, published, workflow_status from partners where slug='x'` |
+| A public route stopped updating | route became static | `next build` output shows it as `○` not `ƒ` — a `force-cache` fetch or `generateStaticParams` crept back in |
 | API returns HTML instead of JSON | request hit the SPA fallback | check the `^~ /api/v1` block is present and `nginx -t` passes |
 | Login returns 401 for valid credentials | wrong credentials or unapproved account | check `users.status` is `approved` |
 | Admin page flashes then redirects to login | token expired or revoked | sign in again; the client clears the token on any 401 |
@@ -237,5 +269,7 @@ TLS renews automatically via the `certbot.timer` systemd unit; verify with
    schedule before any real content is entered.
 4. **Mail defaults to `log`.** Registration and verification emails are written
    to `storage/logs`, not sent, until real SMTP credentials are set.
-5. **Decide the rebuild trigger.** Publishing does not update the public site
-   until the export is rebuilt (see above).
+5. **Watch the API under render load.** Every public page view now costs a
+   Laravel round trip. That is fine at UAT traffic, but if php-fpm starts
+   queueing, add a short `revalidate` window in `UI/lib/api/client.ts` rather
+   than reverting to build-time caching.
