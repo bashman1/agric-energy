@@ -25,6 +25,27 @@ namespace App\Support;
  *                          submit for review, no direct publish — but NOT staff:
  *                          they do not access the /admin panel.
  *
+ * Plus three ORGANISATION-SCOPED roles, held by partner accounts and never
+ * by staff. They exist so an organisation can run its own team without any
+ * of them gaining power over the platform:
+ *
+ *  - partner-admin       : administrator OF ONE ORGANISATION. Granted to the
+ *                          account that registers an organisation. May create
+ *                          and manage other accounts belonging to the SAME
+ *                          partner (see PartnerTeamController, which scopes
+ *                          every query by the caller's partner_id).
+ *  - partner-knowledge-manager,
+ *  - partner-content-contributor
+ *                        : an organisation's own knowledge/content people.
+ *
+ * These deliberately do NOT reuse the `knowledge-manager` and
+ * `content-contributor` slugs. Those are platform-wide: they sit in
+ * CONTENT_MANAGERS/STAFF and carry site-wide publishing and the review
+ * queue. If a partner admin could grant them, any external organisation
+ * could mint an account that publishes to the national platform. The
+ * partner-scoped roles are content AUTHORS only — submit for review, never
+ * publish, no /admin access.
+ *
  * Groups below are the single source of truth for authorization decisions;
  * gates and the ContentPolicy reference these rather than inline slug lists.
  */
@@ -36,6 +57,12 @@ final class Roles
     public const CONTENT_CONTRIBUTOR = 'content-contributor';
     public const PARTNER = 'partner';
 
+    // Organisation-scoped. Held by partner accounts only — see the class
+    // docblock for why these are separate slugs and not the staff ones.
+    public const PARTNER_ADMIN = 'partner-admin';
+    public const PARTNER_KNOWLEDGE_MANAGER = 'partner-knowledge-manager';
+    public const PARTNER_CONTENT_CONTRIBUTOR = 'partner-content-contributor';
+
     /** Every assignable role. */
     public const ALL = [
         self::SUPER_ADMIN,
@@ -43,6 +70,29 @@ final class Roles
         self::KNOWLEDGE_MANAGER,
         self::CONTENT_CONTRIBUTOR,
         self::PARTNER,
+        self::PARTNER_ADMIN,
+        self::PARTNER_KNOWLEDGE_MANAGER,
+        self::PARTNER_CONTENT_CONTRIBUTOR,
+    ];
+
+    /**
+     * Roles a partner administrator may grant inside their own organisation.
+     * Every entry must be organisation-scoped — adding a staff role here is
+     * a privilege-escalation hole, since the grantee would gain platform-wide
+     * powers from an external account.
+     */
+    public const PARTNER_TEAM_ROLES = [
+        self::PARTNER_ADMIN,
+        self::PARTNER_KNOWLEDGE_MANAGER,
+        self::PARTNER_CONTENT_CONTRIBUTOR,
+    ];
+
+    /** Every organisation-scoped role, including the plain partner account. */
+    public const PARTNER_ROLES = [
+        self::PARTNER,
+        self::PARTNER_ADMIN,
+        self::PARTNER_KNOWLEDGE_MANAGER,
+        self::PARTNER_CONTENT_CONTRIBUTOR,
     ];
 
     /**
@@ -66,6 +116,9 @@ final class Roles
         self::KNOWLEDGE_MANAGER,
         self::CONTENT_CONTRIBUTOR,
         self::PARTNER,
+        self::PARTNER_ADMIN,
+        self::PARTNER_KNOWLEDGE_MANAGER,
+        self::PARTNER_CONTENT_CONTRIBUTOR,
     ];
 
     /** Roles that manage user accounts and role assignment. */

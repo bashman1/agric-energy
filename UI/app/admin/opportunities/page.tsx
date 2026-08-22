@@ -9,6 +9,7 @@ const TYPE_LABELS: Record<string, string> = {
   investment: "Investment",
   tender: "Tender",
   procurement: "Procurement",
+  job: "Job",
 };
 
 export default function AdminOpportunitiesPage() {

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\MediaController;
 use App\Http\Controllers\Api\V1\MyContentController;
 use App\Http\Controllers\Api\V1\NewsletterController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\OpenDataController;
 use App\Http\Controllers\Api\V1\OpportunityController;
 use App\Http\Controllers\Api\V1\PartnerController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Api\V1\SubmissionController;
 use App\Http\Controllers\Api\V1\TaxonomyController;
 use App\Http\Controllers\Api\V1\TechnologyController;
 use App\Http\Controllers\Api\V1\ThemeController;
+use App\Http\Controllers\Api\V1\PartnerTeamController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\WorkflowController;
 use Illuminate\Support\Facades\Route;
@@ -101,9 +103,18 @@ Route::prefix('v1')->group(function () {
 
         // Admin account management (super-admin only, enforced in controller).
         Route::get('users', [UserController::class, 'index']);
+        Route::post('users', [UserController::class, 'store']);
         Route::post('users/{user}/approve', [UserController::class, 'approve']);
         Route::post('users/{user}/suspend', [UserController::class, 'suspend']);
         Route::put('users/{user}/roles', [UserController::class, 'setRoles']);
+
+        // An organisation managing its own team from the partner portal.
+        // Separate from the routes above: those are platform-wide and gated
+        // on `manage-users`; these are scoped to the caller's partner_id and
+        // gated on `manage-partner-team`.
+        Route::get('partner-team', [PartnerTeamController::class, 'index']);
+        Route::post('partner-team', [PartnerTeamController::class, 'store']);
+        Route::patch('partner-team/{user}/status', [PartnerTeamController::class, 'setStatus']);
 
         // Analytics & reporting.
         Route::get('analytics/overview', [AnalyticsController::class, 'overview']);
@@ -116,6 +127,11 @@ Route::prefix('v1')->group(function () {
         // Newsletter subscriber management.
         Route::get('newsletter/subscribers', [NewsletterController::class, 'index']);
         Route::get('newsletter/export', [NewsletterController::class, 'export']);
+
+        // Notifications inbox.
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::post('notifications/{id}/read', [NotificationController::class, 'markRead']);
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllRead']);
 
         // Editorial workflow (review queue + transitions) and audit trail.
         Route::get('review/queue', [WorkflowController::class, 'queue']);

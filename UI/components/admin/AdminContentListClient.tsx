@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import AdminTableSearch from "@/components/admin/AdminTableSearch";
+import AdminTableFilters, { type SelectFilter } from "@/components/admin/AdminTableFilters";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { CONTENT_SCHEMAS, type ContentModule } from "@/components/admin/contentSchemas";
 
@@ -35,6 +35,39 @@ interface Props {
 export default function AdminContentListClient({ module, rows, badgeLabel, dateLabel }: Props) {
   const schema = CONTENT_SCHEMAS[module];
 
+  // Options come from the rows themselves rather than a fixed list, so the
+  // dropdown only ever offers categories that actually exist here.
+  const badges = [...new Set(rows.map((r) => r.badge).filter(Boolean))].sort();
+
+  const filters: SelectFilter<ContentRow>[] = [
+    {
+      key: "published",
+      label: "Status",
+      options: [
+        { value: "live", label: "Live" },
+        { value: "draft", label: "Draft" },
+      ],
+      match: (r, v) => (v === "live" ? r.published : !r.published),
+    },
+    {
+      key: "featured",
+      label: "Featured",
+      options: [
+        { value: "yes", label: "Featured" },
+        { value: "no", label: "Not featured" },
+      ],
+      match: (r, v) => (v === "yes" ? r.featured : !r.featured),
+    },
+    ...(badges.length
+      ? [{
+          key: "badge",
+          label: badgeLabel,
+          options: badges.map((b) => ({ value: b, label: b })),
+          match: (r: ContentRow, v: string) => r.badge === v,
+        }]
+      : []),
+  ];
+
   return (
     <div>
       <AdminPageHeader
@@ -43,13 +76,14 @@ export default function AdminContentListClient({ module, rows, badgeLabel, dateL
         action={{ label: `New ${schema.singular}`, href: `${schema.adminPath}/edit` }}
       />
 
-      <AdminTableSearch
+      <AdminTableFilters
         items={rows}
         searchFields={["title", "subtitle", "badge"]}
         placeholder={`Search ${schema.plural.toLowerCase()}…`}
+        filters={filters}
+        dateField={{ key: "date", label: dateLabel }}
       >
-        {(filtered) => {
-          const items = filtered as unknown as ContentRow[];
+        {(items) => {
           return (
             <div className="bg-white rounded-xl border border-ink-200 shadow-card overflow-hidden">
               <table className="responsive-table min-w-full divide-y divide-ink-100">
@@ -107,7 +141,7 @@ export default function AdminContentListClient({ module, rows, badgeLabel, dateL
             </div>
           );
         }}
-      </AdminTableSearch>
+      </AdminTableFilters>
     </div>
   );
 }

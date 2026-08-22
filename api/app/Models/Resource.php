@@ -16,6 +16,7 @@ class Resource extends Model
         'featured' => 'boolean',
         'published' => 'boolean',
         'reviewed_at' => 'datetime',
+        'file_downloadable' => 'boolean',
     ];
 
     public function technologies(): BelongsToMany

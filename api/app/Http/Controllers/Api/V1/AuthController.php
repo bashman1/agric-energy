@@ -36,6 +36,7 @@ class AuthController extends Controller
             // Login account (both types).
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
+            'username' => 'required_if:accountType,organization|nullable|string|max:255|unique:users,username',
             'password' => 'required|string|min:8|confirmed',
             'phone' => 'nullable|string|max:50',
 
@@ -44,30 +45,30 @@ class AuthController extends Controller
             'orgName' => 'required_if:accountType,organization|nullable|string|max:255',
             'contactEmail' => 'required_if:accountType,organization|nullable|email|max:255',
             'acronym' => 'nullable|string|max:255',
-            'registrationNumber' => 'nullable|string|max:255',
-            'taxId' => 'nullable|string|max:255',
+            'registrationNumber' => 'required_if:accountType,organization|nullable|string|max:255',
+            'taxId' => 'required_if:accountType,organization|nullable|string|max:255',
             'yearEstablished' => 'nullable|string|max:10',
             'website' => 'nullable|string|max:255',
-            'orgEmail' => 'nullable|email|max:255',
             'telephone' => 'nullable|string|max:50',
-            'physicalAddress' => 'nullable|string|max:1000',
+            'physicalAddress' => 'required_if:accountType,organization|nullable|string|max:1000',
             'postalAddress' => 'nullable|string|max:255',
-            'coverageScope' => 'nullable|array',
+            'coverageScope' => 'required_if:accountType,organization|nullable|array',
             'regions' => 'nullable|array',
             'districtCoverage' => 'nullable|array',
             'countries' => 'nullable|array',
-            'sectors' => 'nullable|array',
+            'sectors' => 'required_if:accountType,organization|nullable|array|min:1',
             'valueChains' => 'nullable|array',
-            'mission' => 'nullable|string|max:2000',
-            'description' => 'nullable|string|max:2000',
+            'mission' => 'required_if:accountType,organization|nullable|string|max:2000',
+            'description' => 'required_if:accountType,organization|nullable|string|max:2000',
             'employeesBand' => 'nullable|string|max:50',
             'branchesBand' => 'nullable|string|max:50',
             'beneficiariesBand' => 'nullable|string|max:50',
             'annualBudgetRange' => 'nullable|string|max:100',
-            'expertise' => 'nullable|array',
-            'contactName' => 'nullable|string|max:255',
-            'contactPosition' => 'nullable|string|max:255',
-            'contactPhone' => 'nullable|string|max:50',
+            'expertise' => 'required_if:accountType,organization|nullable|array|min:1|max:3',
+            'contactName' => 'required_if:accountType,organization|nullable|string|max:255',
+            'contactPosition' => 'required_if:accountType,organization|nullable|string|max:255',
+            'contactPhone' => 'required_if:accountType,organization|nullable|string|max:50',
+            'partnerType' => 'required_if:accountType,organization|nullable|in:Funding Partner,Implementing Partner',
             'logo' => 'nullable|string|max:1000',
         ]);
 
@@ -79,6 +80,7 @@ class AuthController extends Controller
             $user = User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
+                'username' => $data['username'] ?? null,
                 'password' => Hash::make($data['password']),
                 'organisation' => $isOrg ? ($data['orgName'] ?? null) : null,
                 'phone' => $data['phone'] ?? null,
@@ -87,7 +89,14 @@ class AuthController extends Controller
                 'partner_id' => $partner?->id,
             ]);
 
-            $user->assignRole(\App\Support\Roles::PARTNER);
+            // Whoever registers an organisation becomes its administrator,
+            // so the organisation can add its own people without a platform
+            // admin doing it for them. That role is organisation-scoped: it
+            // confers nothing outside this partner_id. An individual account
+            // has no organisation to administer and stays a plain partner.
+            $user->assignRole($isOrg
+                ? \App\Support\Roles::PARTNER_ADMIN
+                : \App\Support\Roles::PARTNER);
 
             return $user;
         });
@@ -113,12 +122,13 @@ class AuthController extends Controller
             'slug' => $this->uniquePartnerSlug($data['orgName']),
             'name' => $data['orgName'],
             'category' => $data['category'] ?? null,
+            'type' => $data['partnerType'] ?? null,
             'acronym' => $data['acronym'] ?? null,
             'registration_number' => $data['registrationNumber'] ?? null,
             'tax_id' => $data['taxId'] ?? null,
             'year_established' => $data['yearEstablished'] ?? null,
             'website' => $data['website'] ?? null,
-            'email' => $data['orgEmail'] ?? null,
+            'email' => $data['email'] ?? null,
             'phone' => $data['telephone'] ?? null,
             'logo' => $data['logo'] ?? null,
             'physical_address' => $data['physicalAddress'] ?? null,

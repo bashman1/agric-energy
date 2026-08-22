@@ -160,6 +160,7 @@ export function CheckboxGroup({
   onChange,
   required,
   help,
+  max,
 }: {
   label: string;
   options: readonly string[];
@@ -167,9 +168,14 @@ export function CheckboxGroup({
   onChange: (v: string[]) => void;
   required?: boolean;
   help?: string;
+  max?: number;
 }) {
-  const toggle = (opt: string) =>
-    onChange(value.includes(opt) ? value.filter((v) => v !== opt) : [...value, opt]);
+  const toggle = (opt: string) => {
+    const has = value.includes(opt);
+    const next = has ? value.filter((v) => v !== opt) : [...value, opt];
+    if (!has && max !== undefined && next.length > max) return;
+    onChange(next);
+  };
 
   return (
     <fieldset>
@@ -180,11 +186,58 @@ export function CheckboxGroup({
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => {
           const on = value.includes(opt);
+          const disabled = !on && max !== undefined && value.length >= max;
           return (
             <button
               key={opt}
               type="button"
               onClick={() => toggle(opt)}
+              disabled={disabled}
+              aria-pressed={on}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                on
+                  ? "bg-primary-600 text-white border-primary-600"
+                  : disabled
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                    : "bg-gray-50 text-gray-700 border-gray-200 hover:border-primary-300"
+              }`}
+            >
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+/** Single-select radio-pill group. */
+export function RadioGroup({
+  label,
+  options,
+  value,
+  onChange,
+  required,
+}: {
+  label: string;
+  options: readonly string[];
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+}) {
+  return (
+    <fieldset>
+      <legend className={labelClass}>
+        {label} {required && <span className="text-red-500">*</span>}
+      </legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((opt) => {
+          const on = value === opt;
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => onChange(on ? "" : opt)}
               aria-pressed={on}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                 on

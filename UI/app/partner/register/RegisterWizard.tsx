@@ -14,7 +14,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import ComboSelect from "@/components/admin/ComboSelect";
-import { TextField, TextArea, SelectField, CheckboxGroup, labelClass } from "./fields";
+import { TextField, TextArea, SelectField, CheckboxGroup, RadioGroup, labelClass } from "./fields";
 import { UGANDA_REGIONS } from "@/lib/geography/nominatim";
 import { fetchDistrictMeta } from "@/lib/geo/ugandaGeo";
 import { register } from "@/lib/auth/actions";
@@ -41,18 +41,19 @@ const INITIAL = {
   // login account
   name: "",
   email: "",
+  username: "",
   phone: "",
   password: "",
   password_confirmation: "",
   // organization info
   category: "",
+  partnerType: "",
   orgName: "",
   acronym: "",
   registrationNumber: "",
   taxId: "",
   yearEstablished: "",
   website: "",
-  orgEmail: "",
   telephone: "",
   physicalAddress: "",
   postalAddress: "",
@@ -84,6 +85,7 @@ const STEP_TITLES: Record<string, string> = {
   account: "Account type",
   personal: "Your details",
   category: "Organization category",
+  partner_type: "Partner type",
   info: "Organization information",
   coverage: "Geographic coverage",
   focus: "Sectors & value chains",
@@ -96,7 +98,7 @@ const STEP_TITLES: Record<string, string> = {
 function stepKeysFor(t: AccountType): string[] {
   if (t === "individual") return ["account", "personal"];
   if (t === "organization")
-    return ["account", "category", "info", "coverage", "focus", "profile", "expertise", "contact", "credentials"];
+    return ["account", "category", "partner_type", "info", "coverage", "focus", "profile", "expertise", "contact", "credentials"];
   return ["account"];
 }
 
@@ -146,6 +148,13 @@ export default function RegisterWizard() {
     };
   }, [form.accountType, districtOpts.length]);
 
+  // Prefill contact email from org email during the info step.
+  useEffect(() => {
+    if (form.accountType === "organization" && form.email && !form.contactEmail) {
+      setForm((s) => ({ ...s, contactEmail: s.email }));
+    }
+  }, [form.email, form.contactEmail, form.accountType]);
+
   function pickType(t: AccountType) {
     setForm((s) => ({ ...s, accountType: t }));
     setError("");
@@ -161,26 +170,48 @@ export default function RegisterWizard() {
       case "personal":
         if (!f.name.trim()) return "Full name is required.";
         if (!EMAIL_RE.test(f.email)) return "A valid email is required.";
+        if (!f.username.trim()) return "Username is required.";
         if (f.password.length < 8) return "Password must be at least 8 characters.";
         if (f.password !== f.password_confirmation) return "Passwords do not match.";
         return null;
       case "category":
         if (!f.category) return "Please select an organization category.";
         return null;
+      case "partner_type":
+        if (!f.partnerType) return "Please select a partner type.";
+        return null;
       case "info":
         if (!f.orgName.trim()) return "Organization name is required.";
+        if (!f.registrationNumber.trim()) return "Registration number is required.";
+        if (!f.taxId.trim()) return "Tax Identification Number is required.";
+        if (!f.physicalAddress.trim()) return "Physical address is required.";
+        if (!f.sectors.length) return "Please select at least one sector.";
+        if (!f.email.trim()) return "Organisation email is required.";
         return null;
       case "contact":
         if (!f.contactName.trim()) return "Contact person's full name is required.";
+        if (!f.contactPosition.trim()) return "Contact person's position is required.";
         if (!EMAIL_RE.test(f.contactEmail)) return "A valid contact email is required.";
+        if (!f.contactPhone.trim()) return "Contact person's phone number is required.";
         return null;
       case "credentials":
         if (!EMAIL_RE.test(f.email)) return "A valid login email is required.";
+        if (!f.username.trim()) return "Username is required.";
         if (f.password.length < 8) return "Password must be at least 8 characters.";
         if (f.password !== f.password_confirmation) return "Passwords do not match.";
         return null;
       default:
-        return null; // coverage / focus / profile / expertise are optional
+        if (k === "profile") {
+          if (!f.mission.trim()) return "Mission is required.";
+          if (!f.description.trim()) return "Brief description is required.";
+          return null;
+        }
+        if (k === "expertise") {
+          if (!f.expertise.length) return "Please select at least one area of expertise.";
+          if (f.expertise.length > 3) return "Select up to 3 areas of expertise.";
+          return null;
+        }
+        return null;
     }
   }
 
@@ -191,10 +222,6 @@ export default function RegisterWizard() {
       return;
     }
     setError("");
-    // Convenience: default the login email to the contact email.
-    if (keys[step + 1] === "credentials" && !form.email) {
-      setForm((s) => ({ ...s, email: s.contactEmail }));
-    }
     setStep((s) => s + 1);
   }
 
@@ -217,14 +244,15 @@ export default function RegisterWizard() {
       ...base,
       name: form.contactName,
       phone: form.contactPhone,
+      username: form.username,
       category: form.category,
+      partnerType: form.partnerType,
       orgName: form.orgName,
       acronym: form.acronym,
       registrationNumber: form.registrationNumber,
       taxId: form.taxId,
       yearEstablished: form.yearEstablished,
       website: form.website,
-      orgEmail: form.orgEmail,
       telephone: form.telephone,
       physicalAddress: form.physicalAddress,
       postalAddress: form.postalAddress,
@@ -448,6 +476,17 @@ function StepBody({
         />
       );
 
+    case "partner_type":
+      return (
+        <RadioGroup
+          label="Partner Type"
+          value={form.partnerType}
+          onChange={up("partnerType")}
+          options={["Funding Partner", "Implementing Partner"]}
+          required
+        />
+      );
+
     case "info":
       return (
         <div className="grid sm:grid-cols-2 gap-4">
@@ -455,14 +494,14 @@ function StepBody({
             <TextField label="Organization Name" value={form.orgName} onChange={up("orgName")} required />
           </div>
           <TextField label="Acronym" value={form.acronym} onChange={up("acronym")} />
-          <TextField label="Registration Number" value={form.registrationNumber} onChange={up("registrationNumber")} />
-          <TextField label="Tax Identification Number" value={form.taxId} onChange={up("taxId")} help="Optional" />
+          <TextField label="Registration Number" value={form.registrationNumber} onChange={up("registrationNumber")} required />
+          <TextField label="Tax Identification Number" value={form.taxId} onChange={up("taxId")} required help="Required" />
           <TextField label="Year Established" value={form.yearEstablished} onChange={up("yearEstablished")} placeholder="e.g. 2015" />
           <TextField label="Website" type="url" value={form.website} onChange={up("website")} placeholder="https://" />
-          <TextField label="Organization Email" type="email" value={form.orgEmail} onChange={up("orgEmail")} />
+          <TextField label="Organisation Email" type="email" value={form.email} onChange={up("email")} required />
           <TextField label="Official Telephone" value={form.telephone} onChange={up("telephone")} />
           <div className="sm:col-span-2">
-            <TextField label="Physical Address" value={form.physicalAddress} onChange={up("physicalAddress")} />
+            <TextField label="Physical Address" value={form.physicalAddress} onChange={up("physicalAddress")} required />
           </div>
           <div className="sm:col-span-2">
             <TextField label="Postal Address" value={form.postalAddress} onChange={up("postalAddress")} />
@@ -473,14 +512,14 @@ function StepBody({
     case "coverage":
       return (
         <div className="space-y-5">
-          <CheckboxGroup
+          <RadioGroup
             label="Geographic Coverage"
-            options={COVERAGE_SCOPES}
-            value={form.coverageScope}
-            onChange={up("coverageScope")}
-            help="Select all that apply."
+            value={form.coverageScope[0] ?? ""}
+            onChange={(v) => up("coverageScope")(v ? [v] : [])}
+            options={["National", "International"]}
+            required
           />
-          {(form.coverageScope.includes("Regional") || form.coverageScope.includes("District")) && (
+          {form.coverageScope[0] === "National" && (
             <div className="space-y-4">
               <CheckboxGroup
                 label="Region(s)"
@@ -488,21 +527,19 @@ function StepBody({
                 value={form.regions}
                 onChange={up("regions")}
               />
-              {form.coverageScope.includes("District") && (
-                <div>
-                  <span className={labelClass}>District(s)</span>
-                  <ComboSelect
-                    multi
-                    options={districtOpts}
-                    value={form.districtCoverage}
-                    onChange={up("districtCoverage")}
-                    placeholder={districtOpts.length ? "Search districts…" : "Loading districts…"}
-                  />
-                </div>
-              )}
+              <div>
+                <span className={labelClass}>District(s)</span>
+                <ComboSelect
+                  multi
+                  options={districtOpts}
+                  value={form.districtCoverage}
+                  onChange={up("districtCoverage")}
+                  placeholder={districtOpts.length ? "Search districts…" : "Loading districts…"}
+                />
+              </div>
             </div>
           )}
-          {form.coverageScope.includes("International") && (
+          {form.coverageScope[0] === "International" && (
             <div>
               <span className={labelClass}>Country / Countries</span>
               <ComboSelect
@@ -546,13 +583,14 @@ function StepBody({
     case "profile":
       return (
         <div className="space-y-4">
-          <TextArea label="Mission" value={form.mission} onChange={up("mission")} rows={3} />
+          <TextArea label="Mission" value={form.mission} onChange={up("mission")} rows={3} required />
           <TextArea
             label="Brief Description"
             value={form.description}
             onChange={up("description")}
             maxLength={500}
             rows={4}
+            required
           />
           <div className="grid sm:grid-cols-2 gap-4">
             <SelectField label="Number of Employees" value={form.employeesBand} onChange={up("employeesBand")} options={EMPLOYEE_BANDS} />
@@ -570,6 +608,8 @@ function StepBody({
           options={EXPERTISE_AREAS}
           value={form.expertise}
           onChange={up("expertise")}
+          max={3}
+          help="Select up to 3 areas of expertise."
         />
       );
 
@@ -579,9 +619,9 @@ function StepBody({
           <div className="sm:col-span-2">
             <TextField label="Full Name" value={form.contactName} onChange={up("contactName")} required />
           </div>
-          <TextField label="Position" value={form.contactPosition} onChange={up("contactPosition")} />
+          <TextField label="Position" value={form.contactPosition} onChange={up("contactPosition")} required />
           <TextField label="Email" type="email" value={form.contactEmail} onChange={up("contactEmail")} required />
-          <TextField label="Phone Number" value={form.contactPhone} onChange={up("contactPhone")} />
+          <TextField label="Phone Number" value={form.contactPhone} onChange={up("contactPhone")} required />
         </div>
       );
 
@@ -591,7 +631,8 @@ function StepBody({
           <ReviewSummary form={form} />
           <div className="space-y-4 pt-4 border-t border-gray-100">
             <p className="text-sm font-semibold text-gray-800">Set up your login</p>
-            <TextField label="Login Email" type="email" value={form.email} onChange={up("email")} required help="Used to sign in. You can reuse your contact email." autoComplete="email" />
+            <TextField label="Organisation Email" type="email" value={form.email} onChange={up("email")} required help="Used to sign in." autoComplete="email" />
+            <TextField label="Username" value={form.username} onChange={up("username")} required help="Organisation username." autoComplete="username" />
             <TextField label="Password" type="password" value={form.password} onChange={up("password")} required help="At least 8 characters." autoComplete="new-password" />
             <TextField label="Confirm password" type="password" value={form.password_confirmation} onChange={up("password_confirmation")} required autoComplete="new-password" />
           </div>
@@ -607,6 +648,7 @@ function ReviewSummary({ form }: { form: FormState }) {
   const rows: [string, string][] = [
     ["Organization", form.orgName],
     ["Category", form.category],
+    ["Partner Type", form.partnerType],
     ["Coverage", form.coverageScope.join(", ")],
     ["Sectors", form.sectors.join(", ")],
     ["Value chains", form.valueChains.join(", ")],

@@ -1,10 +1,41 @@
 "use client";
 import Link from "next/link";
 import { Project } from "@/lib/types";
-import AdminTableSearch from "@/components/admin/AdminTableSearch";
+import AdminTableFilters, { type SelectFilter } from "@/components/admin/AdminTableFilters";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 export default function AdminProjectsClient({ projects }: { projects: Project[] }) {
+  const statuses = [...new Set(projects.map((p) => p.status).filter(Boolean))].sort();
+  const regions = [...new Set(projects.map((p) => p.region).filter(Boolean))].sort();
+
+  const filters: SelectFilter<Project>[] = [
+    {
+      key: "published",
+      label: "Visibility",
+      options: [
+        { value: "live", label: "Live" },
+        { value: "draft", label: "Draft" },
+      ],
+      match: (p, v) => (v === "live" ? p.published : !p.published),
+    },
+    ...(statuses.length
+      ? [{
+          key: "status",
+          label: "Status",
+          options: statuses.map((v) => ({ value: v, label: v })),
+          match: (p: Project, v: string) => p.status === v,
+        }]
+      : []),
+    ...(regions.length
+      ? [{
+          key: "region",
+          label: "Region",
+          options: regions.map((v) => ({ value: v, label: v })),
+          match: (p: Project, v: string) => p.region === v,
+        }]
+      : []),
+  ];
+
   return (
     <div>
       <AdminPageHeader
@@ -13,13 +44,13 @@ export default function AdminProjectsClient({ projects }: { projects: Project[] 
         action={{ label: "New Project", href: "/admin/projects/edit" }}
       />
 
-      <AdminTableSearch
-        items={projects as unknown as Record<string, unknown>[]}
+      <AdminTableFilters
+        items={projects as unknown as (Project & Record<string, unknown>)[]}
         searchFields={["title", "geographicCoverageSummary", "valueChain", "status"]}
         placeholder="Search projects by title, location, value chain..."
+        filters={filters as SelectFilter<Project & Record<string, unknown>>[]}
       >
-        {(filtered) => {
-          const items = filtered as unknown as Project[];
+        {(items) => {
           return (
             <div className="bg-white rounded-xl border border-ink-200 shadow-card overflow-hidden">
               <table className="responsive-table min-w-full divide-y divide-ink-100">
@@ -75,7 +106,7 @@ export default function AdminProjectsClient({ projects }: { projects: Project[] 
             </div>
           );
         }}
-      </AdminTableSearch>
+      </AdminTableFilters>
     </div>
   );
 }

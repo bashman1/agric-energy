@@ -91,6 +91,12 @@ export default async function HomePage() {
   const featuredThemes = themes.filter((t) => t.featured).slice(0, 6);
   const featuredProjects = projects.slice(0, 3);
 
+  // Only these four partners appear in the homepage "Collaborating Partners" slider
+  const sliderPartnerSlugs = ["snv-uganda", "maaif", "nrep", "giz-uganda"];
+  const sliderPartners = partners
+    .filter((p) => sliderPartnerSlugs.includes(p.slug))
+    .sort((a, b) => sliderPartnerSlugs.indexOf(a.slug) - sliderPartnerSlugs.indexOf(b.slug));
+
   const allProjects = await getPublishedProjects();
   const districtCount = new Set(
     allProjects.map((p) => p.district).filter(Boolean)
@@ -384,7 +390,7 @@ export default async function HomePage() {
 
         {/* ─── PARTNERS ──────────────────────────────────────────── */}
         <PartnersSlider
-          partners={partners.map((p) => ({
+          partners={sliderPartners.map((p) => ({
             id: p.id,
             slug: p.slug,
             name: p.name,
@@ -415,7 +421,7 @@ export default async function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Link href="/partner" className="btn btn-lg bg-white text-primary-900 hover:bg-primary-50">
-                Register your project
+                Create account
               </Link>
               <Link
                 href="/about"

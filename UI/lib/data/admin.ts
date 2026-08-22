@@ -77,6 +77,25 @@ export async function getUsers(
   return apiGet<AdminUser[]>("users", [], { params: filters, token });
 }
 
+/** Fields the admin "New user" form posts to create an account. */
+export interface NewUserInput {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  roles: string[];
+  phone?: string;
+  organisation?: string;
+}
+
+/**
+ * Create an account directly. The API marks it approved and
+ * email-verified, so the person can sign in straight away.
+ */
+export async function createUser(input: NewUserInput, token?: string) {
+  return apiSend("POST", "users", input, { token });
+}
+
 export async function approveUser(id: number, token?: string) {
   return apiSend("POST", `users/${id}/approve`, undefined, { token });
 }
@@ -95,4 +114,36 @@ export async function getAuditLog(
   filters?: { event?: string; subjectType?: string; limit?: number }
 ): Promise<AuditEntry[]> {
   return apiGet<AuditEntry[]>("audit", [], { params: filters, token });
+}
+
+// ── Partner team (organisation-scoped) ──────────────────────
+// Distinct from the user endpoints above: those are platform-wide and need
+// `manage-users`; these only ever touch accounts in the caller's own
+// organisation, and the API takes partner_id from the session rather than
+// anything sent from here.
+
+export interface NewTeamMemberInput {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  roles: string[];
+  phone?: string;
+}
+
+/** Everyone in the signed-in partner admin's organisation. */
+export async function getPartnerTeam(token?: string): Promise<AdminUser[]> {
+  return apiGet<AdminUser[]>("partner-team", [], { token });
+}
+
+export async function createTeamMember(input: NewTeamMemberInput, token?: string) {
+  return apiSend("POST", "partner-team", input, { token });
+}
+
+export async function setTeamMemberStatus(
+  id: number,
+  status: "approved" | "suspended",
+  token?: string
+) {
+  return apiSend("PATCH", `partner-team/${id}/status`, { status }, { token });
 }

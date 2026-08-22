@@ -12,6 +12,7 @@ import { refreshUser } from "./actions";
 import {
   USER_KEY,
   canManageContent,
+  canManagePartnerTeam,
   canManageUsers,
   getUser,
   isStaff,
@@ -64,6 +65,7 @@ export function useSession() {
     isStaff: isStaff(user),
     canManageContent: canManageContent(user),
     canManageUsers: canManageUsers(user),
+    canManagePartnerTeam: canManagePartnerTeam(user),
     isSuperAdmin: isSuperAdmin(user),
   };
 }

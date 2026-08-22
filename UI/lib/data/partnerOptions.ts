@@ -105,11 +105,9 @@ export const EXPERTISE_AREAS = [
   "Extension Services",
 ] as const;
 
-/** Geographic Coverage scope — select all that apply. */
+/** Geographic Coverage scope — single-select. */
 export const COVERAGE_SCOPES = [
   "National",
-  "Regional",
-  "District",
   "International",
 ] as const;
 

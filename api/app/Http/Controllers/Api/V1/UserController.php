@@ -43,6 +43,60 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Create an account directly, instead of waiting for someone to
+     * self-register and then approving them.
+     *
+     * Admin-created accounts skip the pending state: the person creating it
+     * is the same person who would otherwise approve it, so requiring a
+     * second approval step would be theatre. Email is likewise marked
+     * verified — an administrator typing the address is the verification.
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $this->authorize('manage-users');
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            // `confirmed` pairs with password_confirmation, matching the
+            // rules self-registration already enforces in AuthController.
+            'password' => 'required|string|min:8|confirmed',
+            'phone' => 'nullable|string|max:50',
+            'organisation' => 'nullable|string|max:255',
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'in:' . implode(',', self::ASSIGNABLE_ROLES),
+        ]);
+
+        // Same escalation guard as setRoles(): a platform-admin must not be
+        // able to mint a super-admin and inherit full control that way.
+        if (in_array(Roles::SUPER_ADMIN, $data['roles'], true)
+            && ! $request->user()->hasRole(Roles::SUPER_ADMIN)) {
+            throw new AuthorizationException('Only super-administrators can grant the super-administrator role.');
+        }
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            // The model casts `password` as `hashed`, and that cast is
+            // idempotent — do not Hash::make() here as well.
+            'password' => $data['password'],
+            'phone' => $data['phone'] ?? null,
+            'organisation' => $data['organisation'] ?? null,
+            'status' => User::STATUS_APPROVED,
+            'approved_at' => Carbon::now(),
+            'account_type' => 'individual',
+        ]);
+
+        $user->forceFill(['email_verified_at' => Carbon::now()])->save();
+        $user->syncRoles($data['roles']);
+
+        activity('users')->performedOn($user)->causedBy($request->user())
+            ->event('created')->log('Created account ' . $user->email);
+
+        return response()->json(['data' => new UserResource($user->fresh('partner'))], 201);
+    }
+
     /** Approve a pending registration so the user can log in. */
     public function approve(Request $request, User $user): JsonResponse
     {

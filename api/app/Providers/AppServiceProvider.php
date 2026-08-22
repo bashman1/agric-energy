@@ -60,6 +60,17 @@ class AppServiceProvider extends ServiceProvider
         // User & role management: platform admins (super-admins via before()).
         Gate::define('manage-users', fn (User $user) => $user->hasRole(Roles::PLATFORM_ADMIN));
 
+        // An organisation's own team, in the partner portal. Deliberately a
+        // SEPARATE gate from manage-users: that one is platform-wide, this
+        // one only ever applies to accounts sharing the caller's partner_id
+        // (enforced in PartnerTeamController, which is where the scoping
+        // lives — this gate answers "may you manage a team at all").
+        // Requires a partner_id, so an individual partner account with no
+        // organisation behind it has no team to manage.
+        Gate::define('manage-partner-team', fn (User $user) => $user->isApproved()
+            && $user->hasRole(Roles::PARTNER_ADMIN)
+            && $user->partner_id !== null);
+
         // Core system settings and the audit trail are super-admin-only: the
         // closures deny everyone, so only Gate::before() lets a super-admin
         // through. Keeps them off-limits even to platform administrators.

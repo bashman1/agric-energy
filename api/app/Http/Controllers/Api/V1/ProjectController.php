@@ -68,6 +68,7 @@ class ProjectController extends ContentController
             'externalUrl' => 'external_url',
             'featured' => 'featured',
             'published' => 'published',
+            'notifyPartnerIds' => 'notify_partner_ids',
         ];
 
         $attrs = [];

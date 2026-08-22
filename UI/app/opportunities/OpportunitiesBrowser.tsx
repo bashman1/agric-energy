@@ -18,6 +18,7 @@ const TYPES = [
   { slug: "investment", label: "Investment" },
   { slug: "tender", label: "Tenders" },
   { slug: "procurement", label: "Procurement" },
+  { slug: "job", label: "Jobs" },
 ] as const;
 
 function daysLeft(deadline: string | null): string {

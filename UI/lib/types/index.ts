@@ -160,6 +160,7 @@ export interface Resource {
   publicationDate: string;
   featured: boolean;
   published: boolean;
+  fileDownloadable?: boolean;
   updatedAt: string;
 }
 
@@ -187,7 +188,7 @@ export interface Opportunity {
   id: string;
   slug: string;
   title: string;
-  /** funding | investment | tender | procurement */
+  /** funding | investment | tender | procurement | job */
   opportunityType: string;
   funder: string;
   summary: string;

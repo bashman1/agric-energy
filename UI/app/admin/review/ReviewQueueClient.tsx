@@ -5,6 +5,7 @@ import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { CheckCircleIcon } from "@/components/shared/icons";
 import type { ReviewQueueItem } from "@/lib/data/admin";
 import { approveContent, rejectContent } from "@/lib/data/admin";
+import AdminTableFilters, { type SelectFilter } from "@/components/admin/AdminTableFilters";
 
 const TYPE_LABEL: Record<string, string> = {
   projects: "Project",
@@ -30,6 +31,31 @@ export default function ReviewQueueClient({
   const [error, setError] = useState("");
 
   const key = (i: ReviewQueueItem) => `${i.type}/${i.slug}`;
+
+  // Derived from the queue, so the dropdowns only offer what is actually
+  // waiting — a reviewer clearing partner submissions can narrow to those
+  // without reading past everything else.
+  const types = [...new Set(items.map((i) => i.type))].sort();
+  const authors = [...new Set(items.map((i) => i.author).filter(Boolean))].sort() as string[];
+
+  const filters: SelectFilter<ReviewQueueItem>[] = [
+    ...(types.length
+      ? [{
+          key: "type",
+          label: "Content type",
+          options: types.map((t) => ({ value: t, label: TYPE_LABEL[t] ?? t })),
+          match: (i: ReviewQueueItem, v: string) => i.type === v,
+        }]
+      : []),
+    ...(authors.length
+      ? [{
+          key: "author",
+          label: "Submitted by",
+          options: authors.map((a) => ({ value: a, label: a })),
+          match: (i: ReviewQueueItem, v: string) => i.author === v,
+        }]
+      : []),
+  ];
 
   const approve = async (i: ReviewQueueItem) => {
     setBusy(key(i));
@@ -81,8 +107,20 @@ export default function ReviewQueueClient({
           </p>
         </div>
       ) : (
+        <AdminTableFilters
+          items={items as (ReviewQueueItem & Record<string, unknown>)[]}
+          searchFields={["title", "author", "type"]}
+          placeholder="Search submissions…"
+          filters={filters as SelectFilter<ReviewQueueItem & Record<string, unknown>>[]}
+          dateField={{ key: "submittedAt", label: "Submitted" }}
+        >
+          {(shown) => shown.length === 0 ? (
+            <div className="bg-white rounded-xl border border-ink-200 shadow-card p-10 text-center text-sm text-ink-400">
+              No submissions match these filters.
+            </div>
+          ) : (
         <div className="bg-white rounded-xl border border-ink-200 shadow-card divide-y divide-ink-100">
-          {items.map((i) => (
+          {shown.map((i) => (
             <div
               key={key(i)}
               className="flex items-center gap-4 px-4 py-3.5"
@@ -127,6 +165,8 @@ export default function ReviewQueueClient({
             </div>
           ))}
         </div>
+          )}
+        </AdminTableFilters>
       )}
     </div>
   );

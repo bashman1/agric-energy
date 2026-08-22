@@ -24,6 +24,7 @@ class ResourceResource extends JsonResource
             'publicationDate' => $this->publication_date ?? '',
             'featured' => (bool) $this->featured,
             'published' => (bool) $this->published,
+            'fileDownloadable' => (bool) $this->file_downloadable,
             'workflowStatus' => $this->workflow_status,
             'updatedAt' => optional($this->updated_at)->toISOString(),
         ];

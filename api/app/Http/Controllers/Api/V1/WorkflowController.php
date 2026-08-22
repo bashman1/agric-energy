@@ -12,6 +12,8 @@ use App\Models\Project;
 use App\Models\Resource;
 use App\Models\Technology;
 use App\Models\Theme;
+use App\Models\User;
+use App\Notifications\ContentPublishedNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,7 +45,7 @@ class WorkflowController extends Controller
     /** Items awaiting review, optionally filtered by ?type=. */
     public function queue(Request $request): JsonResponse
     {
-        $this->authorize('viewAny'); // editors + reviewers gate
+        $this->authorize('viewAny');
 
         $types = $request->filled('type')
             ? [$request->query('type') => $this->model($request->query('type'))]
@@ -99,6 +101,23 @@ class WorkflowController extends Controller
         ]);
         activity('content')->performedOn($model)->causedBy($request->user())
             ->event('approved')->log('Approved and published');
+
+        $actorName = $request->user()?->name;
+
+        try {
+            $partnerSlugs = $model->notify_partner_ids ?? [];
+            if (!empty($partnerSlugs)) {
+                $partners = Partner::whereIn('slug', $partnerSlugs)->get();
+                foreach ($partners as $partner) {
+                    $users = User::where('partner_id', $partner->id)->get();
+                    foreach ($users as $user) {
+                        $user->notify(new ContentPublishedNotification($model, $type, $actorName));
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return $this->ok($model);
     }

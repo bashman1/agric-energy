@@ -4,14 +4,27 @@ import type { AdminUser } from "@/lib/data/admin";
 import { apiSend } from "@/lib/api/client";
 import { ROLE, ROLE_LABELS } from "@/lib/auth/token";
 import { useSession } from "@/lib/auth/useSession";
+import NewUserForm from "./NewUserForm";
+import AdminTableFilters, { type SelectFilter } from "@/components/admin/AdminTableFilters";
 
-/** Roles shown as assignable pills, in tier order. */
+/**
+ * Roles shown as assignable pills, in tier order: platform-wide first, then
+ * the organisation-scoped ones.
+ *
+ * The organisation roles have to be listed even though partner admins grant
+ * them from their own portal — a pill list that omitted them would render an
+ * account holding `partner-admin` with every pill switched off, which reads
+ * as "no roles" rather than "a role this table cannot show".
+ */
 const ALL_ROLES = [
   ROLE.SUPER_ADMIN,
   ROLE.PLATFORM_ADMIN,
   ROLE.KNOWLEDGE_MANAGER,
   ROLE.CONTENT_CONTRIBUTOR,
   ROLE.PARTNER,
+  ROLE.PARTNER_ADMIN,
+  ROLE.PARTNER_KNOWLEDGE_MANAGER,
+  ROLE.PARTNER_CONTENT_CONTRIBUTOR,
 ];
 
 const STATUS_STYLE: Record<string, string> = {
@@ -29,6 +42,7 @@ export default function UsersClient({
   onChanged: () => void;
 }) {
   const [busy, setBusy] = useState<number | null>(null);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const { isSuperAdmin } = useSession();
 
@@ -60,19 +74,67 @@ export default function UsersClient({
 
   const pending = users.filter((u) => u.status === "pending");
 
+  // Built from the data so the dropdowns never offer an empty result, and
+  // so a new role or organisation shows up without touching this file.
+  const organisations = [...new Set(users.map((u) => u.organisation).filter(Boolean))].sort();
+  const presentRoles = [...new Set(users.flatMap((u) => u.roles))].sort();
+
+  const filters: SelectFilter<AdminUser>[] = [
+    {
+      key: "status",
+      label: "Status",
+      options: [
+        { value: "pending", label: "Pending approval" },
+        { value: "approved", label: "Approved" },
+        { value: "suspended", label: "Suspended" },
+      ],
+      match: (u, v) => u.status === v,
+    },
+    ...(presentRoles.length
+      ? [{
+          key: "role",
+          label: "Role",
+          options: presentRoles.map((r) => ({ value: r, label: ROLE_LABELS[r] ?? r })),
+          match: (u: AdminUser, v: string) => u.roles.includes(v),
+        }]
+      : []),
+    ...(organisations.length
+      ? [{
+          key: "organisation",
+          label: "Partner / organisation",
+          options: organisations.map((o) => ({ value: o, label: o })),
+          match: (u: AdminUser, v: string) => u.organisation === v,
+        }]
+      : []),
+  ];
+
   return (
     <div className="max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-display font-semibold text-ink-900">Users</h1>
-        <p className="text-sm text-ink-500 mt-0.5">
-          Approve registrations and manage roles.
-          {pending.length > 0 && (
-            <span className="ml-1 font-semibold text-secondary-700">
-              {pending.length} pending approval.
-            </span>
-          )}
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-semibold text-ink-900">Users</h1>
+          <p className="text-sm text-ink-500 mt-0.5">
+            Create accounts, approve registrations and manage roles.
+            {pending.length > 0 && (
+              <span className="ml-1 font-semibold text-secondary-700">
+                {pending.length} pending approval.
+              </span>
+            )}
+          </p>
+        </div>
+        {!creating && (
+          <button type="button" onClick={() => setCreating(true)} className="btn btn-primary shrink-0">
+            New user
+          </button>
+        )}
       </div>
+
+      {creating && (
+        <NewUserForm
+          onCreated={() => { setCreating(false); onChanged(); }}
+          onCancel={() => setCreating(false)}
+        />
+      )}
 
       {error && (
         <div className="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm">
@@ -80,6 +142,14 @@ export default function UsersClient({
         </div>
       )}
 
+      <AdminTableFilters
+        items={users as (AdminUser & Record<string, unknown>)[]}
+        searchFields={["name", "email", "organisation"]}
+        placeholder="Search by name, email or organisation…"
+        filters={filters as SelectFilter<AdminUser & Record<string, unknown>>[]}
+        dateField={{ key: "createdAt", label: "Registered" }}
+      >
+        {(shown) => (
       <div className="bg-white rounded-xl border border-ink-200 shadow-card overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-ink-50 text-ink-500 text-xs uppercase tracking-wide">
@@ -91,7 +161,14 @@ export default function UsersClient({
             </tr>
           </thead>
           <tbody className="divide-y divide-ink-100">
-            {users.map((u) => (
+            {shown.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center text-ink-400 py-10 text-sm">
+                  No users match these filters.
+                </td>
+              </tr>
+            )}
+            {shown.map((u) => (
               <tr key={u.id} className="align-top">
                 <td className="px-4 py-3">
                   <div className="font-semibold text-ink-800">{u.name}</div>
@@ -170,6 +247,8 @@ export default function UsersClient({
           </tbody>
         </table>
       </div>
+        )}
+      </AdminTableFilters>
     </div>
   );
 }

@@ -29,7 +29,20 @@ export const ROLE = {
   KNOWLEDGE_MANAGER: "knowledge-manager",
   CONTENT_CONTRIBUTOR: "content-contributor",
   PARTNER: "partner",
+  // Organisation-scoped. Held by partner accounts; confer nothing outside
+  // the holder's own partner_id. Deliberately distinct slugs from the staff
+  // roles above — see api/app/Support/Roles.php for why.
+  PARTNER_ADMIN: "partner-admin",
+  PARTNER_KNOWLEDGE_MANAGER: "partner-knowledge-manager",
+  PARTNER_CONTENT_CONTRIBUTOR: "partner-content-contributor",
 } as const;
+
+/** Roles a partner administrator may grant inside their own organisation. */
+export const PARTNER_TEAM_ROLES = [
+  ROLE.PARTNER_ADMIN,
+  ROLE.PARTNER_KNOWLEDGE_MANAGER,
+  ROLE.PARTNER_CONTENT_CONTRIBUTOR,
+] as const;
 
 /** Roles that manage content: publish, review queue, taxonomy, analytics. */
 export const CONTENT_MANAGER_ROLES = [
@@ -59,6 +72,9 @@ export const ROLE_LABELS: Record<string, string> = {
   "knowledge-manager": "Knowledge Manager",
   "content-contributor": "Content Contributor",
   partner: "Partner",
+  "partner-admin": "Organisation Admin",
+  "partner-knowledge-manager": "Knowledge Manager",
+  "partner-content-contributor": "Content Coordinator",
 };
 
 type StoredUser = Omit<SessionUser, "token" | "isLoggedIn">;
@@ -128,6 +144,15 @@ export function canManageContent(user: Pick<StoredUser, "roles"> | null): boolea
 /** Can manage user accounts and assign roles. */
 export function canManageUsers(user: Pick<StoredUser, "roles"> | null): boolean {
   return hasAnyRole(user, USER_MANAGER_ROLES);
+}
+
+/**
+ * Can manage their OWN organisation's team in the partner portal. Distinct
+ * from canManageUsers(), which is platform-wide — an organisation admin has
+ * no reach beyond accounts sharing its partner_id.
+ */
+export function canManagePartnerTeam(user: Pick<StoredUser, "roles"> | null): boolean {
+  return !!user?.roles?.includes(ROLE.PARTNER_ADMIN);
 }
 
 /** Super-admin only: system settings, audit trail, backups. */

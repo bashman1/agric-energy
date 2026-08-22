@@ -49,6 +49,7 @@ class ProjectResource extends JsonResource
             'externalUrl' => $this->external_url ?? '',
             'featured' => (bool) $this->featured,
             'published' => (bool) $this->published,
+            'notifyPartnerIds' => $this->notify_partner_ids ?? [],
             'workflowStatus' => $this->workflow_status,
             'updatedAt' => optional($this->updated_at)->toISOString(),
         ];

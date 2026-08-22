@@ -97,10 +97,16 @@ export default async function ResourceDetailPage({ params }: Props) {
 
                   {/* Download / External link */}
                   <div className="mt-5 space-y-2">
-                    {resource.fileUrl && (
+                    {resource.fileUrl && resource.fileDownloadable !== false && (
                       <a href={resource.fileUrl} target="_blank" rel="noopener noreferrer"
                         className="block w-full text-center py-2.5 bg-primary-700 text-white font-semibold rounded-lg hover:bg-primary-800 transition-colors text-sm">
                         📄 Download Resource
+                      </a>
+                    )}
+                    {resource.fileUrl && resource.fileDownloadable === false && (
+                      <a href={resource.fileUrl} target="_blank" rel="noopener noreferrer"
+                        className="block w-full text-center py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                        📄 View Resource
                       </a>
                     )}
                     {resource.externalUrl && (

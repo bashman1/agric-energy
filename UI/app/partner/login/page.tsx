@@ -28,7 +28,7 @@ export default function PartnerLoginPage() {
   return (
     <div className="max-w-sm mx-auto">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Partner Sign In</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Sign In</h1>
         <p className="text-sm text-gray-500 mt-1">
           Access your dashboard to submit and track content.
         </p>

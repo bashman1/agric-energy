@@ -18,6 +18,7 @@ class Project extends Model
         'beneficiaries' => 'array',
         'gallery' => 'array',
         'attachments' => 'array',
+        'notify_partner_ids' => 'array',
         'lat' => 'float',
         'lng' => 'float',
         'budget' => 'float',

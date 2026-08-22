@@ -45,6 +45,7 @@ class ResourceController extends ContentController
             'featuredImage' => 'featured_image',
             'fileUrl' => 'file_url',
             'externalUrl' => 'external_url',
+            'fileDownloadable' => 'file_downloadable',
             'publicationDate' => 'publication_date',
             'featured' => 'featured',
             'published' => 'published',
