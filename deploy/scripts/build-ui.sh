@@ -2,17 +2,12 @@
 # ============================================================
 # Build the Next.js frontend.
 #
-# `next build` emits UI/.next, which agrienergy-ui.service serves with
-# `next start` on 127.0.0.1:3000. Nothing is copied into Laravel's public
-# directory any more.
+# By default `next build` emits UI/.next, which agrienergy-ui.service serves
+# with `next start` on 127.0.0.1:3000. When STATIC_EXPORT=1 is set (as
+# build-static.sh does), it instead emits a static export into UI/out, which
+# build-static.sh installs into api/public/static.
 #
-# This used to produce a static export installed into api/public/static.
-# That made the public site a snapshot: content approved in the admin
-# panel stayed invisible until the next build. Pages are now rendered per
-# request, so THIS SCRIPT NO LONGER NEEDS A LIVE API — it only compiles
-# the app. Publishing does not require running it.
-#
-# Run it when the UI SOURCE changes. After it finishes:
+# Run it when the UI SOURCE changes. For the server build, restart after:
 #   systemctl restart agrienergy-ui
 #
 # Run from anywhere; paths are resolved relative to the repo root.

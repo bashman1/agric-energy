@@ -2,13 +2,18 @@ import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import DownloadDetail from "@/components/public/DownloadDetail";
 import Badge from "@/components/shared/Badge";
-import { getPartnerBySlug } from "@/lib/data/partners";
+import { getPartnerBySlug, getPublishedPartners } from "@/lib/data/partners";
 import { getProjectBySlug } from "@/lib/data/projects";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 
 interface Props { params: Promise<{ slug: string }> }
+
+export async function generateStaticParams() {
+  const items = await getPublishedPartners();
+  return items.map((i) => ({ slug: i.slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

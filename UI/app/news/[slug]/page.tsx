@@ -6,11 +6,16 @@ import NewsletterSignup from "@/components/public/NewsletterSignup";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getPostBySlug } from "@/lib/data/posts";
+import { getPostBySlug, getPublishedPosts } from "@/lib/data/posts";
 import { categoryLabel, formatPublished } from "../categories";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const items = await getPublishedPosts();
+  return items.map((i) => ({ slug: i.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

@@ -63,10 +63,20 @@ fi
 #   API_URL             = local API, used only to prerender pages at build time
 #   NEXT_PUBLIC_API_URL = relative base baked into the browser bundle
 log "Building static export → api/public/static"
+STATIC_EXPORT=1 \
 API_URL="$LOCAL_API" \
 NEXT_PUBLIC_API_URL="/api/v1" \
 NODE_OPTIONS="--max-old-space-size=2048" \
 bash "$REPO_ROOT/deploy/scripts/build-ui.sh"
+
+# ── Install the export into Laravel's public directory ───────────────
+# `next build` (with output: "export") writes the site to UI/out. Copy it
+# into api/public/static so Laravel / nginx can serve it as static files.
+STATIC_DIR="$REPO_ROOT/api/public/static"
+log "Installing export → api/public/static"
+rm -rf "$STATIC_DIR"
+mkdir -p "$STATIC_DIR"
+cp -r "$REPO_ROOT/UI/out/." "$STATIC_DIR/"
 
 # ── Stop the API if we started it ────────────────────────────────────
 if [ "$STARTED_API" -eq 1 ]; then

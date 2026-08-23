@@ -4,7 +4,7 @@ import ResourceCard from "@/components/public/ResourceCard";
 import ProjectCard from "@/components/public/ProjectCard";
 import TechCard from "@/components/public/TechCard";
 import DownloadDetail from "@/components/public/DownloadDetail";
-import { getThemeBySlug } from "@/lib/data/themes";
+import { getThemeBySlug, getPublishedThemes } from "@/lib/data/themes";
 import { getProjectBySlug } from "@/lib/data/projects";
 import { getTechnologyBySlug } from "@/lib/data/technologies";
 import { getResourceBySlug } from "@/lib/data/resources";
@@ -13,6 +13,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 interface Props { params: Promise<{ slug: string }> }
+
+export async function generateStaticParams() {
+  const items = await getPublishedThemes();
+  return items.map((i) => ({ slug: i.slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

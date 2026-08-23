@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" role="img" aria-label="Solar energy over farmland">
+  <defs>
+    <linearGradient id="s-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#14532d"/>
+    </linearGradient>
+    <linearGradient id="s-sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="400" fill="url(#s-sky)"/>
+  <circle cx="222" cy="96" r="46" fill="url(#s-sun)" opacity="0.95"/>
+  <g stroke="#fde68a" stroke-width="3" stroke-linecap="round" opacity="0.7">
+    <line x1="222" y1="30" x2="222" y2="14"/>
+    <line x1="280" y1="96" x2="296" y2="96"/>
+    <line x1="180" y1="54" x2="169" y2="43"/>
+    <line x1="264" y1="54" x2="275" y2="43"/>
+  </g>
+  <path d="M0 296 Q75 262 150 288 T300 282 V400 H0 Z" fill="#166534"/>
+  <path d="M0 330 Q95 300 185 324 T300 318 V400 H0 Z" fill="#15803d"/>
+  <path d="M0 362 Q110 342 210 360 T300 356 V400 H0 Z" fill="#052e16"/>
+  <!-- solar panel -->
+  <g transform="translate(58 250) rotate(-8)">
+    <rect x="0" y="0" width="96" height="58" rx="3" fill="#0b3b2e" stroke="#34d399" stroke-width="1.5"/>
+    <g stroke="#34d399" stroke-width="1.2" opacity="0.8">
+      <line x1="24" y1="2" x2="24" y2="56"/><line x1="48" y1="2" x2="48" y2="56"/><line x1="72" y1="2" x2="72" y2="56"/>
+      <line x1="2" y1="20" x2="94" y2="20"/><line x1="2" y1="39" x2="94" y2="39"/>
+    </g>
+    <rect x="46" y="58" width="4" height="26" fill="#0b3b2e"/>
+  </g>
+</svg>

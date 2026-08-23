@@ -2,7 +2,7 @@ import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import Badge from "@/components/shared/Badge";
 import DownloadDetail from "@/components/public/DownloadDetail";
-import { getProjectBySlug } from "@/lib/data/projects";
+import { getProjectBySlug, getPublishedProjects } from "@/lib/data/projects";
 import { getTechnologyBySlug } from "@/lib/data/technologies";
 import { getPartnerBySlug } from "@/lib/data/partners";
 import { notFound } from "next/navigation";
@@ -11,6 +11,11 @@ import type { Metadata } from "next";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const items = await getPublishedProjects();
+  return items.map((i) => ({ slug: i.slug }));
 }
 
 /** "USD 285,000" — falls back to a plain grouped number when no currency is set. */

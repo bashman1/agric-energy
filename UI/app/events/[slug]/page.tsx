@@ -4,10 +4,15 @@ import DownloadDetail from "@/components/public/DownloadDetail";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getEventBySlug } from "@/lib/data/events";
+import { getEventBySlug, getPublishedEvents } from "@/lib/data/events";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const items = await getPublishedEvents();
+  return items.map((i) => ({ slug: i.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
