@@ -1,38 +1,39 @@
 #!/usr/bin/env bash
 # ============================================================
-# Build the Next.js frontend static export LOCALLY so it can be committed
-# and shipped by a plain `git pull` on the server (no Node build on the box).
+# Build the Next.js frontend as a static export into api/public/static.
 #
-# The export is written to api/public/static/, which is tracked by git.
+# The export is CONTENT-INDEPENDENT: it contains no records at all, only the
+# application shell. Every page fetches from /api/v1 in the browser at
+# runtime, so the same build serves UAT, staging and production and each one
+# shows its own live data. Approve something in the admin panel and it is on
+# the public site on the next page load — no rebuild, no redeploy.
+#
+# That is why this script needs no database and no running API. Earlier
+# versions started `php artisan serve` so `next build` could enumerate every
+# published slug; the result was a build that carried the builder's local
+# content and 404'd on anything approved afterwards. Each dynamic route now
+# exports a single shell instead (UI/lib/routing/shell.ts), and Laravel hands
+# that shell to any record URL (StaticSiteController).
 #
 # ── How to run ──────────────────────────────────────────────
 #   bash deploy/scripts/build-static.sh
 #
 # Then commit and push the built files:
-#   git add api/public/static api/public UI
+#   git add api/public/static UI
 #   git commit -m "Rebuild static export"
 #   git push origin main
-#
-# Or in one line:
-#   bash deploy/scripts/build-static.sh \
-#     && git add api/public/static api/public UI \
-#     && git commit -m "Rebuild static export" \
-#     && git push origin main
 #
 # ── Notes ───────────────────────────────────────────────────
 #  • Requires Node 20 (loaded here via nvm; the machine default is v16,
 #    which Next.js rejects).
-#  • The build prerenders public pages against your LOCAL Laravel API — the
-#    script starts `php artisan serve` on :8000 if it isn't already running.
-#    Prerendered public pages therefore reflect your LOCAL database content.
 #  • NEXT_PUBLIC_API_URL=/api/v1 is baked into the browser bundle so the
-#    deployed site calls the API same-origin. Never bake a localhost URL.
+#    deployed site calls the API same-origin. Never bake an absolute URL —
+#    that is what would tie the artefact to one environment.
+#  • Rebuild when the UI SOURCE changes. Content changes never need one.
 # ============================================================
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-API_PORT="${API_PORT:-8000}"
-LOCAL_API="http://127.0.0.1:${API_PORT}/api/v1"
 
 log() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -44,50 +45,40 @@ export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 nvm use 20 >/dev/null 2>&1 || die "Node 20 not installed — run: nvm install 20"
 log "Using $(node -v)"
 
-# ── Ensure the local API is up (needed to prerender public pages) ────
-STARTED_API=0
-if ! curl -fsS --max-time 5 "${LOCAL_API}/site-config" >/dev/null 2>&1; then
-  log "Local API not responding — starting php artisan serve on :${API_PORT}"
-  ( cd "$REPO_ROOT/api" && nohup php artisan serve --host=127.0.0.1 --port="$API_PORT" \
-      >/tmp/agrienergy-serve.log 2>&1 & )
-  STARTED_API=1
-  for _ in $(seq 1 10); do
-    curl -fsS --max-time 3 "${LOCAL_API}/site-config" >/dev/null 2>&1 && break
-    sleep 1
-  done
-  curl -fsS --max-time 3 "${LOCAL_API}/site-config" >/dev/null 2>&1 \
-    || die "API still not reachable at ${LOCAL_API} (check /tmp/agrienergy-serve.log)"
-fi
-
 # ── Build the static export ──────────────────────────────────────────
-#   API_URL             = local API, used only to prerender pages at build time
-#   NEXT_PUBLIC_API_URL = relative base baked into the browser bundle
-log "Building static export → api/public/static"
+#   NEXT_PUBLIC_API_URL = relative base baked into the browser bundle.
+#   API_URL is deliberately NOT set: nothing is fetched at build time, and
+#   leaving it unset means a stray build-time fetch fails loudly here rather
+#   than silently baking one machine's data into the artefact.
+log "Building static export → UI/out"
 STATIC_EXPORT=1 \
-API_URL="$LOCAL_API" \
 NEXT_PUBLIC_API_URL="/api/v1" \
 NODE_OPTIONS="--max-old-space-size=2048" \
 bash "$REPO_ROOT/deploy/scripts/build-ui.sh"
 
+[ -d "$REPO_ROOT/UI/out" ] || die "next build produced no UI/out — is STATIC_EXPORT honoured in next.config.ts?"
+
+# ── Sanity-check the shells ──────────────────────────────────────────
+# If these are missing, every record URL will 404 on the deployed site and
+# the failure would only show up in production. Catch it here.
+log "Verifying collection shells"
+missing=()
+for collection in projects technologies themes partners resources events opportunities news; do
+  [ -f "$REPO_ROOT/UI/out/${collection}/_entry/index.html" ] || missing+=("$collection")
+done
+[ ${#missing[@]} -eq 0 ] || die "missing shells for: ${missing[*]} — check generateStaticParams in UI/app/*/[slug]/page.tsx"
+
 # ── Install the export into Laravel's public directory ───────────────
-# `next build` (with output: "export") writes the site to UI/out. Copy it
-# into api/public/static so Laravel / nginx can serve it as static files.
 STATIC_DIR="$REPO_ROOT/api/public/static"
 log "Installing export → api/public/static"
 rm -rf "$STATIC_DIR"
 mkdir -p "$STATIC_DIR"
 cp -r "$REPO_ROOT/UI/out/." "$STATIC_DIR/"
 
-# ── Stop the API if we started it ────────────────────────────────────
-if [ "$STARTED_API" -eq 1 ]; then
-  pkill -f "artisan serve --host=127.0.0.1 --port=${API_PORT}" 2>/dev/null || true
-  log "Stopped the temporary API server"
-fi
-
-log "Done. Now commit + push the static files:"
-printf '    git add api/public/static api/public UI\n'
+log "Done — $(find "$STATIC_DIR" -name 'index.html' | wc -l) pages, no content baked in."
+printf '    git add api/public/static UI\n'
 printf '    git commit -m "Rebuild static export"\n'
 printf '    git push origin main\n'
 
 
-#  bash deploy/scripts/build-static.sh
+# bash deploy/scripts/build-static.sh

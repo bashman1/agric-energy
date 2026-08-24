@@ -1,11 +1,14 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FIELD_SCHEMAS, TYPE_LABELS, type FieldDef, type OptionsFrom } from "./schemas";
+import { FIELD_SCHEMAS, TYPE_LABELS, type FieldDef } from "./schemas";
 import FileUpload from "@/components/shared/FileUpload";
+import AttachmentsUpload from "@/components/shared/AttachmentsUpload";
+import LocationPicker, { type LocationValue } from "@/components/admin/LocationPicker";
 import { apiSend } from "@/lib/api/client";
-import { fetchDistrictMeta, type DistrictMeta, type UgandaRegion } from "@/lib/geo/ugandaGeo";
+import { fetchDistrictMeta, type DistrictMeta } from "@/lib/geo/ugandaGeo";
+import type { ProjectAttachment } from "@/lib/types";
 
 export interface ReferenceData {
   taxonomy: {
@@ -25,7 +28,17 @@ interface Props {
   referenceData: ReferenceData;
 }
 
-type FormValues = Record<string, string | boolean | string[]>;
+type FormValues = Record<string, string | boolean | string[] | ProjectAttachment[]>;
+
+const EMPTY_LOCATION: LocationValue = {
+  regions: [],
+  districts: [],
+  lat: "",
+  lng: "",
+  locationNote: "",
+  region: "",
+  district: "",
+};
 
 function resolveOptions(
   field: FieldDef,
@@ -87,19 +100,31 @@ export default function SubmitForm({ type, referenceData }: Props) {
   const [loading, setLoading] = useState(false);
   const [partnerTypeFilter, setPartnerTypeFilter] = useState("");
   const [districts, setDistricts] = useState<DistrictMeta[]>([]);
+  const [location, setLocation] = useState<LocationValue>(EMPTY_LOCATION);
 
   useEffect(() => {
     fetchDistrictMeta().then(setDistricts).catch(() => {});
   }, []);
 
-  const selectedRegion = (values.region as string) ?? "";
+  const hasLocationField = fields.some((f) => f.type === "location");
+  // With a LocationPicker present it owns the region; the plain select is only
+  // used by schemas that have not got one (opportunities).
+  const selectedRegion = hasLocationField
+    ? (location.regions[0] ?? "")
+    : ((values.region as string) ?? "");
 
-  const set = (key: string, value: string | boolean | string[]) =>
+  const set = (key: string, value: FormValues[string]) =>
     setValues((v) => ({ ...v, [key]: value }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (hasLocationField && location.regions.length === 0) {
+      setError("Select at least one region so the project can be placed on the map.");
+      return;
+    }
+
     setLoading(true);
 
     const payload: Record<string, unknown> = { ...values };
@@ -114,6 +139,23 @@ export default function SubmitForm({ type, referenceData }: Props) {
     for (const [group, groupValues] of groups) {
       delete payload[Object.keys(groupValues)[0]];
       payload[group] = groupValues;
+    }
+
+    // Flatten the picker into the columns the API expects — the same shape
+    // AdminProjectForm sends, so both paths produce identical records.
+    if (hasLocationField) {
+      delete payload.location;
+      Object.assign(payload, {
+        regions: location.regions,
+        districts: location.districts,
+        region: location.regions[0] ?? "",
+        district: location.districts[0] ?? "",
+        locationNote: location.locationNote,
+        coordinates:
+          location.lat !== "" && location.lng !== ""
+            ? { lat: Number(location.lat), lng: Number(location.lng) }
+            : undefined,
+      });
     }
 
     try {
@@ -149,6 +191,106 @@ export default function SubmitForm({ type, referenceData }: Props) {
 
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
         {fields.map((f) => {
+          if (f.type === "location") {
+            return (
+              <div key={f.key}>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {f.label} {f.required && <span className="text-red-500">*</span>}
+                </label>
+                <LocationPicker value={location} onChange={setLocation} />
+                {f.help && <p className="text-[11px] text-gray-400 mt-1">{f.help}</p>}
+              </div>
+            );
+          }
+
+          if (f.type === "attachments") {
+            return (
+              <div key={f.key}>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{f.label}</label>
+                {f.help && <p className="text-[11px] text-gray-400 mb-2">{f.help}</p>}
+                <AttachmentsUpload
+                  value={(values[f.key] as ProjectAttachment[]) ?? []}
+                  onChange={(attachments) => set(f.key, attachments)}
+                />
+              </div>
+            );
+          }
+
+          if (f.type === "gallery") {
+            const images = (values[f.key] as string[]) ?? [];
+            return (
+              <div key={f.key}>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{f.label}</label>
+                {f.help && <p className="text-[11px] text-gray-400 mb-2">{f.help}</p>}
+                {images.length > 0 && (
+                  <ul className="flex flex-wrap gap-2 mb-2">
+                    {images.map((url, i) => (
+                      <li key={`${url}-${i}`} className="relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="" className="h-16 w-16 object-cover rounded border border-gray-200" />
+                        <button
+                          type="button"
+                          onClick={() => set(f.key, images.filter((_, idx) => idx !== i))}
+                          aria-label="Remove image"
+                          className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-white border border-gray-300 text-gray-600 text-xs leading-none hover:bg-red-50 hover:text-red-600"
+                        >
+                          ×
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <FileUpload
+                  kind="image"
+                  label="Add a photo"
+                  value=""
+                  onUploaded={(url) => set(f.key, [...images, url])}
+                />
+              </div>
+            );
+          }
+
+          if (f.type === "tags") {
+            const tags = (values[f.key] as string[]) ?? [];
+            return (
+              <div key={f.key}>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{f.label}</label>
+                {tags.length > 0 && (
+                  <ul className="flex flex-wrap gap-1.5 mb-2">
+                    {tags.map((tag, i) => (
+                      <li key={`${tag}-${i}`} className="inline-flex items-center gap-1 rounded-full bg-primary-50 text-primary-800 text-xs px-2.5 py-1">
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => set(f.key, tags.filter((_, idx) => idx !== i))}
+                          aria-label={`Remove ${tag}`}
+                          className="text-primary-500 hover:text-red-600"
+                        >
+                          ×
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <input
+                  type="text"
+                  placeholder="Type a group and press Enter"
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    // Enter would otherwise submit the whole form.
+                    e.preventDefault();
+                    const value = e.currentTarget.value.trim();
+                    if (!value || tags.includes(value)) return;
+                    set(f.key, [...tags, value]);
+                    e.currentTarget.value = "";
+                  }}
+                  className={inputClass}
+                />
+                {f.help && <p className="text-[11px] text-gray-400 mt-1">{f.help}</p>}
+              </div>
+            );
+          }
+
           if (f.type === "upload-image" || f.type === "upload-document") {
             return (
               <div key={f.key}>
@@ -180,7 +322,13 @@ export default function SubmitForm({ type, referenceData }: Props) {
             const options = resolveOptions(f, referenceData, partnerTypeFilter, selectedRegion, districts);
             const isMulti = f.type === "multiselect";
             const currentValue = values[f.key];
-            const selectedIds = Array.isArray(currentValue) ? currentValue : currentValue ? [currentValue as string] : [];
+            // Selects only ever hold slugs; attachment objects live under
+            // their own field types and never reach here.
+            const selectedIds: string[] = Array.isArray(currentValue)
+              ? currentValue.filter((v): v is string => typeof v === "string")
+              : currentValue
+                ? [currentValue as string]
+                : [];
 
             if (f.optionsFrom === "partners-by-type") {
               return (

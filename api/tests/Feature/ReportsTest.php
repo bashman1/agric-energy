@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Partner;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\Roles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
@@ -23,7 +24,7 @@ class ReportsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        foreach (['super-admin', 'editor', 'reviewer', 'partner'] as $role) {
+        foreach (Roles::ALL as $role) {
             Role::findOrCreate($role, 'web');
         }
     }

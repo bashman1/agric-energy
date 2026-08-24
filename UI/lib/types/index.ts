@@ -120,9 +120,19 @@ export interface Partner {
   featured: boolean;
   published: boolean;
   updatedAt: string;
-  // ── Organization profile (from partner self-registration) ──
+  // ── Profile (from self-registration) ──
+  /**
+   * Which kind of directory entry this is. Organisations and individuals share
+   * this table — both link to projects, themes and resources through the same
+   * relationships — and the Ecosystem directory browses them as two facets.
+   */
+  entityKind?: "organization" | "individual";
   category?: string;
   acronym?: string;
+  // Individual-only.
+  position?: string;
+  affiliation?: string;
+  yearsExperience?: string;
   registrationNumber?: string;
   taxId?: string;
   yearEstablished?: string;

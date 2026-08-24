@@ -19,6 +19,13 @@ namespace App\Support;
  *                          uphold quality standards. No user or system settings.
  *  - content-contributor : create and edit their OWN content and upload files,
  *                          submitting it for review. Cannot publish directly.
+ *  - reviewer            : reads submitted content and approves it or returns it
+ *                          with comments. Deliberately NOT a content author —
+ *                          holding no authoring rights is what makes the check
+ *                          independent, so `reviewer` is absent from
+ *                          CONTENT_AUTHORS and from CONTENT_MANAGERS (which
+ *                          carries authoring and taxonomy powers) and appears
+ *                          only in REVIEWERS.
  *  - partner             : external organisation account (self-registers, links
  *                          to a Partner profile, uses the /partner portal).
  *                          Same content powers as a contributor — author own,
@@ -55,6 +62,7 @@ final class Roles
     public const PLATFORM_ADMIN = 'platform-admin';
     public const KNOWLEDGE_MANAGER = 'knowledge-manager';
     public const CONTENT_CONTRIBUTOR = 'content-contributor';
+    public const REVIEWER = 'reviewer';
     public const PARTNER = 'partner';
 
     // Organisation-scoped. Held by partner accounts only — see the class
@@ -69,6 +77,7 @@ final class Roles
         self::PLATFORM_ADMIN,
         self::KNOWLEDGE_MANAGER,
         self::CONTENT_CONTRIBUTOR,
+        self::REVIEWER,
         self::PARTNER,
         self::PARTNER_ADMIN,
         self::PARTNER_KNOWLEDGE_MANAGER,
@@ -125,5 +134,22 @@ final class Roles
     public const USER_MANAGERS = [
         self::SUPER_ADMIN,
         self::PLATFORM_ADMIN,
+    ];
+
+    /**
+     * Roles that may work the review queue: approve a submission or return it
+     * with comments. CONTENT_MANAGERS are here because they already publish
+     * directly; `reviewer` is here and nowhere else, which is the whole point
+     * of the role — it reviews without ever being able to author.
+     *
+     * Holding a role here does not by itself let you approve ANY record:
+     * ContentPolicy::review() additionally refuses to let an author sign off
+     * their own work, so a second person is always involved.
+     */
+    public const REVIEWERS = [
+        self::SUPER_ADMIN,
+        self::PLATFORM_ADMIN,
+        self::KNOWLEDGE_MANAGER,
+        self::REVIEWER,
     ];
 }

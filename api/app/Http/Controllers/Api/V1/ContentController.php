@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContentRevision;
 use App\Support\Roles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -131,6 +132,15 @@ abstract class ContentController extends Controller
 
         $data = $this->validatePayload($request, updating: true);
         $attributes = $this->inboundAttributes($data, updating: true);
+
+        // An author editing a record that is already live does not get to
+        // change what the public sees, and equally must not have it pulled
+        // off the site while a reviewer looks: the edit is parked as a
+        // pending revision and the live version is left untouched.
+        if ($this->shouldRevise($request, $model)) {
+            return $this->storeRevision($request, $model, $attributes, $data);
+        }
+
         // A contributor cannot publish: any edit they make re-enters review,
         // so they can never flip `published` on their own record via update.
         $attributes = array_merge($attributes, $this->enforceWorkflow($request));
@@ -165,6 +175,90 @@ abstract class ContentController extends Controller
     protected function syncRelations(Model $model, array $data): void
     {
         //
+    }
+
+    /**
+     * Payload keys carrying many-to-many slug arrays, so a revision can put
+     * them back through syncRelations() on approval. Override alongside
+     * syncRelations() in any subclass that has relationships to sync.
+     *
+     * @return string[]
+     */
+    protected function relationKeys(): array
+    {
+        return [];
+    }
+
+    // ── Revisions ─────────────────────────────────────────────────────
+
+    /**
+     * Whether this edit should be parked for review rather than applied.
+     *
+     * Only for authors editing live records: a content manager's edit is the
+     * review, and an unpublished record has no live version to protect, so
+     * both go straight through.
+     */
+    protected function shouldRevise(Request $request, Model $model): bool
+    {
+        $user = $request->user();
+
+        return $user !== null
+            && ! $user->hasAnyRole(Roles::CONTENT_MANAGERS)
+            && (bool) $model->getAttribute('published') === true;
+    }
+
+    /** Park the proposed attributes as a pending revision. */
+    protected function storeRevision(Request $request, Model $model, array $attributes, array $data): JsonResponse
+    {
+        // Never let a revision carry workflow or publication columns: those
+        // are the reviewer's to set, and accepting them here would be a route
+        // to self-publishing through the back door.
+        foreach (['published', 'workflow_status', 'featured', 'created_by', 'slug', 'reviewed_at', 'review_notes'] as $protected) {
+            unset($attributes[$protected]);
+        }
+
+        $relations = [];
+        foreach ($this->relationKeys() as $key) {
+            if (array_key_exists($key, $data)) {
+                $relations[$key] = $data[$key];
+            }
+        }
+
+        if ($relations !== []) {
+            $attributes[ContentRevision::RELATIONS_KEY] = $relations;
+        }
+
+        // One pending revision per record: a second edit supersedes the first
+        // rather than queueing a second thing for a reviewer to reconcile.
+        $revision = $model->revisions()->pending()->latest('id')->first();
+
+        if ($revision) {
+            $revision->update([
+                'payload' => $attributes,
+                'created_by' => $request->user()?->id,
+            ]);
+        } else {
+            $revision = $model->revisions()->create([
+                'payload' => $attributes,
+                'status' => ContentRevision::STATUS_PENDING,
+                'created_by' => $request->user()?->id,
+            ]);
+        }
+
+        activity('content')->performedOn($model)->causedBy($request->user())
+            ->event('revised')->log('Edit submitted for review');
+
+        $model->load($this->with);
+
+        return response()->json([
+            'data' => new $this->resourceClass($model),
+            'revision' => [
+                'id' => $revision->id,
+                'status' => $revision->status,
+                'submittedAt' => optional($revision->created_at)->toISOString(),
+            ],
+            'message' => 'Your changes were submitted for review. The published version stays live until they are approved.',
+        ], 202);
     }
 
     /**

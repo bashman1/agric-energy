@@ -15,6 +15,7 @@ use App\Models\TaxonomyItem;
 use App\Models\Technology;
 use App\Models\Theme;
 use App\Models\User;
+use App\Observers\ResourceObserver;
 use App\Policies\ContentPolicy;
 use App\Support\Roles;
 use Illuminate\Support\Facades\Gate;
@@ -45,11 +46,20 @@ class AppServiceProvider extends ServiceProvider
             Gate::policy($model, ContentPolicy::class);
         }
 
+        // Moves a resource's file between the public and private disks when
+        // its download setting changes — see ResourceObserver.
+        Resource::observe(ResourceObserver::class);
+
         // Taxonomy management (categories, tags, metadata): content managers.
         Gate::define('manage', fn (User $user) => $user->hasAnyRole(Roles::CONTENT_MANAGERS));
 
-        // Review queue + analytics dashboards: content managers.
+        // Analytics dashboards and reports: content managers.
         Gate::define('viewAny', fn (User $user) => $user->hasAnyRole(Roles::CONTENT_MANAGERS));
+
+        // The review queue itself is wider than `viewAny`: a reviewer works the
+        // queue but has no business in the analytics dashboards, and holds none
+        // of the authoring or taxonomy powers CONTENT_MANAGERS carries.
+        Gate::define('review-queue', fn (User $user) => $user->hasAnyRole(Roles::REVIEWERS));
 
         // Uploads: any approved author. Mirrors ContentPolicy::create — the
         // admin bundle is publicly downloadable under the static build, so

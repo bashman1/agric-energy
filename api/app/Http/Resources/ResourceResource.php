@@ -24,7 +24,12 @@ class ResourceResource extends JsonResource
             'publicationDate' => $this->publication_date ?? '',
             'featured' => (bool) $this->featured,
             'published' => (bool) $this->published,
-            'fileDownloadable' => (bool) $this->file_downloadable,
+            'fileDownloadable' => $this->file_downloadable !== false,
+            'fileName' => $this->file_name ?? '',
+            // A restricted file has no usable direct URL: the page fetches a
+            // short-lived signed one from here instead. Telling the client
+            // which case it is in saves it guessing from the URL shape.
+            'fileRestricted' => $this->file_downloadable === false && filled($this->file_path),
             'workflowStatus' => $this->workflow_status,
             'updatedAt' => optional($this->updated_at)->toISOString(),
         ];

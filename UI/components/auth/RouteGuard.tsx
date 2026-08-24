@@ -17,7 +17,7 @@ import { useSession } from "@/lib/auth/useSession";
 type Area = "admin" | "partner";
 
 /** Capability a given admin path requires beyond baseline staff access. */
-type Capability = "content" | "users" | "super";
+type Capability = "content" | "review" | "users" | "super";
 
 /**
  * Admin sub-areas that need more than baseline staff access. A path not listed
@@ -29,7 +29,7 @@ const ADMIN_PATH_CAPABILITY: { prefix: string; cap: Capability }[] = [
   { prefix: "/admin/users", cap: "users" },
   { prefix: "/admin/analytics", cap: "content" },
   { prefix: "/admin/reports", cap: "content" },
-  { prefix: "/admin/review", cap: "content" },
+  { prefix: "/admin/review", cap: "review" },
   { prefix: "/admin/submissions", cap: "content" },
   { prefix: "/admin/newsletter", cap: "content" },
 ];
@@ -48,7 +48,7 @@ export default function RouteGuard({
   area: Area;
   children: React.ReactNode;
 }) {
-  const { loading, isLoggedIn, isStaff, canManageContent, canManageUsers, isSuperAdmin } =
+  const { loading, isLoggedIn, isStaff, canManageContent, canReview, canManageUsers, isSuperAdmin } =
     useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -80,6 +80,7 @@ export default function RouteGuard({
     const permitted =
       cap === null ||
       (cap === "content" && canManageContent) ||
+      (cap === "review" && canReview) ||
       (cap === "users" && canManageUsers) ||
       (cap === "super" && isSuperAdmin);
 

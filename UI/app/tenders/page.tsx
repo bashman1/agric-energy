@@ -1,29 +1,51 @@
-import { Suspense } from "react";
+"use client";
+
+import { useEffect } from "react";
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
-import type { Metadata } from "next";
+import { useAsync } from "@/lib/hooks/useAsync";
 import { getPublishedOpportunities } from "@/lib/data/opportunities";
 import TendersBrowser from "./TendersBrowser";
 
-export const metadata: Metadata = {
-  title: "Tenders & Procurement — Agri-Energy Desk",
-  description:
-    "Open tenders, calls for proposals and procurement notices across Uganda's agri-energy sector.",
-};
+export default function Page() {
+  const { data: all, loading, error, reload } = useAsync(() => getPublishedOpportunities());
 
-/**
- * Prerendered with the full published list; the active tab is read from
- * the query string in the browser (a static export has no request).
- */
-export default async function Page() {
-  const all = await getPublishedOpportunities();
+  useEffect(() => {
+    document.title = "Tenders & Procurement — Agri-Energy Desk";
+  }, []);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main>
+          <TendersBrowser all={[]} />
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !all) {
+    return (
+      <>
+        <Header />
+        <main>
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+            <p className="text-red-700">Failed to load tenders. <button onClick={reload} className="underline">Retry</button></p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
-      {/* useSearchParams needs a Suspense boundary to prerender. */}
-      <Suspense fallback={null}>
+      <main>
         <TendersBrowser all={all} />
-      </Suspense>
+      </main>
       <Footer />
     </>
   );

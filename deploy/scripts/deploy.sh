@@ -70,6 +70,12 @@ if [[ $SKIP_API -eq 0 ]]; then
   log "Laravel: migrations"
   php artisan migrate --force
 
+  # Files uploaded before view-only was enforced at the file layer are still
+  # sitting on the public disk under a permanent URL. Idempotent, so it stays
+  # in the release path rather than being a one-off someone has to remember.
+  log "Laravel: securing view-only resource files"
+  php artisan resources:secure-restricted
+
   log "Laravel: storage link + caches"
   php artisan storage:link 2>/dev/null || true
   php artisan config:cache

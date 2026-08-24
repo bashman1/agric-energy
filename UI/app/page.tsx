@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
@@ -13,6 +16,8 @@ import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import CountUp from "@/components/shared/motion/CountUp";
 import BarChartH from "@/components/shared/charts/BarChartH";
 import ChartFrame from "@/components/shared/charts/ChartFrame";
+import SectionHeader from "@/components/home/SectionHeader";
+import { useAsync } from "@/lib/hooks/useAsync";
 import { getSiteConfig } from "@/lib/data/site-config";
 import { filterProjects, getPublishedProjects } from "@/lib/data/projects";
 import { getPublishedTechnologies } from "@/lib/data/technologies";
@@ -21,93 +26,82 @@ import { getPublishedPartners } from "@/lib/data/partners";
 import { getLatestResources } from "@/lib/data/resources";
 import { getRegionStats } from "@/lib/data/open-data";
 import { fmtNumber, fmtBudget } from "@/lib/utils/format";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Agri-Energy Desk | Uganda's National Agri-Energy Platform",
-  description:
-    "Uganda's national digital knowledge and project intelligence platform for energy use in agriculture.",
-};
+export default function HomePage() {
+  const { data, loading, error, reload } = useAsync(async () => {
+    const [, projects, technologies, themes, partners, resources, regionStats, allProjects] =
+      await Promise.all([
+        getSiteConfig(),
+        filterProjects({ featured: true }, true),
+        getPublishedTechnologies(),
+        getPublishedThemes(),
+        getPublishedPartners(),
+        getLatestResources(4),
+        getRegionStats(),
+        getPublishedProjects(),
+      ]);
+    return { projects, technologies, themes, partners, resources, regionStats, allProjects };
+  });
 
-// Small helper for the repeated "section header + browse link" pattern.
-function SectionHeader({
-  eyebrow,
-  title,
-  description,
-  href,
-  linkLabel,
-  onDark = false,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  href: string;
-  linkLabel: string;
-  onDark?: boolean;
-}) {
-  return (
-    <Reveal className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-      <div>
-        <span className={`eyebrow ${onDark ? "on-dark" : ""}`}>{eyebrow}</span>
-        <h2
-          className={`font-display text-3xl font-semibold tracking-tight mt-3 ${
-            onDark ? "text-white" : "text-ink-900"
-          }`}
-        >
-          {title}
-        </h2>
-        <p className={`mt-2 text-base ${onDark ? "text-ink-300" : "text-ink-500"}`}>
-          {description}
-        </p>
-      </div>
-      <Link
-        href={href}
-        className={`group inline-flex items-center gap-1.5 font-semibold text-sm whitespace-nowrap ${
-          onDark
-            ? "text-primary-300 hover:text-primary-200"
-            : "text-primary-700 hover:text-primary-800"
-        }`}
-      >
-        {linkLabel}
-        <ArrowRightIcon className="transition-transform group-hover:translate-x-1" />
-      </Link>
-    </Reveal>
-  );
-}
+  useEffect(() => {
+    document.title = "Agri-Energy Desk | Uganda's National Agri-Energy Platform";
+  }, []);
 
-export default async function HomePage() {
-  const [, projects, technologies, themes, partners, resources, regionStats] =
-    await Promise.all([
-      getSiteConfig(),
-      filterProjects({ featured: true }, true),
-      getPublishedTechnologies(),
-      getPublishedThemes(),
-      getPublishedPartners(),
-      getLatestResources(4),
-      getRegionStats(),
-    ]);
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main id="main-content" className="overflow-x-hidden">
+          <section className="hero-band relative bg-primary-900 text-white overflow-hidden">
+            <div className="container-page relative py-20 lg:py-28 grid gap-10 lg:grid-cols-2 lg:gap-16 lg:items-center">
+              <Reveal className="max-w-3xl">
+                <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.08] tracking-tight mt-6">
+                  Loading…
+                </h1>
+              </Reveal>
+            </div>
+          </section>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <p className="text-gray-500">Loading homepage content…</p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <>
+        <Header />
+        <main id="main-content" className="overflow-x-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <p className="text-red-700">Failed to load homepage. <button onClick={reload} className="underline">Retry</button></p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  const { projects, technologies, themes, partners, resources, regionStats, allProjects } = data;
 
   const featuredTechs = technologies.filter((t) => t.featured).slice(0, 4);
   const featuredThemes = themes.filter((t) => t.featured).slice(0, 6);
   const featuredProjects = projects.slice(0, 3);
 
-  // Only these four partners appear in the homepage "Collaborating Partners" slider
   const sliderPartnerSlugs = ["snv-uganda", "maaif", "nrep", "giz-uganda"];
   const sliderPartners = partners
     .filter((p) => sliderPartnerSlugs.includes(p.slug))
     .sort((a, b) => sliderPartnerSlugs.indexOf(a.slug) - sliderPartnerSlugs.indexOf(b.slug));
 
-  const allProjects = await getPublishedProjects();
-  const districtCount = new Set(
+  const districtCount = useMemo(() => new Set(
     allProjects.map((p) => p.district).filter(Boolean)
-  ).size;
+  ).size, [allProjects]);
 
-  // Impact totals aggregated from the public open-data endpoint.
   const totalBeneficiaries = regionStats.reduce((n, r) => n + r.beneficiaries, 0);
   const totalBudget = regionStats.reduce((n, r) => n + r.totalBudget, 0);
 
-  // Headline figures — each animates 0→value on scroll. `formatted` is the
-  // server-rendered final string (hydration-safe); `format` handles frames.
   const stats = [
     { label: "Projects mapped", value: allProjects.length, formatted: fmtNumber(allProjects.length), compact: false },
     { label: "Districts reached", value: districtCount, formatted: fmtNumber(districtCount), compact: false },
@@ -115,7 +109,6 @@ export default async function HomePage() {
     { label: "Investment mapped", value: totalBudget, formatted: fmtBudget(totalBudget), compact: true },
   ];
 
-  // Top regions by people reached, for the "Impact at a glance" bar chart.
   const reachByRegion = [...regionStats]
     .sort((a, b) => b.beneficiaries - a.beneficiaries)
     .slice(0, 5)
@@ -131,7 +124,6 @@ export default async function HomePage() {
       <main id="main-content" className="overflow-x-hidden">
         {/* ─── HERO ──────────────────────────────────────────────── */}
         <section className="hero-band relative bg-primary-900 text-white overflow-hidden">
-          {/* soft radial highlight — restrained, no noise/glass */}
           <div
             aria-hidden="true"
             className="absolute inset-0 opacity-60"
@@ -140,7 +132,6 @@ export default async function HomePage() {
                 "radial-gradient(60% 80% at 15% 0%, #166534 0%, transparent 60%), radial-gradient(50% 70% at 100% 20%, #0f766e 0%, transparent 55%)",
             }}
           />
-          {/* faint dotted grid */}
           <div
             aria-hidden="true"
             className="absolute inset-0 opacity-[0.12]"

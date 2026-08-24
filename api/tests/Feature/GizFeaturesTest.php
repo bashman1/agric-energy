@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\Project;
 use App\Models\Subscriber;
 use App\Models\User;
+use App\Support\Roles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
@@ -27,7 +28,7 @@ class GizFeaturesTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        foreach (['super-admin', 'editor', 'reviewer', 'partner'] as $role) {
+        foreach (Roles::ALL as $role) {
             Role::findOrCreate($role, 'web');
         }
     }
@@ -156,7 +157,7 @@ class GizFeaturesTest extends TestCase
         Sanctum::actingAs($partner, ['*']);
         $this->getJson('/api/v1/newsletter/subscribers')->assertForbidden();
 
-        $editor = $this->makeUser('editor');
+        $editor = $this->makeUser(Roles::KNOWLEDGE_MANAGER);
         Sanctum::actingAs($editor, ['*']);
         $res = $this->getJson('/api/v1/newsletter/subscribers');
         $res->assertOk();

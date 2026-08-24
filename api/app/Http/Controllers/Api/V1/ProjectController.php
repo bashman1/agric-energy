@@ -90,6 +90,16 @@ class ProjectController extends ContentController
         return $attrs;
     }
 
+    /** Keys a pending revision must carry so approval can re-sync them. */
+    protected function relationKeys(): array
+    {
+        return [
+            'technologyIds',
+            'themeIds',
+            'implementingPartnerIds',
+        ];
+    }
+
     protected function syncRelations(Model $model, array $data): void
     {
         /** @var Project $model */

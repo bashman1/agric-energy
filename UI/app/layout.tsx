@@ -55,6 +55,19 @@ export default function RootLayout({
             }}
           />
         </noscript>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.__nextError = window.__nextError || [];
+              window.onerror = function(msg, url, line, col, err) {
+                window.__nextError.push({msg, url, line, col, stack: err && err.stack});
+              };
+              window.addEventListener('unhandledrejection', function(e) {
+                window.__nextError.push({msg: 'unhandled rejection', reason: e.reason});
+              });
+            `,
+          }}
+        />
       </head>
       <body className="min-h-screen bg-gray-50">
         <IntlProvider>

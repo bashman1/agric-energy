@@ -49,6 +49,7 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
 
     const [form, setForm] = useState<Partial<Partner>>({
         name: "",
+        entityKind: "organization",
         type: PARTNER_TYPES[0],
         summary: "",
         description: "",
@@ -63,6 +64,10 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
         projectIds: [],
         featured: false,
         published: false,
+        // Individual profile (from self-registration)
+        position: "",
+        affiliation: "",
+        yearsExperience: "",
         // Organization profile (from self-registration)
         category: "",
         acronym: "",
@@ -91,6 +96,10 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+    // Organisations and individuals share this form; the fields that only make
+    // sense for one of them are switched on this.
+    const isIndividual = form.entityKind === "individual";
 
     const set = <K extends keyof Partner>(field: K, value: Partner[K]) =>
         setForm((prev) => ({ ...prev, [field]: value }));
@@ -170,12 +179,42 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor={`${uid}-type`} className={labelClass}>Type *</label>
+                                    <label htmlFor={`${uid}-entity-kind`} className={labelClass}>Directory entry *</label>
+                                    <select
+                                        id={`${uid}-entity-kind`}
+                                        className={inputClass}
+                                        value={form.entityKind ?? "organization"}
+                                        onChange={(e) => set("entityKind", e.target.value as "organization" | "individual")}
+                                    >
+                                        <option value="organization">Organisation</option>
+                                        <option value="individual">Individual</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {isIndividual ? (
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor={`${uid}-position`} className={labelClass}>Professional title / position</label>
+                                        <input id={`${uid}-position`} type="text" className={inputClass} value={form.position ?? ""} onChange={(e) => set("position", e.target.value)} placeholder="e.g. Independent Irrigation Consultant" />
+                                    </div>
+                                    <div>
+                                        <label htmlFor={`${uid}-affiliation`} className={labelClass}>Affiliation</label>
+                                        <input id={`${uid}-affiliation`} type="text" className={inputClass} value={form.affiliation ?? ""} onChange={(e) => set("affiliation", e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label htmlFor={`${uid}-years`} className={labelClass}>Years of experience</label>
+                                        <input id={`${uid}-years`} type="text" className={inputClass} value={form.yearsExperience ?? ""} onChange={(e) => set("yearsExperience", e.target.value)} />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label htmlFor={`${uid}-type`} className={labelClass}>Partner type *</label>
                                     <select id={`${uid}-type`} className={inputClass} value={form.type ?? PARTNER_TYPES[0]} onChange={(e) => set("type", e.target.value)}>
                                         {PARTNER_TYPES.map((t) => <option key={t}>{t}</option>)}
                                     </select>
                                 </div>
-                            </div>
+                            )}
 
                             <div>
                                 <label htmlFor={`${uid}-summary`} className={labelClass}>Summary *</label>

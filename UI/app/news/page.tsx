@@ -1,29 +1,51 @@
-import { Suspense } from "react";
+"use client";
+
+import { useEffect } from "react";
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
-import type { Metadata } from "next";
+import { useAsync } from "@/lib/hooks/useAsync";
 import { getPublishedPosts } from "@/lib/data/posts";
 import NewsBrowser from "./NewsBrowser";
 
-export const metadata: Metadata = {
-  title: "Newsroom — Agri-Energy Desk",
-  description:
-    "News, impact stories, press releases and announcements from Uganda's agri-energy sector.",
-};
+export default function Page() {
+  const { data: posts, loading, error, reload } = useAsync(() => getPublishedPosts());
 
-/**
- * Prerendered with the full published list; the active tab is read from
- * the query string in the browser (a static export has no request).
- */
-export default async function Page() {
-  const posts = await getPublishedPosts();
+  useEffect(() => {
+    document.title = "Newsroom — Agri-Energy Desk";
+  }, []);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main>
+          <NewsBrowser posts={[]} />
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !posts) {
+    return (
+      <>
+        <Header />
+        <main>
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+            <p className="text-red-700">Failed to load news. <button onClick={reload} className="underline">Retry</button></p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
-      {/* useSearchParams needs a Suspense boundary to prerender. */}
-      <Suspense fallback={null}>
+      <main>
         <NewsBrowser posts={posts} />
-      </Suspense>
+      </main>
       <Footer />
     </>
   );

@@ -27,11 +27,15 @@ class StaticSiteTest extends TestCase
         config(['frontend.root' => 'static-test']);
         $this->root = public_path('static-test');
 
-        foreach (['projects/solar', '_next/static'] as $dir) {
+        foreach (['projects/solar', 'projects/_entry', 'partners/_entry', '_next/static'] as $dir) {
             @mkdir("{$this->root}/{$dir}", 0777, true);
         }
         file_put_contents("{$this->root}/index.html", '<html>home</html>');
         file_put_contents("{$this->root}/projects/solar/index.html", '<html>solar</html>');
+        // The per-collection shells the export emits instead of one file per
+        // record — see UI/lib/routing/shell.ts.
+        file_put_contents("{$this->root}/projects/_entry/index.html", '<html>project shell</html>');
+        file_put_contents("{$this->root}/partners/_entry/index.html", '<html>partner shell</html>');
         file_put_contents("{$this->root}/404.html", '<html>notfound</html>');
         file_put_contents("{$this->root}/_next/static/app.css", 'body{}');
     }
@@ -76,6 +80,45 @@ class StaticSiteTest extends TestCase
             ->assertNotFound();
 
         $this->assertSame('404.html', $this->servedFile($response));
+    }
+
+    /**
+     * The point of the whole arrangement: a record approved after the build
+     * is served, with a 200, by a build that has never heard of it.
+     *
+     * The status matters as much as the body. Serving a real page under a 404
+     * — which is what the old fallback did — keeps it out of search results
+     * and out of caches.
+     */
+    public function test_a_record_created_after_the_build_is_served_from_the_collection_shell(): void
+    {
+        $response = $this->get('/projects/approved-after-the-build/')->assertOk();
+        $this->assertSame('projects/_entry/index.html', $this->servedFile($response));
+
+        // Each collection answers with its own shell, not a shared one.
+        $response = $this->get('/partners/registered-yesterday/')->assertOk();
+        $this->assertSame('partners/_entry/index.html', $this->servedFile($response));
+
+        // A prerendered path still wins over the shell.
+        $response = $this->get('/projects/solar/')->assertOk();
+        $this->assertSame('projects/solar/index.html', $this->servedFile($response));
+    }
+
+    public function test_the_shell_itself_is_not_a_page(): void
+    {
+        // It exists on disk, so without an explicit refusal it would serve as
+        // a page that waits forever for a record called "_entry".
+        $this->get('/projects/_entry/')->assertNotFound();
+        $this->get('/partners/_entry')->assertNotFound();
+    }
+
+    public function test_the_shell_does_not_swallow_genuine_404s(): void
+    {
+        // Only one segment under a known collection gets the shell. Anything
+        // else is a wrong URL and must say so, or the site never 404s again.
+        $this->get('/projects/solar/extra/segments')->assertNotFound();
+        $this->get('/not-a-collection/whatever')->assertNotFound();
+        $this->get('/nonsense')->assertNotFound();
     }
 
     public function test_api_media_and_health_are_not_swallowed_by_the_catch_all(): void

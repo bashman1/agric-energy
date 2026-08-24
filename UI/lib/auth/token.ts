@@ -28,6 +28,10 @@ export const ROLE = {
   PLATFORM_ADMIN: "platform-admin",
   KNOWLEDGE_MANAGER: "knowledge-manager",
   CONTENT_CONTRIBUTOR: "content-contributor",
+  // Reviews without authoring. Kept out of every content group below on
+  // purpose: holding no authoring rights is what makes the sign-off
+  // independent of the people who write.
+  REVIEWER: "reviewer",
   PARTNER: "partner",
   // Organisation-scoped. Held by partner accounts; confer nothing outside
   // the holder's own partner_id. Deliberately distinct slugs from the staff
@@ -51,6 +55,17 @@ export const CONTENT_MANAGER_ROLES = [
   ROLE.KNOWLEDGE_MANAGER,
 ] as const;
 
+/**
+ * Roles that may work the review queue. Wider than CONTENT_MANAGER_ROLES,
+ * which also carries authoring, taxonomy and analytics.
+ */
+export const REVIEWER_ROLES = [
+  ROLE.SUPER_ADMIN,
+  ROLE.PLATFORM_ADMIN,
+  ROLE.KNOWLEDGE_MANAGER,
+  ROLE.REVIEWER,
+] as const;
+
 /** Roles that manage user accounts and role assignment. */
 export const USER_MANAGER_ROLES = [ROLE.SUPER_ADMIN, ROLE.PLATFORM_ADMIN] as const;
 
@@ -63,6 +78,7 @@ export const STAFF_ROLES = [
   ROLE.PLATFORM_ADMIN,
   ROLE.KNOWLEDGE_MANAGER,
   ROLE.CONTENT_CONTRIBUTOR,
+  ROLE.REVIEWER,
 ] as const;
 
 /** Human-readable labels for display in the UI. */
@@ -71,6 +87,7 @@ export const ROLE_LABELS: Record<string, string> = {
   "platform-admin": "Platform Administrator",
   "knowledge-manager": "Knowledge Manager",
   "content-contributor": "Content Contributor",
+  reviewer: "Reviewer",
   partner: "Partner",
   "partner-admin": "Organisation Admin",
   "partner-knowledge-manager": "Knowledge Manager",
@@ -131,7 +148,7 @@ export function isLoggedIn(): boolean {
   return !!getToken();
 }
 
-/** Staff = anyone with an admin-area role (all four roles qualify). */
+/** Staff = anyone with an admin-area role. */
 export function isStaff(user: Pick<StoredUser, "roles"> | null): boolean {
   return hasAnyRole(user, STAFF_ROLES);
 }
@@ -139,6 +156,15 @@ export function isStaff(user: Pick<StoredUser, "roles"> | null): boolean {
 /** Can publish/review content, manage taxonomy, and view analytics/reports. */
 export function canManageContent(user: Pick<StoredUser, "roles"> | null): boolean {
   return hasAnyRole(user, CONTENT_MANAGER_ROLES);
+}
+
+/**
+ * Can work the review queue. A reviewer qualifies here and nowhere else: they
+ * approve and return submissions but author nothing, so gating the queue on
+ * canManageContent would have locked out the only role that exists to use it.
+ */
+export function canReview(user: Pick<StoredUser, "roles"> | null): boolean {
+  return hasAnyRole(user, REVIEWER_ROLES);
 }
 
 /** Can manage user accounts and assign roles. */

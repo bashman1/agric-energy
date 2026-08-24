@@ -29,10 +29,18 @@ export default function PartnerDashboard() {
     <AdminDataPage title="Dashboard" load={() => getMyContent()}>
       {(items) => {
       const counts = {
-        pending: items.filter((i) => ["pending", "in_review"].includes(i.workflowStatus)).length,
+        // An edit queued behind a live record is awaiting review just as much
+        // as a first-time submission, and is easier to lose track of.
+        pending:
+          items.filter((i) => ["pending", "in_review"].includes(i.workflowStatus)).length +
+          items.filter((i) => i.pendingEdit).length,
         published: items.filter((i) => i.published).length,
         rejected: items.filter((i) => i.workflowStatus === "rejected").length,
       };
+
+      // Only meaningful for an organisation account, where colleagues share
+      // the same records.
+      const sharedWithColleagues = items.some((i) => !i.isMine);
 
       return (
         <div>
@@ -69,8 +77,10 @@ export default function PartnerDashboard() {
             </div>
           </div>
 
-          {/* My submissions */}
-          <h2 className="font-bold text-gray-900 text-sm mb-3">My submissions</h2>
+          {/* Submissions */}
+          <h2 className="font-bold text-gray-900 text-sm mb-3">
+            {sharedWithColleagues ? "Our submissions" : "My submissions"}
+          </h2>
           {items.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500 text-sm">
               You haven&rsquo;t submitted anything yet. Use the buttons above to get started.
@@ -92,6 +102,15 @@ export default function PartnerDashboard() {
                       {i.workflowStatus.replace("_", " ")}
                     </span>
                   </div>
+                  {!i.isMine && i.author && (
+                    <p className="text-[11px] text-gray-400 mt-1">Submitted by {i.author}</p>
+                  )}
+                  {i.pendingEdit && (
+                    <p className="text-xs text-blue-700 mt-1.5">
+                      Your edit is with a reviewer. The published version stays live until
+                      it is approved.
+                    </p>
+                  )}
                   {i.workflowStatus === "rejected" && i.reviewNotes && (
                     <p className="text-xs text-red-600 mt-1.5">
                       <strong>Reviewer notes:</strong> {i.reviewNotes}

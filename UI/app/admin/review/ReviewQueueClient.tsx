@@ -4,7 +4,7 @@ import Link from "next/link";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { CheckCircleIcon } from "@/components/shared/icons";
 import type { ReviewQueueItem } from "@/lib/data/admin";
-import { approveContent, rejectContent } from "@/lib/data/admin";
+import { approveQueueItem, rejectQueueItem } from "@/lib/data/admin";
 import AdminTableFilters, { type SelectFilter } from "@/components/admin/AdminTableFilters";
 
 const TYPE_LABEL: Record<string, string> = {
@@ -30,7 +30,10 @@ export default function ReviewQueueClient({
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const key = (i: ReviewQueueItem) => `${i.type}/${i.slug}`;
+  // A live record and a queued edit against it share a type and slug, so the
+  // kind has to be part of the key or the two rows collide.
+  const key = (i: ReviewQueueItem) =>
+    i.kind === "revision" ? `revision/${i.revisionId}` : `${i.type}/${i.slug}`;
 
   // Derived from the queue, so the dropdowns only offer what is actually
   // waiting — a reviewer clearing partner submissions can narrow to those
@@ -39,6 +42,15 @@ export default function ReviewQueueClient({
   const authors = [...new Set(items.map((i) => i.author).filter(Boolean))].sort() as string[];
 
   const filters: SelectFilter<ReviewQueueItem>[] = [
+    {
+      key: "kind",
+      label: "Kind",
+      options: [
+        { value: "submission", label: "New submissions" },
+        { value: "revision", label: "Edits to live content" },
+      ],
+      match: (i: ReviewQueueItem, v: string) => i.kind === v,
+    },
     ...(types.length
       ? [{
           key: "type",
@@ -61,7 +73,7 @@ export default function ReviewQueueClient({
     setBusy(key(i));
     setError("");
     try {
-      await approveContent(i.type, i.slug);
+      await approveQueueItem(i);
       onChanged();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to approve");
@@ -71,12 +83,16 @@ export default function ReviewQueueClient({
   };
 
   const reject = async (i: ReviewQueueItem) => {
-    const notes = window.prompt("Reason for rejection (sent to the author):");
+    const notes = window.prompt(
+      i.kind === "revision"
+        ? "Why are these changes being returned? (sent to the author; the published version stays live)"
+        : "Reason for rejection (sent to the author):"
+    );
     if (!notes) return;
     setBusy(key(i));
     setError("");
     try {
-      await rejectContent(i.type, i.slug, notes);
+      await rejectQueueItem(i, notes);
       onChanged();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to reject");
@@ -89,7 +105,7 @@ export default function ReviewQueueClient({
     <div className="max-w-4xl">
       <AdminPageHeader
         title="Review Queue"
-        subtitle="Content submitted by partners awaiting approval before it goes live."
+        subtitle="Submissions awaiting approval, and edits queued against content that is already live."
       />
 
       {error && (
@@ -103,7 +119,7 @@ export default function ReviewQueueClient({
           <CheckCircleIcon className="block mx-auto mb-3 text-primary-600" style={{ fontSize: "2rem" }} />
           <p className="text-ink-700 font-semibold">Nothing pending review</p>
           <p className="text-ink-400 text-sm mt-1">
-            Partner submissions will appear here for approval.
+            Partner submissions and edits to live content will appear here for approval.
           </p>
         </div>
       ) : (
@@ -133,6 +149,11 @@ export default function ReviewQueueClient({
                   <span className="font-semibold text-ink-800 text-sm truncate">
                     {i.title}
                   </span>
+                  {i.kind === "revision" && (
+                    <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100">
+                      Edit to live content
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-ink-500 mt-0.5">
                   by {i.author ?? "Unknown"} ·{" "}
@@ -141,6 +162,12 @@ export default function ReviewQueueClient({
                     : "—"}{" "}
                   · <span className="text-secondary-700 font-medium">{i.workflowStatus}</span>
                 </p>
+                {i.kind === "revision" && (
+                  <p className="text-xs text-blue-700 mt-0.5">
+                    Changes {(i.changedFields ?? []).join(", ") || "this record"}. The
+                    published version stays live until you approve.
+                  </p>
+                )}
               </div>
               <Link
                 href={`/admin/${i.type}/${i.slug}`}

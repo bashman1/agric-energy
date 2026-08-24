@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V1\EmailVerificationController;
 use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\MediaController;
 use App\Http\Controllers\Api\V1\MyContentController;
+use App\Http\Controllers\Api\V1\MyPartnerController;
+use App\Http\Controllers\Api\V1\ResourceFileController;
 use App\Http\Controllers\Api\V1\NewsletterController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\OpenDataController;
@@ -43,6 +45,10 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
         // Partner self-service: the caller's own submissions across types.
         Route::get('my/content', [MyContentController::class, 'index']);
+        // …and the directory profile they registered, which is theirs to keep
+        // current rather than something an administrator re-types for them.
+        Route::get('my/partner', [MyPartnerController::class, 'show']);
+        Route::put('my/partner', [MyPartnerController::class, 'update']);
         // Media/file uploads (staff or approved partner).
         Route::post('media', [MediaController::class, 'store'])
             ->middleware('throttle:30,1');
@@ -65,6 +71,14 @@ Route::prefix('v1')->group(function () {
         Route::get($slug, [$controller, 'index']);
         Route::get("{$slug}/{slug}", [$controller, 'show']);
     }
+
+    // Resource file access. `file-link` is public because the resource is;
+    // what it withholds is a permanent address (see ResourceFileController).
+    Route::get('resources/{slug}/file-link', [ResourceFileController::class, 'link'])
+        ->middleware('throttle:60,1');
+    Route::get('resources/{slug}/file', [ResourceFileController::class, 'show'])
+        ->name('resources.file')
+        ->middleware('signed');
 
     Route::get('taxonomy', [TaxonomyController::class, 'index']);
     Route::get('site-config', [SiteConfigController::class, 'show']);
@@ -135,6 +149,14 @@ Route::prefix('v1')->group(function () {
 
         // Editorial workflow (review queue + transitions) and audit trail.
         Route::get('review/queue', [WorkflowController::class, 'queue']);
+
+        // Edits to already-published records queue as revisions rather than
+        // changing the live version; these act on the queued edit, not the
+        // record, so they are keyed by revision id. Declared before the
+        // {type}/{slug} routes below so "review" is never read as a type.
+        Route::post('revisions/{id}/approve', [WorkflowController::class, 'approveRevision']);
+        Route::post('revisions/{id}/reject', [WorkflowController::class, 'rejectRevision']);
+
         Route::post('{type}/{slug}/submit', [WorkflowController::class, 'submit']);
         Route::post('{type}/{slug}/approve', [WorkflowController::class, 'approve']);
         Route::post('{type}/{slug}/reject', [WorkflowController::class, 'reject']);

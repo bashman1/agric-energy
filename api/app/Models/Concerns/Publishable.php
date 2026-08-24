@@ -15,7 +15,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 trait Publishable
 {
-    use LogsActivity;
+    // Every publishable entity can also carry a pending edit to its live
+    // version, so revisions ride along with the workflow rather than being
+    // opted into model by model.
+    use HasRevisions, LogsActivity;
 
     public function getActivitylogOptions(): LogOptions
     {

@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Partner;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\Roles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -24,7 +26,7 @@ class PlatformTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        foreach (['super-admin', 'editor', 'reviewer', 'partner'] as $role) {
+        foreach (Roles::ALL as $role) {
             Role::findOrCreate($role, 'web');
         }
     }
@@ -68,24 +70,72 @@ class PlatformTest extends TestCase
         $this->assertEquals(1, $res->json('total'));
     }
 
-    public function test_partner_registration_creates_pending_account(): void
+    public function test_individual_registration_creates_pending_account_and_profile(): void
     {
         $res = $this->postJson('/api/v1/auth/register', [
             'accountType' => 'individual',
-            'name' => 'Green Farms',
+            'name' => 'Grace Farms',
             'email' => 'gf@example.test',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+            'position' => 'Independent Irrigation Consultant',
+            'bio' => 'Fifteen years advising smallholder irrigation schemes.',
+            'expertise' => ['Solar irrigation', 'Water management'],
+            'sectors' => ['Agriculture'],
+        ]);
+
+        $res->assertCreated();
+
+        $user = User::where('email', 'gf@example.test')->first();
+        $this->assertEquals(User::STATUS_PENDING, $user->status);
+        $this->assertEquals('individual', $user->account_type);
+        $this->assertTrue($user->hasRole('partner'));
+
+        // An individual now gets a directory profile of their own. Before this
+        // they registered into nowhere: the Ecosystem directory was advertised
+        // as covering consultants and researchers and listed only organisations.
+        $this->assertNotNull($user->partner_id);
+        $profile = Partner::find($user->partner_id);
+        $this->assertEquals('individual', $profile->entity_kind);
+        $this->assertEquals('Independent Irrigation Consultant', $profile->position);
+        $this->assertEquals(['Solar irrigation', 'Water management'], $profile->expertise);
+
+        // …and it is not public until an administrator approves it.
+        $this->assertFalse((bool) $profile->published);
+        $this->assertEquals(Partner::STATUS_PENDING, $profile->workflow_status);
+    }
+
+    public function test_individual_registration_requires_a_usable_profile(): void
+    {
+        // A directory entry with no title, profile or expertise is not worth
+        // browsing, so registration asks for them rather than creating one.
+        $res = $this->postJson('/api/v1/auth/register', [
+            'accountType' => 'individual',
+            'name' => 'Anon',
+            'email' => 'anon@example.test',
             'password' => 'secret123',
             'password_confirmation' => 'secret123',
         ]);
 
-        $res->assertCreated();
-        $this->assertDatabaseHas('users', [
-            'email' => 'gf@example.test',
-            'status' => User::STATUS_PENDING,
-            'account_type' => 'individual',
-            'partner_id' => null,
+        $res->assertStatus(422)
+            ->assertJsonValidationErrors(['position', 'bio']);
+    }
+
+    public function test_individual_registration_caps_expertise_at_three(): void
+    {
+        $res = $this->postJson('/api/v1/auth/register', [
+            'accountType' => 'individual',
+            'name' => 'Over Specified',
+            'email' => 'over@example.test',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+            'position' => 'Consultant',
+            'bio' => 'Everything, apparently.',
+            'expertise' => ['One', 'Two', 'Three', 'Four'],
+            'sectors' => ['Agriculture'],
         ]);
-        $this->assertTrue(User::where('email', 'gf@example.test')->first()->hasRole('partner'));
+
+        $res->assertStatus(422)->assertJsonValidationErrors(['expertise']);
     }
 
     public function test_organization_registration_creates_pending_partner(): void
@@ -503,7 +553,7 @@ class PlatformTest extends TestCase
         $this->publishedProject();
         Project::create(['slug' => 'd1', 'title' => 'Draft', 'published' => false, 'workflow_status' => 'draft']);
 
-        $editor = $this->makeUser('editor');
+        $editor = $this->makeUser(Roles::KNOWLEDGE_MANAGER);
         $partner = $this->makeUser('partner');
 
         Sanctum::actingAs($editor, ['*']);
@@ -563,7 +613,7 @@ class PlatformTest extends TestCase
     public function test_svg_upload_is_rejected(): void
     {
         Storage::fake('public');
-        $approved = $this->makeUser('editor');
+        $approved = $this->makeUser(Roles::KNOWLEDGE_MANAGER);
         Sanctum::actingAs($approved, ['*']);
 
         $svg = UploadedFile::fake()->createWithContent(

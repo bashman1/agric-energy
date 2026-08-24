@@ -1,17 +1,14 @@
+"use client";
+
+import { useEffect } from "react";
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import PageHeader from "@/components/public/PageHeader";
-import Link from "next/link";
-import type { Metadata } from "next";
-import { getPublishedEvents } from "@/lib/data/events";
 import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import EmptyState from "@/components/shared/EmptyState";
-
-export const metadata: Metadata = {
-  title: "Events & Learning Hub — Agri-Energy Desk",
-  description:
-    "Conferences, workshops, webinars and training programmes across Uganda's Agri-Energy ecosystem.",
-};
+import { useAsync } from "@/lib/hooks/useAsync";
+import { getPublishedEvents } from "@/lib/data/events";
+import Link from "next/link";
 
 function fmt(date: string | null): string {
   if (!date) return "Date TBC";
@@ -22,7 +19,6 @@ function fmt(date: string | null): string {
   });
 }
 
-/** Split events into upcoming / past relative to the current time. */
 function splitByStart<T extends { startsAt: string | null }>(events: T[]) {
   const now = Date.now();
   return {
@@ -31,8 +27,55 @@ function splitByStart<T extends { startsAt: string | null }>(events: T[]) {
   };
 }
 
-export default async function EventsPage() {
-  const events = await getPublishedEvents();
+export default function Page() {
+  const { data: events, loading, error, reload } = useAsync(() => getPublishedEvents());
+
+  useEffect(() => {
+    document.title = "Events & Learning Hub — Agri-Energy Desk";
+  }, []);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main>
+          <PageHeader
+            eyebrow="Events & Learning Hub"
+            title="Conferences, workshops, webinars & training"
+            lead="Discover and register for learning and networking opportunities across Uganda's Agri-Energy ecosystem."
+          />
+          <section className="bg-ink-50 py-10 min-h-[50vh]">
+            <div className="container-page">
+              <p className="text-gray-500 text-sm">Loading events…</p>
+            </div>
+          </section>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !events) {
+    return (
+      <>
+        <Header />
+        <main>
+          <PageHeader
+            eyebrow="Events & Learning Hub"
+            title="Conferences, workshops, webinars & training"
+            lead="Discover and register for learning and networking opportunities across Uganda's Agri-Energy ecosystem."
+          />
+          <section className="bg-ink-50 py-10 min-h-[50vh]">
+            <div className="container-page">
+              <p className="text-red-700">Failed to load events. <button onClick={reload} className="underline">Retry</button></p>
+            </div>
+          </section>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   const { upcoming, past } = splitByStart(events);
 
   return (

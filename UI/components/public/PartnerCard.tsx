@@ -8,6 +8,7 @@ function getInitials(name: string) {
 
 export default function PartnerCard({ partner }: { partner: Partner }) {
   const initials = getInitials(partner.name);
+  const isIndividual = partner.entityKind === "individual";
 
   return (
     <Link
@@ -17,7 +18,9 @@ export default function PartnerCard({ partner }: { partner: Partner }) {
       {/* Header: logo / initials mark + type eyebrow + name */}
       <div className="flex items-start gap-3 p-5 pb-4">
         <div
-          className={`shrink-0 w-11 h-11 rounded-lg overflow-hidden flex items-center justify-center ${
+          className={`shrink-0 w-11 h-11 overflow-hidden flex items-center justify-center ${
+            isIndividual ? "rounded-full" : "rounded-lg"
+          } ${
             partner.logo
               ? "bg-white border border-ink-200 p-1"
               : "bg-primary-700 text-white"
@@ -36,7 +39,7 @@ export default function PartnerCard({ partner }: { partner: Partner }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[11px] font-bold uppercase tracking-wider text-primary-700 truncate">
-            {partner.type}
+            {isIndividual ? partner.position || "Individual Expert" : partner.type}
           </div>
           <h3 className="font-semibold text-ink-900 leading-snug mt-0.5 group-hover:text-primary-700 transition-colors line-clamp-2">
             {partner.name}

@@ -18,9 +18,24 @@ export interface AsyncState<T> {
   reload: () => void;
 }
 
+export interface AsyncOptions {
+  /**
+   * Hold off until the loader has what it needs.
+   *
+   * While false the hook stays in its loading state and never calls the
+   * loader — it does NOT settle as "loaded nothing", which would flash a
+   * not-found page. Detail pages use this: on a static export the slug is
+   * only knowable once the component is running in the browser (see
+   * lib/routing/useRouteSlug), and firing a request for the sentinel in the
+   * meantime would 404 on every page load.
+   */
+  enabled?: boolean;
+}
+
 export function useAsync<T>(
   loader: () => Promise<T>,
-  deps: readonly unknown[] = []
+  deps: readonly unknown[] = [],
+  { enabled = true }: AsyncOptions = {}
 ): AsyncState<T> {
   const [data, setData] = useState<T>();
   const [loading, setLoading] = useState(true);
@@ -34,9 +49,9 @@ export function useAsync<T>(
   const run = useCallback(loader, deps);
 
   useEffect(() => {
+    if (!enabled) return;
+
     let cancelled = false;
-    setLoading(true);
-    setError(undefined);
 
     run()
       .then((result) => {
@@ -54,7 +69,7 @@ export function useAsync<T>(
     return () => {
       cancelled = true;
     };
-  }, [run, nonce]);
+  }, [run, nonce, enabled]);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 

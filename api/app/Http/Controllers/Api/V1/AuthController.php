@@ -24,10 +24,14 @@ class AuthController extends Controller
     /**
      * Public partner self-registration.
      *
-     * Individuals create only a pending User. Organizations additionally
-     * create a pending, unpublished Partner draft (linked via
-     * users.partner_id) that an admin reviews and publishes into the
-     * public directory. All fields land in one DB transaction.
+     * Both account types create a pending User AND a pending, unpublished
+     * Partner draft (linked via users.partner_id) that an admin reviews and
+     * publishes into the public Ecosystem directory. The two drafts differ in
+     * shape, not in kind: an organisation carries registration and governance
+     * detail, an individual carries a personal profile — position, expertise,
+     * experience. Individuals previously created no profile at all, which left
+     * a directory advertised as covering consultants and researchers listing
+     * only organisations. All fields land in one DB transaction.
      */
     public function register(Request $request): JsonResponse
     {
@@ -70,12 +74,38 @@ class AuthController extends Controller
             'contactPhone' => 'required_if:accountType,organization|nullable|string|max:50',
             'partnerType' => 'required_if:accountType,organization|nullable|in:Funding Partner,Implementing Partner',
             'logo' => 'nullable|string|max:1000',
+
+            // Individual profile. Mirrors the organisation's required set at a
+            // person's scale: enough for a directory entry that is actually
+            // worth browsing, not so much that registering becomes a chore.
+            'position' => 'required_if:accountType,individual|nullable|string|max:255',
+            'affiliation' => 'nullable|string|max:255',
+            'yearsExperience' => 'nullable|string|max:20',
+            'bio' => 'required_if:accountType,individual|nullable|string|max:2000',
+        ], [
+            'expertise.max' => 'Select at most 3 areas of expertise.',
+            'position.required_if' => 'Your professional title or position is required.',
+            'bio.required_if' => 'A short professional profile is required.',
         ]);
+
+        // Individuals declare expertise and sectors on the same terms as
+        // organisations — the directory filters on both, so a profile without
+        // them is invisible to anyone searching for a specialist.
+        if ($data['accountType'] === 'individual') {
+            $request->validate([
+                'expertise' => 'required|array|min:1|max:3',
+                'sectors' => 'required|array|min:1',
+            ], [
+                'expertise.max' => 'Select at most 3 areas of expertise.',
+            ]);
+        }
 
         $isOrg = $data['accountType'] === 'organization';
 
         $user = DB::transaction(function () use ($data, $isOrg) {
-            $partner = $isOrg ? $this->createPartnerDraft($data) : null;
+            $partner = $isOrg
+                ? $this->createPartnerDraft($data)
+                : $this->createIndividualDraft($data);
 
             $user = User::create([
                 'name' => $data['name'],
@@ -92,8 +122,9 @@ class AuthController extends Controller
             // Whoever registers an organisation becomes its administrator,
             // so the organisation can add its own people without a platform
             // admin doing it for them. That role is organisation-scoped: it
-            // confers nothing outside this partner_id. An individual account
-            // has no organisation to administer and stays a plain partner.
+            // confers nothing outside this partner_id. An individual now has a
+            // profile too, but it is a profile of one — there is no team to
+            // administer — so they stay a plain partner.
             $user->assignRole($isOrg
                 ? \App\Support\Roles::PARTNER_ADMIN
                 : \App\Support\Roles::PARTNER);
@@ -115,12 +146,56 @@ class AuthController extends Controller
         ], 201);
     }
 
+    /**
+     * Create the pending, unpublished directory profile for an individual.
+     *
+     * Same table as an organisation — individuals link to projects, themes and
+     * resources through the same pivots, and the directory queries one list —
+     * with `entity_kind` separating the two so each can be browsed on its own.
+     */
+    private function createIndividualDraft(array $data): Partner
+    {
+        return Partner::create([
+            'slug' => $this->uniquePartnerSlug($data['name']),
+            'name' => $data['name'],
+            'entity_kind' => 'individual',
+            'type' => 'Individual Expert',
+            'category' => 'Individual Expert',
+            'position' => $data['position'] ?? null,
+            'affiliation' => $data['affiliation'] ?? null,
+            'years_experience' => $data['yearsExperience'] ?? null,
+            'summary' => $data['bio'] ?? null,
+            'description' => $data['bio'] ?? null,
+            'email' => $data['email'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'website' => $data['website'] ?? null,
+            'logo' => $data['logo'] ?? null,
+            'physical_address' => $data['physicalAddress'] ?? null,
+            'coverage_scope' => $data['coverageScope'] ?? [],
+            'regions' => $data['regions'] ?? [],
+            'district_coverage' => $data['districtCoverage'] ?? [],
+            'countries' => $data['countries'] ?? [],
+            'sectors' => $data['sectors'] ?? [],
+            'value_chains' => $data['valueChains'] ?? [],
+            'expertise' => $data['expertise'] ?? [],
+            // A person is their own contact; prefilling keeps the public
+            // profile complete without asking them the same thing twice.
+            'contact_name' => $data['name'],
+            'contact_position' => $data['position'] ?? null,
+            'contact_email' => $data['email'] ?? null,
+            'contact_phone' => $data['phone'] ?? null,
+            'published' => false,
+            'workflow_status' => Partner::STATUS_PENDING,
+        ]);
+    }
+
     /** Create the pending, unpublished Partner profile for an org registrant. */
     private function createPartnerDraft(array $data): Partner
     {
         return Partner::create([
             'slug' => $this->uniquePartnerSlug($data['orgName']),
             'name' => $data['orgName'],
+            'entity_kind' => 'organization',
             'category' => $data['category'] ?? null,
             'type' => $data['partnerType'] ?? null,
             'acronym' => $data['acronym'] ?? null,

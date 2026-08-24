@@ -72,6 +72,12 @@ const INITIAL = {
   branchesBand: "",
   beneficiariesBand: "",
   annualBudgetRange: "",
+  // individual profile — an individual now gets a directory entry of their
+  // own, so registration has to collect enough to make one worth browsing
+  position: "",
+  affiliation: "",
+  yearsExperience: "",
+  bio: "",
   // contact person
   contactName: "",
   contactPosition: "",
@@ -84,6 +90,8 @@ type FormState = typeof INITIAL;
 const STEP_TITLES: Record<string, string> = {
   account: "Account type",
   personal: "Your details",
+  individual_profile: "Your professional profile",
+  individual_focus: "Expertise & coverage",
   category: "Organization category",
   partner_type: "Partner type",
   info: "Organization information",
@@ -96,7 +104,7 @@ const STEP_TITLES: Record<string, string> = {
 };
 
 function stepKeysFor(t: AccountType): string[] {
-  if (t === "individual") return ["account", "personal"];
+  if (t === "individual") return ["account", "personal", "individual_profile", "individual_focus"];
   if (t === "organization")
     return ["account", "category", "partner_type", "info", "coverage", "focus", "profile", "expertise", "contact", "credentials"];
   return ["account"];
@@ -174,6 +182,15 @@ export default function RegisterWizard() {
         if (f.password.length < 8) return "Password must be at least 8 characters.";
         if (f.password !== f.password_confirmation) return "Passwords do not match.";
         return null;
+      case "individual_profile":
+        if (!f.position.trim()) return "Your professional title or position is required.";
+        if (!f.bio.trim()) return "A short professional profile is required.";
+        return null;
+      case "individual_focus":
+        if (!f.sectors.length) return "Please select at least one sector.";
+        if (!f.expertise.length) return "Please select at least one area of expertise.";
+        if (f.expertise.length > 3) return "Select up to 3 areas of expertise.";
+        return null;
       case "category":
         if (!f.category) return "Please select an organization category.";
         return null;
@@ -238,7 +255,24 @@ export default function RegisterWizard() {
       password_confirmation: form.password_confirmation,
     };
     if (form.accountType === "individual") {
-      return { ...base, name: form.name, phone: form.phone };
+      return {
+        ...base,
+        name: form.name,
+        username: form.username,
+        phone: form.phone,
+        position: form.position,
+        affiliation: form.affiliation,
+        yearsExperience: form.yearsExperience,
+        bio: form.bio,
+        website: form.website,
+        sectors: form.sectors,
+        valueChains: form.valueChains,
+        expertise: form.expertise,
+        coverageScope: form.coverageScope,
+        regions: form.regions,
+        districtCoverage: form.districtCoverage,
+        countries: form.countries,
+      };
     }
     return {
       ...base,
@@ -458,9 +492,101 @@ function StepBody({
         <div className="space-y-4">
           <TextField label="Full name" value={form.name} onChange={up("name")} required autoComplete="name" />
           <TextField label="Email" type="email" value={form.email} onChange={up("email")} required autoComplete="email" />
+          <TextField label="Username" value={form.username} onChange={up("username")} required help="Used to sign in." autoComplete="username" />
           <TextField label="Phone" value={form.phone} onChange={up("phone")} autoComplete="tel" />
           <TextField label="Password" type="password" value={form.password} onChange={up("password")} required help="At least 8 characters." autoComplete="new-password" />
           <TextField label="Confirm password" type="password" value={form.password_confirmation} onChange={up("password_confirmation")} required autoComplete="new-password" />
+        </div>
+      );
+
+    case "individual_profile":
+      return (
+        <div className="space-y-4">
+          <TextField label="Professional title / position" value={form.position} onChange={up("position")} required help="How you would be introduced, e.g. Independent Irrigation Consultant." />
+          <TextField label="Affiliation" value={form.affiliation} onChange={up("affiliation")} help="Where you currently work, if anywhere. Optional." />
+          <TextField label="Years of experience" value={form.yearsExperience} onChange={up("yearsExperience")} />
+          <TextField label="Website or profile link" value={form.website} onChange={up("website")} />
+          <TextArea
+            label="Professional profile"
+            value={form.bio}
+            onChange={up("bio")}
+            rows={4}
+            maxLength={2000}
+            required
+            help="A short summary of your work and what you can advise on. This is what visitors read on your profile."
+          />
+        </div>
+      );
+
+    case "individual_focus":
+      return (
+        <div className="space-y-5">
+          <div>
+            <span className={labelClass}>Sector of Operation</span>
+            <ComboSelect
+              multi
+              options={toOptions(SECTORS)}
+              value={form.sectors}
+              onChange={up("sectors")}
+              placeholder="Select sectors…"
+            />
+          </div>
+          <div>
+            <span className={labelClass}>Value Chain Focus</span>
+            <ComboSelect
+              multi
+              options={toOptions(VALUE_CHAINS)}
+              value={form.valueChains}
+              onChange={up("valueChains")}
+              placeholder="Select value chains…"
+            />
+          </div>
+          <CheckboxGroup
+            label="Areas of Expertise"
+            options={EXPERTISE_AREAS}
+            value={form.expertise}
+            onChange={up("expertise")}
+            max={3}
+            help="Select up to 3 areas of expertise."
+          />
+          <RadioGroup
+            label="Where you work"
+            value={form.coverageScope[0] ?? ""}
+            onChange={(v) => up("coverageScope")(v ? [v] : [])}
+            options={["National", "International"]}
+          />
+          {form.coverageScope[0] === "National" && (
+            <div className="space-y-4">
+              <CheckboxGroup
+                label="Region(s)"
+                options={UGANDA_REGIONS}
+                value={form.regions}
+                onChange={up("regions")}
+              />
+              <div>
+                <span className={labelClass}>District(s)</span>
+                <ComboSelect
+                  multi
+                  options={districtOpts}
+                  value={form.districtCoverage}
+                  onChange={up("districtCoverage")}
+                  placeholder={districtOpts.length ? "Search districts…" : "Loading districts…"}
+                />
+              </div>
+            </div>
+          )}
+          {form.coverageScope[0] === "International" && (
+            <div>
+              <span className={labelClass}>Country / Countries</span>
+              <ComboSelect
+                multi
+                options={toOptions(COUNTRIES)}
+                value={form.countries}
+                onChange={up("countries")}
+                placeholder="Search countries…"
+              />
+            </div>
+          )}
         </div>
       );
 

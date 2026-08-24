@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Partner;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\Roles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
@@ -18,7 +20,7 @@ class NotificationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        foreach (['super-admin', 'editor', 'reviewer', 'partner', 'partner-admin'] as $role) {
+        foreach (Roles::ALL as $role) {
             Role::findOrCreate($role, 'web');
         }
     }
@@ -84,7 +86,7 @@ class NotificationTest extends TestCase
         $this->assertEquals($project->slug, $notification->data['slug']);
     }
 
-    public function test_approval_without_notify_partner_ids_skips_notifications(): void
+    public function test_approval_without_notify_partner_ids_notifies_only_the_author(): void
     {
         $submitter = $this->makeUser('partner');
         Sanctum::actingAs($submitter, ['*']);
@@ -103,8 +105,68 @@ class NotificationTest extends TestCase
 
         $this->postJson("/api/v1/projects/{$project->slug}/approve")->assertOk();
 
-        $this->assertDatabaseMissing('notifications', [
+        // Nobody was nominated, so no third party hears about it — but the
+        // author does. They are the one waiting to know.
+        $this->assertEquals(1, DB::table('notifications')->count());
+        $this->assertDatabaseHas('notifications', [
             'notifiable_type' => User::class,
+            'notifiable_id' => $submitter->id,
         ]);
+    }
+
+    public function test_rejection_notifies_the_author_with_the_reviewer_notes(): void
+    {
+        $submitter = $this->makeUser('partner');
+        Sanctum::actingAs($submitter, ['*']);
+
+        $this->postJson('/api/v1/projects', [
+            'title' => 'Needs Work',
+            'summary' => 'A project that will be returned',
+        ])->assertCreated();
+
+        $project = Project::where('title', 'Needs Work')->first();
+
+        $reviewer = $this->makeUser('knowledge-manager');
+        Sanctum::actingAs($reviewer, ['*']);
+
+        $this->postJson("/api/v1/projects/{$project->slug}/reject", [
+            'notes' => 'Please add the district and the funding partner.',
+        ])->assertOk();
+
+        // A returned submission used to reach nobody: the status changed and
+        // the notes were saved where only a return visit would find them.
+        $notification = DB::table('notifications')
+            ->where('notifiable_id', $submitter->id)
+            ->first();
+
+        $this->assertNotNull($notification);
+        $data = json_decode($notification->data, true);
+        $this->assertEquals('content_rejected', $data['type']);
+        $this->assertStringContainsString('district', $data['notes']);
+    }
+
+    public function test_a_reviewer_may_not_approve_their_own_submission(): void
+    {
+        // The separation of duties the platform claims: whoever wrote it is
+        // not the person who signs it off, whatever roles they hold.
+        $author = $this->makeUser('knowledge-manager');
+        Sanctum::actingAs($author, ['*']);
+
+        $this->postJson('/api/v1/projects', [
+            'title' => 'Self Approved',
+            'summary' => 'Written and reviewed by the same person',
+            'published' => false,
+        ])->assertCreated();
+
+        $project = Project::where('title', 'Self Approved')->first();
+
+        $this->postJson("/api/v1/projects/{$project->slug}/approve")->assertForbidden();
+
+        // A different reviewer can.
+        $other = $this->makeUser('reviewer');
+        Sanctum::actingAs($other, ['*']);
+        $this->postJson("/api/v1/projects/{$project->slug}/approve")->assertOk();
+
+        $this->assertTrue((bool) $project->fresh()->published);
     }
 }

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useMemo } from "react";
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import PageHeader from "@/components/public/PageHeader";
@@ -7,7 +10,7 @@ import Reveal from "@/components/shared/motion/Reveal";
 import BarChartH from "@/components/shared/charts/BarChartH";
 import ChartFrame from "@/components/shared/charts/ChartFrame";
 import Link from "next/link";
-import type { Metadata } from "next";
+import { useAsync } from "@/lib/hooks/useAsync";
 import {
   getRegionStats,
   OPEN_DATA_DOWNLOADS,
@@ -15,31 +18,76 @@ import {
 } from "@/lib/data/open-data";
 import { fmtNumber, fmtBudget } from "@/lib/utils/format";
 
-export const metadata: Metadata = {
-  title: "Open Data & Downloads — Agri-Energy Desk",
-  description:
-    "Download the Agri-Energy Desk project dataset as CSV or GeoJSON, and browse regional aggregates for Uganda's agri-energy projects.",
-};
+export default function Page() {
+  const { data: regions, loading, error, reload } = useAsync(() => getRegionStats());
 
-export default async function OpenDataPage() {
-  const regions = await getRegionStats();
+  useEffect(() => {
+    document.title = "Open Data & Downloads — Agri-Energy Desk";
+  }, []);
 
-  const totals = regions.reduce(
-    (acc, r) => ({
-      count: acc.count + r.count,
-      totalBudget: acc.totalBudget + r.totalBudget,
-      beneficiaries: acc.beneficiaries + r.beneficiaries,
-    }),
-    { count: 0, totalBudget: 0, beneficiaries: 0 }
-  );
+  const totals = useMemo(() => {
+    if (!regions) return { count: 0, totalBudget: 0, beneficiaries: 0 };
+    return regions.reduce(
+      (acc, r) => ({
+        count: acc.count + r.count,
+        totalBudget: acc.totalBudget + r.totalBudget,
+        beneficiaries: acc.beneficiaries + r.beneficiaries,
+      }),
+      { count: 0, totalBudget: 0, beneficiaries: 0 }
+    );
+  }, [regions]);
 
-  // Chart series (formatted server-side; BarChartH just renders the strings).
-  const budgetByRegion = [...regions]
-    .sort((a, b) => b.totalBudget - a.totalBudget)
-    .map((r) => ({ label: r.region, value: r.totalBudget, display: fmtBudget(r.totalBudget) }));
-  const beneficiariesByRegion = [...regions]
-    .sort((a, b) => b.beneficiaries - a.beneficiaries)
-    .map((r) => ({ label: r.region, value: r.beneficiaries, display: fmtNumber(r.beneficiaries) }));
+  const budgetByRegion = useMemo(() => {
+    if (!regions) return [];
+    return [...regions]
+      .sort((a, b) => b.totalBudget - a.totalBudget)
+      .map((r) => ({ label: r.region, value: r.totalBudget, display: fmtBudget(r.totalBudget) }));
+  }, [regions]);
+
+  const beneficiariesByRegion = useMemo(() => {
+    if (!regions) return [];
+    return [...regions]
+      .sort((a, b) => b.beneficiaries - a.beneficiaries)
+      .map((r) => ({ label: r.region, value: r.beneficiaries, display: fmtNumber(r.beneficiaries) }));
+  }, [regions]);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main>
+          <PageHeader
+            eyebrow="Open Data"
+            title="Open Data & Downloads"
+            lead="The Agri-Energy Desk publishes its project register as open, machine-readable data. Download the full dataset, or explore the regional aggregates below."
+          />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <p className="text-gray-500">Loading data…</p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !regions) {
+    return (
+      <>
+        <Header />
+        <main>
+          <PageHeader
+            eyebrow="Open Data"
+            title="Open Data & Downloads"
+            lead="The Agri-Energy Desk publishes its project register as open, machine-readable data. Download the full dataset, or explore the regional aggregates below."
+          />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <p className="text-red-700">Failed to load open data. <button onClick={reload} className="underline">Retry</button></p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>

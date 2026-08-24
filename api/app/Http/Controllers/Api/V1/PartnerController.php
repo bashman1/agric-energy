@@ -18,6 +18,7 @@ class PartnerController extends ContentController
     protected array $searchable = ['name', 'summary', 'type', 'description'];
     protected array $filters = [
         'type' => 'type',
+        'entityKind' => 'entity_kind',
         'featured' => 'featured',
     ];
     protected string $orderBy = 'name';
@@ -38,7 +39,11 @@ class PartnerController extends ContentController
     {
         $map = [
             'name' => 'name',
+            'entityKind' => 'entity_kind',
             'type' => 'type',
+            'position' => 'position',
+            'affiliation' => 'affiliation',
+            'yearsExperience' => 'years_experience',
             'category' => 'category',
             'summary' => 'summary',
             'description' => 'description',
@@ -84,6 +89,16 @@ class PartnerController extends ContentController
         }
 
         return $attrs;
+    }
+
+    /** Keys a pending revision must carry so approval can re-sync them. */
+    protected function relationKeys(): array
+    {
+        return [
+            'technologyIds',
+            'themeIds',
+            'projectIds',
+        ];
     }
 
     protected function syncRelations(Model $model, array $data): void

@@ -10,7 +10,16 @@ export type FieldType =
   | "select"
   | "multiselect"
   | "upload-image"
-  | "upload-document";
+  | "upload-document"
+  // The three below exist so a partner-authored record can hold everything an
+  // administrator's can. Without them a partner submission arrived without a
+  // map pin, without supporting documents and without a photo gallery, and
+  // someone at NREP had to open the record and add them by hand — which is
+  // precisely the re-typing self-service is supposed to remove.
+  | "location"
+  | "gallery"
+  | "attachments"
+  | "tags";
 
 export interface FieldDef {
   key: string;
@@ -51,8 +60,10 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
     { key: "title", label: "Project title", type: "text", required: true },
     { key: "summary", label: "Summary", type: "textarea", required: true },
     { key: "description", label: "Full description", type: "textarea" },
-    { key: "region", label: "Region", type: "select", optionsFrom: "regions", required: true },
-    { key: "district", label: "District", type: "select", optionsFrom: "districts-by-region", dependsOn: "region", required: true },
+    // One control covering region, district, multi-district coverage, the map
+    // pin and the location note — the same LocationPicker the admin form uses,
+    // so a partner-entered project appears on the map like any other.
+    { key: "location", label: "Location & coverage", type: "location", required: true },
     { key: "valueChain", label: "Value chain", type: "select", optionsFrom: "taxonomy:valueChains" },
     { key: "status", label: "Status", type: "select", optionsFrom: "taxonomy:projectStatuses", default: "Active" },
     { key: "fundingPartner", label: "Funding partner", type: "select", optionsFrom: "partners-by-type", multiple: false },
@@ -64,9 +75,12 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
     { key: "budgetCurrency", label: "Budget currency", type: "text" },
     { key: "startDate", label: "Start date (YYYY-MM)", type: "text" },
     { key: "endDate", label: "End date (YYYY-MM)", type: "text" },
+    { key: "beneficiaries", label: "Beneficiary groups", type: "tags", help: "Press Enter after each group, e.g. Smallholder farmers, Women's cooperatives." },
     { key: "outcomes", label: "Outcomes & results", type: "textarea" },
     { key: "externalUrl", label: "External link", type: "text" },
     { key: "featuredImage", label: "Featured image", type: "upload-image" },
+    { key: "gallery", label: "Photo gallery", type: "gallery", help: "Additional photographs shown on the project page." },
+    { key: "attachments", label: "Attachments", type: "attachments", help: "Reports, factsheets or briefs visitors can download from the project page." },
     { key: "notifyPartnerIds", label: "Partners to notify on publish", type: "multiselect", optionsFrom: "partners-by-type", help: "Collaborative / funding partners to notify when this item is published." },
   ],
   technologies: [
@@ -84,6 +98,8 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
       { id: "bought", label: "Bought" },
     ], group: "operationalNotes" },
     { key: "notes", label: "Operational notes", type: "textarea", group: "operationalNotes" },
+    { key: "maintenanceNotes", label: "Maintenance notes", type: "textarea", help: "Servicing intervals, spare parts, common faults." },
+    { key: "featuredImage", label: "Technology image", type: "upload-image" },
   ],
   resources: [
     { key: "title", label: "Resource title", type: "text", required: true },
@@ -93,7 +109,8 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
     { key: "externalUrl", label: "Link to document (or upload below)", type: "text" },
     { key: "fileUrl", label: "Upload document", type: "upload-document" },
     { key: "publicationDate", label: "Publication date (YYYY-MM-DD)", type: "text" },
-    { key: "fileDownloadable", label: "Allow download", type: "checkbox", help: "Uncheck to make this file view-only (no download button)." },
+    { key: "featuredImage", label: "Cover image", type: "upload-image" },
+    { key: "fileDownloadable", label: "Allow download", type: "checkbox", help: "Leave unchecked to make this file view-only: it can be read in full on the page, but not downloaded or shared as a file." },
   ],
   events: [
     { key: "title", label: "Event title", type: "text", required: true },
@@ -109,12 +126,30 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
   ],
   opportunities: [
     { key: "title", label: "Opportunity title", type: "text", required: true },
-    { key: "funder", label: "Funder", type: "text" },
+    // Without this a partner could only ever post a generic "funding"
+    // opportunity — tenders, procurement notices and vacancies were listed as
+    // supported but reachable only from the admin form.
+    {
+      key: "opportunityType",
+      label: "Opportunity type",
+      type: "select",
+      required: true,
+      default: "Select a type…",
+      options: [
+        { id: "funding", label: "Funding / grant" },
+        { id: "investment", label: "Investment" },
+        { id: "tender", label: "Tender" },
+        { id: "procurement", label: "Procurement" },
+        { id: "job", label: "Job / vacancy" },
+      ],
+    },
+    { key: "funder", label: "Funder / advertiser", type: "text" },
     { key: "summary", label: "Summary", type: "textarea", required: true },
     { key: "description", label: "Details", type: "textarea" },
     { key: "amount", label: "Amount", type: "text" },
     { key: "currency", label: "Currency", type: "text" },
     { key: "sector", label: "Sector", type: "text" },
+    { key: "valueChain", label: "Value chain", type: "select", optionsFrom: "taxonomy:valueChains" },
     { key: "region", label: "Region", type: "select", optionsFrom: "regions" },
     { key: "deadline", label: "Deadline (YYYY-MM-DD)", type: "date" },
     { key: "eligibility", label: "Eligibility", type: "textarea" },

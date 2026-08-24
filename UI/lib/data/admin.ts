@@ -6,6 +6,17 @@
 import { apiGet, apiSend } from "@/lib/api/client";
 
 export interface ReviewQueueItem {
+  /**
+   * What is waiting. A `submission` is a record that has never been public;
+   * approving it publishes it. A `revision` is an edit queued behind a record
+   * that is ALREADY live — approving applies the edit, rejecting discards it,
+   * and either way the live version was never taken down.
+   */
+  kind: "submission" | "revision";
+  /** Set only on revisions — the queued edit acts on this, not on the slug. */
+  revisionId?: number;
+  /** Set only on revisions: which fields the edit touches. */
+  changedFields?: string[];
   type: string;
   slug: string;
   title: string;
@@ -67,6 +78,33 @@ export async function rejectContent(
   token?: string
 ) {
   return apiSend("POST", `${type}/${slug}/reject`, { notes }, { token });
+}
+
+/** Apply a queued edit to the live record it was raised against. */
+export async function approveRevision(id: number, token?: string, notes?: string) {
+  return apiSend("POST", `revisions/${id}/approve`, { notes }, { token });
+}
+
+/** Discard a queued edit. The live record was never changed. */
+export async function rejectRevision(id: number, notes: string, token?: string) {
+  return apiSend("POST", `revisions/${id}/reject`, { notes }, { token });
+}
+
+/** Route a queue item to whichever pair of endpoints applies to it. */
+export async function approveQueueItem(item: ReviewQueueItem, token?: string) {
+  return item.kind === "revision" && item.revisionId
+    ? approveRevision(item.revisionId, token)
+    : approveContent(item.type, item.slug, token);
+}
+
+export async function rejectQueueItem(
+  item: ReviewQueueItem,
+  notes: string,
+  token?: string
+) {
+  return item.kind === "revision" && item.revisionId
+    ? rejectRevision(item.revisionId, notes, token)
+    : rejectContent(item.type, item.slug, notes, token);
 }
 
 // ── User management ─────────────────────────────────────────

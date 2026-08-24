@@ -100,6 +100,63 @@ leftover from the export era; it works fine and was left alone.
 
 ---
 
+## Option B — static export (no Node process)
+
+There is a second way to deploy the frontend: a **static export** served off
+disk from `api/public/static`, with no Node process at all. The host then needs
+only nginx, PHP-FPM and PostgreSQL.
+
+```bash
+bash deploy/scripts/build-static.sh        # → api/public/static
+git add api/public/static UI && git commit -m "Rebuild static export" && git push
+```
+
+Then install `deploy/nginx/menu.smartcollect.co.ug.static.conf` instead of
+`menu.smartcollect.co.ug.conf`, and stop `agrienergy-ui`.
+
+**This is still live, not a snapshot.** The export contains no records — not
+even the list of published slugs. Every page fetches `/api/v1` from the browser
+at runtime, so an approval is on the public site on the next page load, exactly
+as with the Node server. A rebuild is needed only when the **UI source**
+changes.
+
+That is a change from how the export used to work. It previously enumerated
+every published slug at build time, which meant two things: a record approved
+afterwards had no HTML file and 404'd until someone rebuilt, and the artefact
+carried whatever content the builder's local database happened to hold. Both
+are gone:
+
+- each dynamic route exports **one shell** (`UI/lib/routing/shell.ts`) at
+  `/{collection}/_entry/`, which reads the slug from the address
+  (`useRouteSlug`) and fetches the record;
+- `StaticSiteController` hands that shell to any record URL **with a 200** —
+  the status matters, a real page served under a 404 is not indexed or cached;
+- the build touches no database, so `build-static.sh` no longer starts
+  `php artisan serve`.
+
+Enumerating real slugs bought nothing even before this: the detail pages are
+client components, so the prerendered HTML only ever contained the chrome and a
+loading state. It produced ~120 byte-identical files.
+
+**Choosing between the two:**
+
+| | Node server (`*.conf`) | Static export (`*.static.conf`) |
+|---|---|---|
+| Content in first HTML byte | Yes | No — arrives just after first paint |
+| Host needs Node | Yes | No |
+| Artefact is environment-independent | n/a (built on host) | Yes — build once, deploy anywhere |
+| Rebuild on content change | No | No |
+
+Prefer the Node server if crawler indexing of project and resource pages
+matters. Prefer the export for simpler, more portable hosting.
+
+> **Do not reintroduce real slugs in `generateStaticParams`.** It is the static
+> equivalent of `force-cache`: it silently re-freezes the site to the builder's
+> database. `build-static.sh` fails the build if the shells are missing, but it
+> cannot detect extra slugs — that one is on review.
+
+---
+
 ## Security model
 
 The admin bundle is publicly downloadable — that is normal for an SPA, and safe

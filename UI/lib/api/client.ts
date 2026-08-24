@@ -152,6 +152,39 @@ export async function apiSend<T>(
 }
 
 /**
+ * As apiSend, but keeps the response envelope and status.
+ *
+ * apiSend unwraps `json.data`, which is what almost every caller wants and
+ * exactly wrong for the endpoints that answer 202: an edit to a published
+ * record comes back as the UNCHANGED record under `data`, with the fact that
+ * it was queued for review alongside it. Unwrapping there would report a
+ * successful save that did not happen.
+ */
+export async function apiSendWithMeta<T>(
+  method: "POST" | "PUT" | "PATCH" | "DELETE",
+  pathname: string,
+  body?: unknown,
+  options: RequestOptions = {}
+): Promise<{ status: number; data: T | null; body: Record<string, unknown> }> {
+  const res = await fetch(buildUrl(pathname, options.params), {
+    method,
+    headers: headers(options.token),
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    handleUnauthorized(res.status);
+    const err = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, err?.message ?? "Request failed", err);
+  }
+  if (res.status === 204) return { status: res.status, data: null, body: {} };
+
+  const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+
+  return { status: res.status, data: (json.data ?? json) as T, body: json };
+}
+
+/**
  * Multipart upload (POST /media). Browser-only — the Content-Type header
  * must be left unset so the runtime supplies the multipart boundary.
  */

@@ -1,27 +1,62 @@
-import { Suspense } from "react";
+"use client";
+
+import { useEffect } from "react";
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import PageHeader from "@/components/public/PageHeader";
+import { useAsync } from "@/lib/hooks/useAsync";
 import { getPublishedPartners } from "@/lib/data/partners";
 import { getTaxonomy } from "@/lib/data/taxonomy";
-import type { Metadata } from "next";
 import PartnersBrowser from "./PartnersBrowser";
 
-export const metadata: Metadata = {
-  title: "Partners Directory",
-  description: "Organisations active in Uganda's agri-energy sector — government, NGOs, private sector, and research institutions.",
-};
+export default function Page() {
+  const { data, loading, error, reload } = useAsync(async () => {
+    const [partners, taxonomy] = await Promise.all([
+      getPublishedPartners(),
+      getTaxonomy(),
+    ]);
+    return { partners, taxonomy };
+  });
 
-/**
- * Prerendered with the full published list; filtering runs in the browser
- * (see PartnersBrowser), since a static export has no request to read
- * searchParams from.
- */
-export default async function PartnersPage() {
-  const [partners, taxonomy] = await Promise.all([
-    getPublishedPartners(),
-    getTaxonomy(),
-  ]);
+  useEffect(() => {
+    document.title = "Partners Directory";
+  }, []);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main>
+          <PageHeader
+            title="Partners Directory"
+            lead="Government agencies, development organisations, private companies, and research institutions active in Uganda's agri-energy sector."
+          />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <p className="text-gray-500">Loading partners…</p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <>
+        <Header />
+        <main>
+          <PageHeader
+            title="Partners Directory"
+            lead="Government agencies, development organisations, private companies, and research institutions active in Uganda's agri-energy sector."
+          />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <p className="text-red-700">Failed to load partners. <button onClick={reload} className="underline">Retry</button></p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -34,10 +69,7 @@ export default async function PartnersPage() {
 
         <section className="py-8 bg-ink-50 min-h-screen">
           <div className="container-page">
-            {/* useSearchParams needs a Suspense boundary to prerender. */}
-            <Suspense fallback={null}>
-              <PartnersBrowser partners={partners} taxonomy={taxonomy} />
-            </Suspense>
+            <PartnersBrowser partners={data.partners} taxonomy={data.taxonomy} />
           </div>
         </section>
       </main>

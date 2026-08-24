@@ -50,6 +50,9 @@ export default function PartnerNav({
       <Link href="/partner" className="text-primary-100 hover:text-white">
         Dashboard
       </Link>
+      <Link href="/partner/profile" className="text-primary-100 hover:text-white">
+        Profile
+      </Link>
       <Link href="/partner/notifications" className="relative text-primary-100 hover:text-white">
         Notifications
         {unreadCount > 0 && (

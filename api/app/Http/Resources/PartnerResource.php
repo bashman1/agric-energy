@@ -13,7 +13,13 @@ class PartnerResource extends JsonResource
             'id' => $this->slug,
             'slug' => $this->slug,
             'name' => $this->name,
+            // organization | individual — the Ecosystem directory browses the
+            // two separately, so this is not merely descriptive.
+            'entityKind' => $this->entity_kind ?? 'organization',
             'type' => $this->type ?? '',
+            'position' => $this->position ?? '',
+            'affiliation' => $this->affiliation ?? '',
+            'yearsExperience' => $this->years_experience ?? '',
             'summary' => $this->summary ?? '',
             'description' => $this->description ?? '',
             'website' => $this->website ?? '',

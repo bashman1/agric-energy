@@ -57,6 +57,16 @@ class ThemeController extends ContentController
         return $attrs;
     }
 
+    /** Keys a pending revision must carry so approval can re-sync them. */
+    protected function relationKeys(): array
+    {
+        return [
+            'relatedTechnologyIds',
+            'relatedProjectIds',
+            'relatedResourceIds',
+        ];
+    }
+
     protected function syncRelations(Model $model, array $data): void
     {
         /** @var Theme $model */

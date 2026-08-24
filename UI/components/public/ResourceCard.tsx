@@ -47,10 +47,17 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
       {hasLink && (
         <div className="mt-4 mx-5 mb-5 pt-3 border-t border-ink-100">
           <span className="inline-flex items-center gap-1.5 text-primary-700 text-xs font-semibold">
-            {resource.fileUrl ? (
+            {/* A view-only resource must not advertise a download it will not
+                give — the card is where most visitors decide what to open. */}
+            {resource.fileUrl && resource.fileDownloadable !== false ? (
               <>
                 <DownloadIcon className="shrink-0" />
                 Download PDF
+              </>
+            ) : resource.fileUrl ? (
+              <>
+                <DocumentIcon className="shrink-0" />
+                Read online
               </>
             ) : (
               <>
