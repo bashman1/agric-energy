@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
@@ -95,9 +95,14 @@ export default function HomePage() {
     .filter((p) => sliderPartnerSlugs.includes(p.slug))
     .sort((a, b) => sliderPartnerSlugs.indexOf(a.slug) - sliderPartnerSlugs.indexOf(b.slug));
 
-  const districtCount = useMemo(() => new Set(
+  // Deliberately NOT useMemo: this sits after the loading and error early
+  // returns, so a hook here is called on some renders and not others — which
+  // is React error #310 ("rendered more hooks than during the previous
+  // render") and crashes the whole page the moment the data arrives. It is a
+  // Set over an array already in memory; there is nothing to memoise.
+  const districtCount = new Set(
     allProjects.map((p) => p.district).filter(Boolean)
-  ).size, [allProjects]);
+  ).size;
 
   const totalBeneficiaries = regionStats.reduce((n, r) => n + r.beneficiaries, 0);
   const totalBudget = regionStats.reduce((n, r) => n + r.totalBudget, 0);
