@@ -14,7 +14,7 @@ export default function PartnerNav({
   name: string;
 }) {
   const router = useRouter();
-  const { canManagePartnerTeam } = useSession();
+  const { canManagePartnerTeam, canApproveOrgContent } = useSession();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -61,6 +61,11 @@ export default function PartnerNav({
           </span>
         )}
       </Link>
+      {canApproveOrgContent && (
+        <Link href="/partner/approvals" className="text-primary-100 hover:text-white">
+          Approvals
+        </Link>
+      )}
       {canManagePartnerTeam && (
         <Link href="/partner/team" className="text-primary-100 hover:text-white">
           Team

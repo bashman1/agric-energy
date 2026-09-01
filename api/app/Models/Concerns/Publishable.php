@@ -30,6 +30,17 @@ trait Publishable
     }
 
     public const STATUS_DRAFT = 'draft';
+    /**
+     * Awaiting the OWNING ORGANISATION's own administrator, before the record
+     * is ever offered to the platform.
+     *
+     * A stage before STATUS_PENDING, not a replacement for it: an
+     * organisation vouching for its colleague's submission does not make it
+     * fit to publish on the national platform, so an org-approved record
+     * moves to STATUS_PENDING and still faces an NREP reviewer. Deliberately
+     * excluded from scopePendingReview() so it never reaches that queue early.
+     */
+    public const STATUS_ORG_PENDING = 'org_pending';
     public const STATUS_PENDING = 'pending';
     public const STATUS_IN_REVIEW = 'in_review';
     public const STATUS_APPROVED = 'approved';
@@ -54,12 +65,18 @@ trait Publishable
         return $query->where('featured', true);
     }
 
-    /** Awaiting reviewer/admin action. */
+    /** Awaiting platform reviewer/admin action. */
     public function scopePendingReview(Builder $query): Builder
     {
         return $query->whereIn('workflow_status', [
             self::STATUS_PENDING,
             self::STATUS_IN_REVIEW,
         ]);
+    }
+
+    /** Awaiting sign-off by the contributing organisation's administrator. */
+    public function scopeAwaitingOrgApproval(Builder $query): Builder
+    {
+        return $query->where('workflow_status', self::STATUS_ORG_PENDING);
     }
 }

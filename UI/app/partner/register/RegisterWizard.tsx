@@ -47,7 +47,6 @@ const INITIAL = {
   password_confirmation: "",
   // organization info
   category: "",
-  partnerType: "",
   orgName: "",
   acronym: "",
   registrationNumber: "",
@@ -93,7 +92,6 @@ const STEP_TITLES: Record<string, string> = {
   individual_profile: "Your professional profile",
   individual_focus: "Expertise & coverage",
   category: "Organization category",
-  partner_type: "Partner type",
   info: "Organization information",
   coverage: "Geographic coverage",
   focus: "Sectors & value chains",
@@ -106,7 +104,7 @@ const STEP_TITLES: Record<string, string> = {
 function stepKeysFor(t: AccountType): string[] {
   if (t === "individual") return ["account", "personal", "individual_profile", "individual_focus"];
   if (t === "organization")
-    return ["account", "category", "partner_type", "info", "coverage", "focus", "profile", "expertise", "contact", "credentials"];
+    return ["account", "category", "info", "coverage", "focus", "profile", "expertise", "contact", "credentials"];
   return ["account"];
 }
 
@@ -194,16 +192,16 @@ export default function RegisterWizard() {
       case "category":
         if (!f.category) return "Please select an organization category.";
         return null;
-      case "partner_type":
-        if (!f.partnerType) return "Please select a partner type.";
-        return null;
       case "info":
         if (!f.orgName.trim()) return "Organization name is required.";
         if (!f.registrationNumber.trim()) return "Registration number is required.";
         if (!f.taxId.trim()) return "Tax Identification Number is required.";
         if (!f.physicalAddress.trim()) return "Physical address is required.";
-        if (!f.sectors.length) return "Please select at least one sector.";
         if (!f.email.trim()) return "Organisation email is required.";
+        return null;
+      // Sectors are collected on the focus step, so they are checked there.
+      case "focus":
+        if (!f.sectors.length) return "Please select at least one sector.";
         return null;
       case "contact":
         if (!f.contactName.trim()) return "Contact person's full name is required.";
@@ -280,7 +278,6 @@ export default function RegisterWizard() {
       phone: form.contactPhone,
       username: form.username,
       category: form.category,
-      partnerType: form.partnerType,
       orgName: form.orgName,
       acronym: form.acronym,
       registrationNumber: form.registrationNumber,
@@ -602,17 +599,6 @@ function StepBody({
         />
       );
 
-    case "partner_type":
-      return (
-        <RadioGroup
-          label="Partner Type"
-          value={form.partnerType}
-          onChange={up("partnerType")}
-          options={["Funding Partner", "Implementing Partner"]}
-          required
-        />
-      );
-
     case "info":
       return (
         <div className="grid sm:grid-cols-2 gap-4">
@@ -774,7 +760,6 @@ function ReviewSummary({ form }: { form: FormState }) {
   const rows: [string, string][] = [
     ["Organization", form.orgName],
     ["Category", form.category],
-    ["Partner Type", form.partnerType],
     ["Coverage", form.coverageScope.join(", ")],
     ["Sectors", form.sectors.join(", ")],
     ["Value chains", form.valueChains.join(", ")],

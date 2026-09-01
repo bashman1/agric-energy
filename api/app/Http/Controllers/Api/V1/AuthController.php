@@ -72,7 +72,9 @@ class AuthController extends Controller
             'contactName' => 'required_if:accountType,organization|nullable|string|max:255',
             'contactPosition' => 'required_if:accountType,organization|nullable|string|max:255',
             'contactPhone' => 'required_if:accountType,organization|nullable|string|max:50',
-            'partnerType' => 'required_if:accountType,organization|nullable|in:Funding Partner,Implementing Partner',
+            // Not asked at registration any more — staff set the funding /
+            // implementing type when they review the draft. Still accepted if sent.
+            'partnerType' => 'nullable|in:Funding Partner,Implementing Partner',
             'logo' => 'nullable|string|max:1000',
 
             // Individual profile. Mirrors the organisation's required set at a

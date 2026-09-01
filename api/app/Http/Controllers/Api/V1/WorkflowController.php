@@ -14,6 +14,7 @@ use App\Models\Resource;
 use App\Models\Technology;
 use App\Models\Theme;
 use App\Models\User;
+use App\Notifications\ContentEndorsedNotification;
 use App\Notifications\ContentPublishedNotification;
 use App\Notifications\ContentRejectedNotification;
 use Illuminate\Database\Eloquent\Model;
@@ -163,6 +164,103 @@ class WorkflowController extends Controller
             ->event('rejected')->log('Rejected: ' . $data['notes']);
 
         $this->notifyAuthor($model, $type, published: false, notes: $data['notes'], actor: $request->user());
+
+        return $this->ok($model);
+    }
+
+    // ── Organisation-level sign-off ───────────────────────────────────
+    //
+    // The stage before the platform queue: an organisation's administrator
+    // vouches for a colleague's submission, and only then is NREP asked to
+    // review it. Everything here is scoped to the caller's own partner_id —
+    // an organisation admin never sees, or acts on, another organisation's
+    // drafts.
+
+    /** Submissions from the caller's organisation awaiting their sign-off. */
+    public function orgQueue(Request $request): JsonResponse
+    {
+        $this->authorize('org-review-queue');
+
+        $user = $request->user();
+        $colleagueIds = User::where('partner_id', $user->partner_id)->pluck('id');
+
+        $out = [];
+
+        foreach (self::TYPES as $slug => $modelClass) {
+            $items = $modelClass::awaitingOrgApproval()
+                ->whereIn('created_by', $colleagueIds)
+                ->with('author')
+                ->orderBy('created_at')
+                ->get();
+
+            foreach ($items as $item) {
+                $out[] = [
+                    'type' => $slug,
+                    'slug' => $item->slug,
+                    'title' => $item->title ?? $item->name,
+                    'summary' => $item->getAttribute('summary'),
+                    'workflowStatus' => $item->workflow_status,
+                    'author' => $item->author?->name,
+                    // An admin cannot sign off their own submission, and the
+                    // queue says so rather than letting them press a button
+                    // the API will refuse.
+                    'isMine' => (int) $item->created_by === (int) $user->id,
+                    'submittedAt' => optional($item->created_at)->toISOString(),
+                ];
+            }
+        }
+
+        usort($out, fn ($a, $b) => strcmp($a['submittedAt'] ?? '', $b['submittedAt'] ?? ''));
+
+        return response()->json(['data' => $out, 'total' => count($out)]);
+    }
+
+    /**
+     * Organisation admin endorses a submission: it now enters the platform
+     * review queue. It does NOT become public here — publishing remains an
+     * NREP decision, which is the point of keeping the two stages distinct.
+     */
+    public function orgApprove(Request $request, string $type, string $slug): JsonResponse
+    {
+        $model = $this->find($type, $slug);
+        $this->authorize('approveForOrg', $model);
+
+        $model->update([
+            'workflow_status' => $model::STATUS_PENDING,
+            'published' => false,
+        ]);
+
+        activity('content')->performedOn($model)->causedBy($request->user())
+            ->event('org_approved')->log('Endorsed by the organisation; sent for platform review');
+
+        $this->notifyAuthorOfOrgDecision($model, $type, endorsed: true, notes: $request->input('notes'), actor: $request->user());
+
+        return $this->ok($model);
+    }
+
+    /**
+     * Organisation admin returns a submission to its author with notes. It
+     * never reaches the platform queue, and the author picks it up from the
+     * portal exactly as they would a platform rejection.
+     */
+    public function orgReturn(Request $request, string $type, string $slug): JsonResponse
+    {
+        $model = $this->find($type, $slug);
+        $this->authorize('approveForOrg', $model);
+
+        $data = $request->validate(['notes' => 'required|string|max:2000']);
+
+        $model->update([
+            'workflow_status' => $model::STATUS_REJECTED,
+            'published' => false,
+            'review_notes' => $data['notes'],
+            'reviewed_at' => Carbon::now(),
+        ]);
+
+        activity('content')->performedOn($model)->causedBy($request->user())
+            ->event('org_returned')->log('Returned by the organisation: ' . $data['notes']);
+
+        $this->notifyAuthorOfOrgDecision($model, $type, endorsed: false, notes: $data['notes'], actor: $request->user());
 
         return $this->ok($model);
     }
@@ -318,6 +416,31 @@ class WorkflowController extends Controller
 
             $author->notify($published
                 ? new ContentPublishedNotification($model, $type, $actor?->name)
+                : new ContentRejectedNotification($model, $type, $notes ?? '', $actor?->name));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    /**
+     * Tell the author what their own organisation decided.
+     *
+     * An endorsement is not a publication, so it deliberately does NOT reuse
+     * ContentPublishedNotification — telling an author their draft is live
+     * when it has only cleared the first of two gates is worse than telling
+     * them nothing.
+     */
+    private function notifyAuthorOfOrgDecision(Model $model, string $type, bool $endorsed, ?string $notes, ?User $actor): void
+    {
+        try {
+            $author = $model->author;
+
+            if (! $author || ($actor && $author->id === $actor->id)) {
+                return;
+            }
+
+            $author->notify($endorsed
+                ? new ContentEndorsedNotification($model, $type, $actor?->name)
                 : new ContentRejectedNotification($model, $type, $notes ?? '', $actor?->name));
         } catch (\Throwable $e) {
             report($e);

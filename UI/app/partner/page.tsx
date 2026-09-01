@@ -7,11 +7,23 @@ import { getMyContent } from "@/lib/data/partner-portal";
 
 const STATUS_STYLE: Record<string, string> = {
   draft: "bg-gray-100 text-gray-600",
+  org_pending: "bg-amber-50 text-amber-700 border border-amber-200",
   pending: "bg-amber-50 text-amber-700 border border-amber-200",
   in_review: "bg-blue-50 text-blue-700 border border-blue-200",
   published: "bg-emerald-50 text-emerald-700 border border-emerald-200",
   rejected: "bg-red-50 text-red-700 border border-red-200",
   archived: "bg-gray-100 text-gray-500",
+};
+
+/** Wording an author reads, rather than the raw column value. */
+const STATUS_LABELS: Record<string, string> = {
+  org_pending: "with your organisation",
+  pending: "with NREP",
+  in_review: "in review",
+  published: "published",
+  rejected: "needs changes",
+  draft: "draft",
+  archived: "archived",
 };
 
 const SUBMIT_TYPES: [string, string, string][] = [
@@ -32,7 +44,7 @@ export default function PartnerDashboard() {
         // An edit queued behind a live record is awaiting review just as much
         // as a first-time submission, and is easier to lose track of.
         pending:
-          items.filter((i) => ["pending", "in_review"].includes(i.workflowStatus)).length +
+          items.filter((i) => ["org_pending", "pending", "in_review"].includes(i.workflowStatus)).length +
           items.filter((i) => i.pendingEdit).length,
         published: items.filter((i) => i.published).length,
         rejected: items.filter((i) => i.workflowStatus === "rejected").length,
@@ -99,7 +111,7 @@ export default function PartnerDashboard() {
                         STATUS_STYLE[i.workflowStatus] ?? "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      {i.workflowStatus.replace("_", " ")}
+                      {STATUS_LABELS[i.workflowStatus] ?? i.workflowStatus.replace(/_/g, " ")}
                     </span>
                   </div>
                   {!i.isMine && i.author && (

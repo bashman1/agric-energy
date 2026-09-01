@@ -181,6 +181,16 @@ export function canManagePartnerTeam(user: Pick<StoredUser, "roles"> | null): bo
   return !!user?.roles?.includes(ROLE.PARTNER_ADMIN);
 }
 
+/**
+ * Can sign off their OWN organisation's submissions before the platform sees
+ * them. Same holder as canManagePartnerTeam() today — the organisation's
+ * administrator — but a separate predicate because the API gates the two
+ * separately (`manage-partner-team` vs `org-review-queue`).
+ */
+export function canApproveOrgContent(user: Pick<StoredUser, "roles"> | null): boolean {
+  return !!user?.roles?.includes(ROLE.PARTNER_ADMIN);
+}
+
 /** Super-admin only: system settings, audit trail, backups. */
 export function isSuperAdmin(user: Pick<StoredUser, "roles"> | null): boolean {
   return !!user?.roles?.includes(ROLE.SUPER_ADMIN);

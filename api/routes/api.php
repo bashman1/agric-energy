@@ -150,6 +150,11 @@ Route::prefix('v1')->group(function () {
         // Editorial workflow (review queue + transitions) and audit trail.
         Route::get('review/queue', [WorkflowController::class, 'queue']);
 
+        // The organisation's own sign-off queue, one stage earlier. Scoped to
+        // the caller's partner_id in the controller; the platform queue above
+        // never shows these, and this one never shows the platform's.
+        Route::get('review/org-queue', [WorkflowController::class, 'orgQueue']);
+
         // Edits to already-published records queue as revisions rather than
         // changing the live version; these act on the queued edit, not the
         // record, so they are keyed by revision id. Declared before the
@@ -158,6 +163,8 @@ Route::prefix('v1')->group(function () {
         Route::post('revisions/{id}/reject', [WorkflowController::class, 'rejectRevision']);
 
         Route::post('{type}/{slug}/submit', [WorkflowController::class, 'submit']);
+        Route::post('{type}/{slug}/org-approve', [WorkflowController::class, 'orgApprove']);
+        Route::post('{type}/{slug}/org-return', [WorkflowController::class, 'orgReturn']);
         Route::post('{type}/{slug}/approve', [WorkflowController::class, 'approve']);
         Route::post('{type}/{slug}/reject', [WorkflowController::class, 'reject']);
         Route::get('audit', [AuditController::class, 'index']);

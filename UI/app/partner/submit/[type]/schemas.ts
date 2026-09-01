@@ -6,6 +6,10 @@ export type FieldType =
   | "text"
   | "textarea"
   | "date"
+  // Month-precision dates (project start/end). A plain text box asking for
+  // "YYYY-MM" is a free-text field that silently accepts anything; the
+  // native month picker cannot produce a malformed value.
+  | "month"
   | "checkbox"
   | "select"
   | "multiselect"
@@ -36,7 +40,10 @@ export interface FieldDef {
 }
 
 export type OptionsFrom =
-  | "partners-by-type"
+  // Every partner, searchable. Deliberately NOT filtered by partner type:
+  // one shared type filter drove all three partner fields on the project
+  // form, so changing it on one rewrote the options under the other two.
+  | "partners"
   | "technologies"
   | "themes"
   | "taxonomy:partnerTypes"
@@ -66,22 +73,22 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
     { key: "location", label: "Location & coverage", type: "location", required: true },
     { key: "valueChain", label: "Value chain", type: "select", optionsFrom: "taxonomy:valueChains" },
     { key: "status", label: "Status", type: "select", optionsFrom: "taxonomy:projectStatuses", default: "Active" },
-    { key: "fundingPartner", label: "Funding partner", type: "select", optionsFrom: "partners-by-type", multiple: false },
-    { key: "implementingPartnerIds", label: "Implementing partners", type: "multiselect", optionsFrom: "partners-by-type" },
+    { key: "fundingPartner", label: "Funding partner", type: "select", optionsFrom: "partners", multiple: false },
+    { key: "implementingPartnerIds", label: "Implementing partners", type: "multiselect", optionsFrom: "partners" },
     { key: "technologyIds", label: "Technologies", type: "multiselect", optionsFrom: "technologies" },
     { key: "themeIds", label: "Thematic areas", type: "multiselect", optionsFrom: "themes" },
     { key: "beneficiaryCount", label: "Beneficiary count", type: "text" },
     { key: "budget", label: "Budget amount", type: "text" },
     { key: "budgetCurrency", label: "Budget currency", type: "text" },
-    { key: "startDate", label: "Start date (YYYY-MM)", type: "text" },
-    { key: "endDate", label: "End date (YYYY-MM)", type: "text" },
+    { key: "startDate", label: "Start date", type: "month" },
+    { key: "endDate", label: "End date", type: "month" },
     { key: "beneficiaries", label: "Beneficiary groups", type: "tags", help: "Press Enter after each group, e.g. Smallholder farmers, Women's cooperatives." },
     { key: "outcomes", label: "Outcomes & results", type: "textarea" },
     { key: "externalUrl", label: "External link", type: "text" },
     { key: "featuredImage", label: "Featured image", type: "upload-image" },
     { key: "gallery", label: "Photo gallery", type: "gallery", help: "Additional photographs shown on the project page." },
     { key: "attachments", label: "Attachments", type: "attachments", help: "Reports, factsheets or briefs visitors can download from the project page." },
-    { key: "notifyPartnerIds", label: "Partners to notify on publish", type: "multiselect", optionsFrom: "partners-by-type", help: "Collaborative / funding partners to notify when this item is published." },
+    { key: "notifyPartnerIds", label: "Partners to notify on publish", type: "multiselect", optionsFrom: "partners", help: "Collaborative / funding partners to notify when this item is published." },
   ],
   technologies: [
     { key: "name", label: "Technology name", type: "text", required: true },
@@ -108,7 +115,7 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
     { key: "description", label: "Description", type: "textarea" },
     { key: "externalUrl", label: "Link to document (or upload below)", type: "text" },
     { key: "fileUrl", label: "Upload document", type: "upload-document" },
-    { key: "publicationDate", label: "Publication date (YYYY-MM-DD)", type: "text" },
+    { key: "publicationDate", label: "Publication date", type: "date" },
     { key: "featuredImage", label: "Cover image", type: "upload-image" },
     { key: "fileDownloadable", label: "Allow download", type: "checkbox", help: "Leave unchecked to make this file view-only: it can be read in full on the page, but not downloaded or shared as a file." },
   ],
@@ -117,8 +124,8 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
     { key: "type", label: "Type (webinar, workshop…)", type: "text" },
     { key: "summary", label: "Summary", type: "textarea", required: true },
     { key: "description", label: "Details", type: "textarea" },
-    { key: "startsAt", label: "Starts (YYYY-MM-DD)", type: "date" },
-    { key: "endsAt", label: "Ends (YYYY-MM-DD)", type: "date" },
+    { key: "startsAt", label: "Starts", type: "date" },
+    { key: "endsAt", label: "Ends", type: "date" },
     { key: "isOnline", label: "Online event", type: "checkbox" },
     { key: "location", label: "Location / platform", type: "text" },
     { key: "registrationUrl", label: "Registration link", type: "text" },
@@ -151,7 +158,7 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
     { key: "sector", label: "Sector", type: "text" },
     { key: "valueChain", label: "Value chain", type: "select", optionsFrom: "taxonomy:valueChains" },
     { key: "region", label: "Region", type: "select", optionsFrom: "regions" },
-    { key: "deadline", label: "Deadline (YYYY-MM-DD)", type: "date" },
+    { key: "deadline", label: "Deadline", type: "date" },
     { key: "eligibility", label: "Eligibility", type: "textarea" },
     { key: "externalUrl", label: "Application link", type: "text" },
   ],

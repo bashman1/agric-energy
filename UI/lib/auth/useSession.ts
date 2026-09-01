@@ -13,6 +13,7 @@ import {
   USER_KEY,
   canManageContent,
   canReview,
+  canApproveOrgContent,
   canManagePartnerTeam,
   canManageUsers,
   getUser,
@@ -68,6 +69,7 @@ export function useSession() {
     canReview: canReview(user),
     canManageUsers: canManageUsers(user),
     canManagePartnerTeam: canManagePartnerTeam(user),
+    canApproveOrgContent: canApproveOrgContent(user),
     isSuperAdmin: isSuperAdmin(user),
   };
 }

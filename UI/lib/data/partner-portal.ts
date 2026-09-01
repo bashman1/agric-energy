@@ -2,7 +2,7 @@
 // Partner portal data service — the signed-in partner's own
 // submissions and directory profile.
 // ============================================================
-import { apiGet, apiSendWithMeta } from "@/lib/api/client";
+import { apiGet, apiSend, apiSendWithMeta } from "@/lib/api/client";
 import type { Partner } from "@/lib/types";
 
 export interface MyContentItem {
@@ -49,4 +49,36 @@ export async function updateMyPartner(
   return status === 202
     ? { status: "pending", message: body.message as string | undefined }
     : { status: "saved" };
+}
+
+// ── Organisation-level sign-off ─────────────────────────────
+// The stage before the platform review queue: an organisation admin vouches
+// for a colleague's submission, and only then does NREP see it. Endorsing
+// does NOT publish — the platform reviewer still decides that.
+
+export interface OrgQueueItem {
+  type: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  workflowStatus: string;
+  author: string | null;
+  /** True when the admin wrote it themselves, which they may not sign off. */
+  isMine: boolean;
+  submittedAt: string | null;
+}
+
+/** Submissions from the caller's own organisation awaiting their sign-off. */
+export async function getOrgQueue(token?: string): Promise<OrgQueueItem[]> {
+  return apiGet<OrgQueueItem[]>("review/org-queue", [], { token });
+}
+
+/** Endorse it: it moves into the platform review queue, still unpublished. */
+export async function endorseOrgItem(item: OrgQueueItem, token?: string) {
+  return apiSend("POST", `${item.type}/${item.slug}/org-approve`, {}, { token });
+}
+
+/** Return it to its author with notes. It never reaches the platform. */
+export async function returnOrgItem(item: OrgQueueItem, notes: string, token?: string) {
+  return apiSend("POST", `${item.type}/${item.slug}/org-return`, { notes }, { token });
 }

@@ -81,6 +81,15 @@ class AppServiceProvider extends ServiceProvider
             && $user->hasRole(Roles::PARTNER_ADMIN)
             && $user->partner_id !== null);
 
+        // An organisation signing off its own members' submissions, before
+        // the platform queue ever sees them. Same holder as
+        // `manage-partner-team` — the organisation's administrator — but a
+        // separate gate because they answer different questions, and a
+        // future deployment may well want one without the other.
+        Gate::define('org-review-queue', fn (User $user) => $user->isApproved()
+            && $user->hasRole(Roles::PARTNER_ADMIN)
+            && $user->partner_id !== null);
+
         // Core system settings and the audit trail are super-admin-only: the
         // closures deny everyone, so only Gate::before() lets a super-admin
         // through. Keeps them off-limits even to platform administrators.

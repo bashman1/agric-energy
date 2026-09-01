@@ -96,6 +96,44 @@ class ContentPolicy
         return ! $this->authored($user, $model);
     }
 
+    /**
+     * An organisation's administrator signing off their own organisation's
+     * submission, before the platform is asked to review it.
+     *
+     * Three conditions, all load-bearing:
+     *
+     *  - the record must actually be waiting at `org_pending`. An admin has
+     *    no second bite once the platform has it, and none at all at a live
+     *    record — edits to those queue as revisions;
+     *  - the record must have been authored inside the admin's OWN
+     *    organisation. Never anyone else's;
+     *  - the admin must not be the author. Same "second pair of eyes" rule
+     *    as review(): an organisation vouching for a submission means
+     *    somebody other than its writer looked at it. ContentController
+     *    keeps an admin's own work out of this stage entirely, so this
+     *    catches the case where the role was granted after the fact.
+     */
+    public function approveForOrg(User $user, Model $model): bool
+    {
+        if (! $user->isApproved()
+            || ! $user->hasRole(Roles::PARTNER_ADMIN)
+            || $user->partner_id === null) {
+            return false;
+        }
+
+        if ($model->getAttribute('workflow_status') !== $model::STATUS_ORG_PENDING) {
+            return false;
+        }
+
+        if ($this->authored($user, $model)) {
+            return false;
+        }
+
+        return User::whereKey($model->getAttribute('created_by'))
+            ->where('partner_id', $user->partner_id)
+            ->exists();
+    }
+
     /** Publishing is a content-manager action. */
     public function publish(User $user, Model $model): bool
     {

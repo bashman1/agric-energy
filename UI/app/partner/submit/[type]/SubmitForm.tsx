@@ -6,6 +6,7 @@ import { FIELD_SCHEMAS, TYPE_LABELS, type FieldDef } from "./schemas";
 import FileUpload from "@/components/shared/FileUpload";
 import AttachmentsUpload from "@/components/shared/AttachmentsUpload";
 import LocationPicker, { type LocationValue } from "@/components/admin/LocationPicker";
+import ComboSelect, { type ComboOption } from "@/components/admin/ComboSelect";
 import { apiSend } from "@/lib/api/client";
 import { fetchDistrictMeta, type DistrictMeta } from "@/lib/geo/ugandaGeo";
 import type { ProjectAttachment } from "@/lib/types";
@@ -43,10 +44,9 @@ const EMPTY_LOCATION: LocationValue = {
 function resolveOptions(
   field: FieldDef,
   referenceData: ReferenceData,
-  partnerTypeFilter: string,
   selectedRegion: string,
   districts: DistrictMeta[]
-): { id: string; label: string }[] {
+): ComboOption[] {
   const from = field.optionsFrom;
   if (!from) return field.options ?? [];
 
@@ -72,12 +72,14 @@ function resolveOptions(
         .filter((d) => d.region.toLowerCase() === regionLower)
         .map((d) => ({ id: d.name, label: d.name }));
     }
-    case "partners-by-type": {
-      const typeFilter = partnerTypeFilter.toLowerCase();
-      if (!typeFilter) return [];
-      return referenceData.partners
-        .filter((p) => p.type.toLowerCase() === typeFilter)
-        .map((p) => ({ id: p.id, label: p.label }));
+    case "partners": {
+      // The type is appended to the label rather than gating the list behind
+      // a separate control: it stays visible, it is searchable along with the
+      // name, and each field resolves its own options independently.
+      return referenceData.partners.map((p) => ({
+        id: p.id,
+        label: p.type ? `${p.label} — ${p.type}` : p.label,
+      }));
     }
     case "technologyStatuses":
       return [
@@ -98,7 +100,6 @@ export default function SubmitForm({ type, referenceData }: Props) {
   const [values, setValues] = useState<FormValues>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [partnerTypeFilter, setPartnerTypeFilter] = useState("");
   const [districts, setDistricts] = useState<DistrictMeta[]>([]);
   const [location, setLocation] = useState<LocationValue>(EMPTY_LOCATION);
 
@@ -319,7 +320,7 @@ export default function SubmitForm({ type, referenceData }: Props) {
           }
 
           if (f.type === "select" || f.type === "multiselect") {
-            const options = resolveOptions(f, referenceData, partnerTypeFilter, selectedRegion, districts);
+            const options = resolveOptions(f, referenceData, selectedRegion, districts);
             const isMulti = f.type === "multiselect";
             const currentValue = values[f.key];
             // Selects only ever hold slugs; attachment objects live under
@@ -330,43 +331,30 @@ export default function SubmitForm({ type, referenceData }: Props) {
                 ? [currentValue as string]
                 : [];
 
-            if (f.optionsFrom === "partners-by-type") {
+            // Long, open-ended lists (partners, technologies, themes) get a
+            // searchable dropdown with chips rather than a native list box:
+            // a native <select multiple> requires ctrl-clicking, shows only a
+            // few rows at a time, and gives no readback of what is selected.
+            const isCombo =
+              f.optionsFrom === "partners" ||
+              f.optionsFrom === "technologies" ||
+              f.optionsFrom === "themes";
+
+            if (isCombo) {
               return (
-                <div key={f.key} className="space-y-2">
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                <div key={f.key}>
+                  <label htmlFor={`${type}-${f.key}`} className="block text-xs font-semibold text-gray-600 mb-1">
                     {f.label} {f.required && <span className="text-red-500">*</span>}
                   </label>
-                  <select
-                    value={partnerTypeFilter}
-                    onChange={(e) => {
-                      setPartnerTypeFilter(e.target.value);
-                      set(f.key, []);
-                    }}
-                    className={inputClass}
-                  >
-                    <option value="">Select partner type…</option>
-                    {referenceData.taxonomy.partnerTypes.map((pt) => (
-                      <option key={pt.id} value={pt.label}>{pt.label}</option>
-                    ))}
-                  </select>
-                  <select
-                    multiple={isMulti}
+                  <ComboSelect
+                    inputId={`${type}-${f.key}`}
+                    options={options}
                     value={selectedIds}
-                    required={f.required}
-                    onChange={(e) => {
-                      const selected = Array.from(e.target.selectedOptions).map((o) => o.value);
-                      set(f.key, isMulti ? selected : (selected[0] ?? ""));
-                    }}
-                    disabled={!partnerTypeFilter}
-                    className={`${inputClass} ${!partnerTypeFilter ? "opacity-50" : ""}`}
-                  >
-                    {!partnerTypeFilter && <option value="">Select a partner type first…</option>}
-                    {partnerTypeFilter && options.length === 0 && <option value="">No partners of this type.</option>}
-                    {options.map((opt) => (
-                      <option key={opt.id} value={opt.id}>{opt.label}</option>
-                    ))}
-                  </select>
-                  {f.help && <p className="text-[11px] text-gray-400">{f.help}</p>}
+                    multi={isMulti}
+                    placeholder={isMulti ? "Search and select…" : "Search or select…"}
+                    onChange={(ids) => set(f.key, isMulti ? ids : (ids[0] ?? ""))}
+                  />
+                  {f.help && <p className="text-[11px] text-gray-400 mt-1">{f.help}</p>}
                 </div>
               );
             }
@@ -378,16 +366,15 @@ export default function SubmitForm({ type, referenceData }: Props) {
                 </label>
                 <select
                   multiple={isMulti}
-                  value={selectedIds}
+                  value={isMulti ? selectedIds : (selectedIds[0] ?? "")}
                   required={f.required}
                   onChange={(e) => {
                     const selected = Array.from(e.target.selectedOptions).map((o) => o.value);
                     set(f.key, isMulti ? selected : (selected[0] ?? ""));
                   }}
-                  className={`${inputClass} ${f.dependsOn && !selectedRegion ? "opacity-50" : ""}`}
+                  className={inputClass}
                 >
                   {f.default && !isMulti && <option value="">{f.default}</option>}
-                  {f.dependsOn && !selectedRegion && <option value="">Select a region first…</option>}
                   {options.map((opt) => (
                     <option key={opt.id} value={opt.id}>{opt.label}</option>
                   ))}
@@ -412,14 +399,16 @@ export default function SubmitForm({ type, referenceData }: Props) {
                 />
               ) : (
                 <input
-                  type="text"
+                  // "date" and "month" map straight onto the native pickers,
+                  // which is why the schema distinguishes them from "text".
+                  type={f.type === "date" ? "date" : f.type === "month" ? "month" : "text"}
                   required={f.required}
                   value={(values[f.key] as string) ?? ""}
                   onChange={(e) => set(f.key, e.target.value)}
-                  placeholder={f.type === "date" ? "YYYY-MM-DD" : undefined}
                   className={inputClass}
                 />
               )}
+              {f.help && <p className="text-[11px] text-gray-400 mt-1">{f.help}</p>}
             </div>
           );
         })}

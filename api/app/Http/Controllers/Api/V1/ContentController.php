@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContentRevision;
+use App\Models\User;
 use App\Support\Roles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -263,23 +264,63 @@ abstract class ContentController extends Controller
 
     /**
      * Workflow state forced onto a record on create/update. Content managers
-     * publish directly, so this is a no-op for them. Everyone else (i.e. a
-     * content-contributor) has their content held as `pending` and unpublished
-     * — applied on update too, so a contributor can never self-publish by
-     * flipping `published` in an edit payload.
+     * publish directly, so this is a no-op for them. Everyone else has their
+     * content held unpublished — applied on update too, so a contributor can
+     * never self-publish by flipping `published` in an edit payload.
+     *
+     * Which holding state depends on who is submitting. Content written
+     * inside an organisation by someone other than its administrator stops at
+     * `org_pending` first, so the organisation vouches for its own work before
+     * the platform is asked to look at it. Everyone else — staff
+     * contributors, individual partners, and an organisation's own
+     * administrator — goes straight to `pending`.
      */
     protected function enforceWorkflow(Request $request): array
     {
         $user = $request->user();
 
-        if ($user && ! $user->hasAnyRole(Roles::CONTENT_MANAGERS)) {
-            return [
-                'workflow_status' => $this->modelClass::STATUS_PENDING,
-                'published' => false,
-            ];
+        if (! $user || $user->hasAnyRole(Roles::CONTENT_MANAGERS)) {
+            return [];
         }
 
-        return [];
+        return [
+            'workflow_status' => $this->needsOrgApproval($user)
+                ? $this->modelClass::STATUS_ORG_PENDING
+                : $this->modelClass::STATUS_PENDING,
+            'published' => false,
+        ];
+    }
+
+    /**
+     * Whether this account's submissions need their own organisation's
+     * sign-off before reaching the platform queue.
+     *
+     * The organisation administrator is excluded on purpose: they ARE the
+     * sign-off, and ContentPolicy::approveForOrg() refuses to let anyone
+     * approve their own submission, so routing their work through
+     * `org_pending` would strand it with nobody able to move it on.
+     *
+     * An organisation with no administrator would strand its contributors'
+     * work just as badly, so the stage only applies where one exists.
+     */
+    protected function needsOrgApproval(?User $user): bool
+    {
+        if ($user === null || $user->partner_id === null) {
+            return false;
+        }
+
+        if (! $user->hasAnyRole([Roles::PARTNER_KNOWLEDGE_MANAGER, Roles::PARTNER_CONTENT_CONTRIBUTOR])) {
+            return false;
+        }
+
+        if ($user->hasRole(Roles::PARTNER_ADMIN)) {
+            return false;
+        }
+
+        return User::where('partner_id', $user->partner_id)
+            ->whereKeyNot($user->id)
+            ->whereHas('roles', fn ($q) => $q->where('name', Roles::PARTNER_ADMIN))
+            ->exists();
     }
 
     /**
