@@ -1,6 +1,6 @@
 1:"$Sreact.fragment"
-2:I[82458,["/_next/static/chunks/5332a8d7cb9d215a.js","/_next/static/chunks/959a49c692ea6d16.js","/_next/static/chunks/c8cb0768af7fd39d.js","/_next/static/chunks/d9b8400d3353fbb4.js"],"default"]
+2:I[82458,["/_next/static/chunks/5332a8d7cb9d215a.js","/_next/static/chunks/959a49c692ea6d16.js","/_next/static/chunks/e683c5267f9b2be3.js","/_next/static/chunks/764bdcda4b76afec.js"],"default"]
 3:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/d2be314c3ece3fbe.js"],"OutletBoundary"]
 4:"$Sreact.suspense"
-0:{"buildId":"TnkA3RMY2WGIrWgqpRBZo","rsc":["$","$1","c",{"children":[["$","$L2",null,{"type":"projects","referenceData":{"taxonomy":{"partnerTypes":[],"technologyCategories":[],"projectStatuses":[],"valueChains":[]},"partners":[],"technologies":[],"themes":[],"regions":["Central Uganda","Eastern Uganda","Northern Uganda","Western Uganda"]}}],[["$","script","script-0",{"src":"/_next/static/chunks/d9b8400d3353fbb4.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"Fc7hb-FhSey_yzyEORZNo","rsc":["$","$1","c",{"children":[["$","$L2",null,{"type":"projects","referenceData":{"taxonomy":{"partnerTypes":[],"technologyCategories":[],"projectStatuses":[],"valueChains":[]},"partners":[],"technologies":[],"themes":[],"regions":["Central Uganda","Eastern Uganda","Northern Uganda","Western Uganda"]}}],[["$","script","script-0",{"src":"/_next/static/chunks/764bdcda4b76afec.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
 5:null
