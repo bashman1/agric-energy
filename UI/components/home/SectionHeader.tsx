@@ -32,7 +32,7 @@ export default function SectionHeader({
         >
           {title}
         </h2>
-        <p className={`mt-2 text-base ${onDark ? "text-ink-300" : "text-ink-500"}`}>
+        <p className={`mt-2 text-base ${onDark ? "text-shade-300" : "text-ink-500"}`}>
           {description}
         </p>
       </div>

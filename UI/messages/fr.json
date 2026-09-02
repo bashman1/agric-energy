@@ -11,7 +11,8 @@
     "technologies": "Technologies",
     "themes": "Thématique",
     "ecosystem": "Écosystème",
-    "partners": "Partenaires",
+    "partnersIndividual": "Individus",
+    "partnersOrganization": "Organisations",
     "registerIndividual": "S'inscrire en tant que particulier",
     "registerOrganization": "S'inscrire en tant qu'organisation",
     "resources": "Ressources",
@@ -64,7 +65,6 @@
   "Footer": {
     "label": "Pied de page du site",
     "description": "La plateforme numérique nationale de l'Ouganda pour les connaissances agri-énergétiques, la visibilité des projets, la coordination des parties prenantes et la planification fondée sur des données probantes. Gérée par le Secrétariat de la Plateforme nationale des énergies renouvelables (NREP).",
-    "prototypeNotice": "⚠️ Ceci est un prototype de phase 1 — le contenu est un échantillon de données à des fins de démonstration.",
     "platform": "Plateforme",
     "projects": "Projets",
     "technologies": "Technologies",

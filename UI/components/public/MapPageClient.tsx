@@ -7,6 +7,7 @@ import { UGANDA_REGIONS } from "@/lib/geography/nominatim";
 import { STATUS_CHIP, STATUS_COLOR, STATUS_ORDER, type ProjectStatus } from "@/lib/viz/status";
 import StatusBreakdown from "@/components/public/charts/StatusBreakdown";
 import RegionAggregates from "@/components/public/charts/RegionAggregates";
+import { useDistrictNames } from "@/lib/geo/useDistricts";
 
 // ProjectMapLoader is already a "use client" dynamic import wrapper
 const ProjectMapLoader = dynamic(() => import("@/components/public/ProjectMapLoader"), { ssr: false });
@@ -20,6 +21,7 @@ interface Props {
 export default function MapPageClient({ allProjects, regionStats = [] }: Props) {
   const [regionFilter, setRegionFilter] = useState("");
   const [districtSearch, setDistrictSearch] = useState("");
+  const districtNames = useDistrictNames();
   const [statusFilters, setStatusFilters] = useState<ProjectStatus[]>([]);
 
   // Instant client-side filter — no page reload
@@ -110,11 +112,20 @@ export default function MapPageClient({ allProjects, regionStats = [] }: Props) 
               <input
                 id="map-district"
                 type="text"
+                list="uganda-districts-map"
+                autoComplete="off"
                 value={districtSearch}
                 onChange={(e) => setDistrictSearch(e.target.value)}
-                placeholder="Search district…"
+                placeholder={districtNames.length ? "All districts" : "Search district…"}
                 className="form-input"
               />
+              {/* Every Uganda district, so the box suggests rather than
+                  requiring the exact spelling to be known up front. */}
+              <datalist id="uganda-districts-map">
+                {districtNames.map((d) => (
+                  <option key={d} value={d} />
+                ))}
+              </datalist>
             </div>
             {hasFilters && (
               <button

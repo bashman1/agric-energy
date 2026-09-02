@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import SearchAutocomplete from "./SearchAutocomplete";
 import LanguageToggle from "./LanguageToggle";
+import ThemeToggle from "./ThemeToggle";
 
 // `key` indexes the Nav message catalog; `href` is the route.
 interface NavLink {
@@ -31,7 +32,20 @@ const navEntries: NavEntry[] = [
     // (see app/partner/register/RegisterWizard.tsx).
     key: "ecosystem",
     children: [
-      { href: "/partners", key: "partners" },
+      // The directory holds two different kinds of actor and visitors arrive
+      // looking for one or the other, so the menu offers them separately
+      // rather than one undifferentiated "Partners" link. Both land on
+      // /partners with the kind pre-selected (see PartnersBrowser).
+      {
+        href: "/partners/?kind=individual",
+        key: "partnersIndividual",
+        match: "/partners",
+      },
+      {
+        href: "/partners/?kind=organization",
+        key: "partnersOrganization",
+        match: "/partners",
+      },
       {
         href: "/partner/register/?type=individual",
         key: "registerIndividual",
@@ -111,18 +125,20 @@ export default function Header() {
   return (
     <header>
       {/* ── Utility strip: context + secondary actions (scrolls away) ── */}
-      <div className="hidden sm:block bg-ink-900 text-ink-100">
+      <div className="hidden sm:block bg-shade-900 text-shade-100">
         <div className="container-page">
           <div className="flex items-center justify-between h-9 text-xs">
-            <span className="text-ink-300 tracking-wide">
+            <span className="text-shade-300 tracking-wide">
               {tBrand("footerTagline")}
             </span>
             <div className="flex items-center gap-1">
               <LanguageToggle variant="dark" />
               <span className="w-px h-4 bg-white/15 mx-1" aria-hidden="true" />
+              <ThemeToggle variant="dark" />
+              <span className="w-px h-4 bg-white/15 mx-1" aria-hidden="true" />
               <Link
                 href="/partner"
-                className="px-2.5 py-1 rounded text-ink-200 hover:text-white hover:bg-white/10 transition-colors font-medium"
+                className="px-2.5 py-1 rounded text-shade-200 hover:text-white hover:bg-white/10 transition-colors font-medium"
               >
                 {t("partnerPortal")}
               </Link>
@@ -132,7 +148,7 @@ export default function Header() {
       </div>
 
       {/* ── Main bar: logo · nav · search · primary CTA (sticky) ── */}
-      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-ink-200">
+      <div className="sticky top-0 z-50 bg-surface/95 backdrop-blur border-b border-ink-200">
         <div className="container-page">
           <div className="flex items-center justify-between gap-4 h-16">
             {/* Logo — fixed, never wraps */}
@@ -280,7 +296,10 @@ export default function Header() {
                 >
                   {t("submitInfo")}
                 </Link>
-                <LanguageToggle className="mt-1 sm:hidden" />
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <LanguageToggle className="sm:hidden" />
+                  <ThemeToggle className="ml-auto" />
+                </div>
               </div>
             </div>
           )}

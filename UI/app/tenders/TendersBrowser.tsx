@@ -74,7 +74,7 @@ export default function TendersBrowser({ all }: { all: Opportunity[] }) {
                   return (
                     <li key={t.slug || "all"}>
                       <Link
-                        href={t.slug ? `/tenders?type=${t.slug}` : "/tenders"}
+                        href={t.slug ? `/tenders/?type=${t.slug}` : "/tenders/"}
                         aria-current={isActive ? "page" : undefined}
                         className={`inline-block px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
                           isActive

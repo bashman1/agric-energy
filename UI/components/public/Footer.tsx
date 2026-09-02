@@ -12,7 +12,7 @@ export default function Footer() {
   const tBrand = useTranslations("Brand");
 
   const linkClass =
-    "text-ink-400 hover:text-primary-300 transition-colors";
+    "text-shade-400 hover:text-primary-300 transition-colors";
 
   const platformLinks: [string, string][] = [
     ["projects", "/projects"],
@@ -35,14 +35,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer aria-label={t("label")} className="bg-ink-900 text-ink-300">
-      {/* Prototype notice strip */}
-      <div className="border-b border-white/10">
-        <div className="container-page py-3">
-          <p className="text-xs text-ink-400">{t("prototypeNotice")}</p>
-        </div>
-      </div>
-
+    <footer aria-label={t("label")} className="bg-shade-900 text-shade-300">
       <div className="container-page py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8">
           {/* Brand + newsletter */}
@@ -58,12 +51,12 @@ export default function Footer() {
                 <div className="font-display font-bold text-white text-base leading-tight">
                   {tBrand("name")}
                 </div>
-                <div className="text-xs text-ink-400 leading-tight">
+                <div className="text-xs text-shade-400 leading-tight">
                   {tBrand("footerTagline")}
                 </div>
               </div>
             </div>
-            <p className="text-sm text-ink-400 leading-relaxed max-w-md">
+            <p className="text-sm text-shade-400 leading-relaxed max-w-md">
               {t("description")}
             </p>
 
@@ -120,15 +113,15 @@ export default function Footer() {
                   +256 414 123 456
                 </a>
               </div>
-              <div className="flex items-start gap-1.5 text-ink-400">
-                <MapPinIcon className="text-ink-500 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-1.5 text-shade-400">
+                <MapPinIcon className="text-shade-500 shrink-0 mt-0.5" />
                 <span>Kampala, Uganda</span>
               </div>
             </address>
           </nav>
         </div>
 
-        <div className="border-t border-white/10 mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-ink-500">
+        <div className="border-t border-white/10 mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-shade-500">
           <p>{t("copyright", { year: String(new Date().getFullYear()) })}</p>
           <p>{t("builtWith")}</p>
         </div>

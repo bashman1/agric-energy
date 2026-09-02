@@ -11,7 +11,8 @@
     "technologies": "Technologies",
     "themes": "Thematic",
     "ecosystem": "Eco System",
-    "partners": "Partners",
+    "partnersIndividual": "Individuals",
+    "partnersOrganization": "Organisations",
     "registerIndividual": "Register as Individual",
     "registerOrganization": "Register as Organization",
     "resources": "Resources",
@@ -64,7 +65,6 @@
   "Footer": {
     "label": "Site footer",
     "description": "Uganda's national digital platform for agri-energy knowledge, project visibility, stakeholder coordination, and evidence-based planning. Managed by the National Renewable Energy Platform (NREP) Secretariat.",
-    "prototypeNotice": "⚠️ This is a Phase 1 prototype — content is sample data for demonstration purposes.",
     "platform": "Platform",
     "projects": "Projects",
     "technologies": "Technologies",

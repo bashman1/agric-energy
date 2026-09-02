@@ -40,7 +40,9 @@ class AuthController extends Controller
             // Login account (both types).
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'username' => 'required_if:accountType,organization|nullable|string|max:255|unique:users,username',
+            // Required for BOTH account types: it is a sign-in credential
+            // (see login()), not an organisation-only display detail.
+            'username' => 'required|string|max:255|unique:users,username',
             'password' => 'required|string|min:8|confirmed',
             'phone' => 'nullable|string|max:50',
 
@@ -249,12 +251,21 @@ class AuthController extends Controller
     /** Exchange credentials for an API token. */
     public function login(Request $request): JsonResponse
     {
+        // The field is still named `email` because that is what every client
+        // sends, but it is an IDENTIFIER: people who registered with a
+        // username expect to sign in with it, and being told "must be a valid
+        // email" is a dead end. Validated as a plain string for that reason.
         $data = $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $data['email'])->first();
+        $identifier = trim($data['email']);
+
+        // Email wins on a collision, so an address can never be shadowed by
+        // someone else choosing it as their username.
+        $user = User::where('email', $identifier)->first()
+            ?? User::whereNotNull('username')->where('username', $identifier)->first();
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([

@@ -140,9 +140,11 @@ export default function RegisterWizard() {
     }
   }, []);
 
-  // Load district options lazily once the org flow is chosen.
+  // Load district options once EITHER flow is chosen. This used to fire only
+  // for organisations, so an individual picking "National" coverage sat on a
+  // permanent "Loading districts…" placeholder with nothing to choose.
   useEffect(() => {
-    if (form.accountType !== "organization" || districtOpts.length) return;
+    if (!form.accountType || districtOpts.length) return;
     let alive = true;
     fetchDistrictMeta()
       .then((ds) => {

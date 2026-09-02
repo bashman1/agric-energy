@@ -75,7 +75,7 @@ function SidebarContent({
           <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-xs shrink-0">AE</div>
           <div>
             <div className="text-white font-display font-semibold text-sm leading-tight">Agri-Energy Desk</div>
-            <div className="text-ink-400 text-xs leading-tight">Admin Portal</div>
+            <div className="text-shade-400 text-xs leading-tight">Admin Portal</div>
           </div>
         </Link>
       </div>
@@ -145,19 +145,19 @@ export default function AdminSidebar() {
   return (
     <>
       {/* ── Desktop sidebar (lg+) ────────────────────────────── */}
-      <aside className="hidden lg:flex w-60 bg-ink-900 text-ink-300 flex-col min-h-screen shrink-0">
+      <aside className="hidden lg:flex w-60 bg-shade-900 text-shade-300 flex-col min-h-screen shrink-0">
         <SidebarContent pathname={pathname} items={items} onNavigate={closeMobile} onLogout={handleLogout} />
       </aside>
 
       {/* ── Mobile: top bar with hamburger ──────────────────── */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-ink-900 border-b border-white/10 px-4 py-3">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-shade-900 border-b border-white/10 px-4 py-3">
         <Link href="/admin" className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-xs">AE</div>
           <span className="text-white font-display font-semibold text-sm">Admin Portal</span>
         </Link>
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          className="text-ink-300 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+          className="text-shade-300 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors"
           aria-label="Toggle navigation"
         >
           {mobileOpen ? (
@@ -185,7 +185,7 @@ export default function AdminSidebar() {
             onClick={closeMobile}
           />
           {/* Slide-in panel */}
-          <aside className="lg:hidden fixed top-0 left-0 bottom-0 z-40 w-64 bg-ink-900 text-ink-300 flex flex-col shadow-2xl">
+          <aside className="lg:hidden fixed top-0 left-0 bottom-0 z-40 w-64 bg-shade-900 text-shade-300 flex flex-col shadow-2xl">
             <SidebarContent pathname={pathname} items={items} onNavigate={closeMobile} onLogout={handleLogout} />
           </aside>
         </>

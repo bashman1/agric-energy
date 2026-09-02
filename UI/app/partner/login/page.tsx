@@ -42,10 +42,14 @@ export default function PartnerLoginPage() {
 
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
         <div>
-          <label htmlFor="partner-login-email" className="block text-xs font-semibold text-gray-600 mb-1">Email</label>
+          <label htmlFor="partner-login-email" className="block text-xs font-semibold text-gray-600 mb-1">Email or username</label>
           <input
             id="partner-login-email"
-            type="email"
+            /* Not type="email": the API accepts either credential, and the
+               browser's built-in validation would reject a bare username. */
+            type="text"
+            autoComplete="username"
+            placeholder="you@example.org or yourusername"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

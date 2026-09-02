@@ -11,7 +11,8 @@
     "technologies": "Teknolojia",
     "themes": "Kimaudhui",
     "ecosystem": "Mfumo Ikolojia",
-    "partners": "Washirika",
+    "partnersIndividual": "Watu Binafsi",
+    "partnersOrganization": "Mashirika",
     "registerIndividual": "Jisajili kama Mtu Binafsi",
     "registerOrganization": "Jisajili kama Shirika",
     "resources": "Rasilimali",
@@ -64,7 +65,6 @@
   "Footer": {
     "label": "Sehemu ya chini ya tovuti",
     "description": "Jukwaa la kidijitali la kitaifa la Uganda kwa maarifa ya nishati katika kilimo, mwonekano wa miradi, uratibu wa wadau, na upangaji unaotegemea ushahidi. Linasimamiwa na Sekretarieti ya Jukwaa la Kitaifa la Nishati Mbadala (NREP).",
-    "prototypeNotice": "⚠️ Hii ni sampuli ya Awamu ya 1 — maudhui ni data ya mfano kwa madhumuni ya maonyesho.",
     "platform": "Jukwaa",
     "projects": "Miradi",
     "technologies": "Teknolojia",

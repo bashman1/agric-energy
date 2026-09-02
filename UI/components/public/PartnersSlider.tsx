@@ -35,8 +35,9 @@ export default function PartnersSlider({ partners }: { partners: SliderPartner[]
                 onBlur={() => setPaused(false)}
             >
                 {/* Edge fade-outs */}
-                <div className="absolute inset-y-0 left-0 w-16 sm:w-28 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-16 sm:w-28 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+                {/* Edge fades must follow the theme — `from-white` stayed white on a dark page. */}
+                <div className="absolute inset-y-0 left-0 w-16 sm:w-28 bg-linear-to-r from-surface to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-16 sm:w-28 bg-linear-to-l from-surface to-transparent z-10 pointer-events-none" />
 
                 {/* Scrolling track */}
                 <div
@@ -87,7 +88,7 @@ export default function PartnersSlider({ partners }: { partners: SliderPartner[]
             {/* View all link */}
             <div className="text-center mt-8">
                 <Link
-                    href="/partners"
+                    href="/partners/"
                     className="text-sm font-semibold text-primary-600 hover:text-primary-800 transition-colors border border-primary-200 hover:border-primary-400 px-5 py-2.5 rounded-lg"
                 >
                     View all partners →

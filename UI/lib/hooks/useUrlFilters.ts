@@ -28,18 +28,51 @@ function readFromLocation(keys: readonly string[]): Filters {
   return out;
 }
 
+/**
+ * A <Link> to the SAME route with a different query string — the
+ * `?type=job` opportunity tabs, the Individual/Organisation entries in the
+ * header — navigates with history.pushState. That neither remounts the
+ * component nor fires `popstate`, so the address bar changed while the
+ * filters stayed on their mount-time values and the list never moved.
+ *
+ * Patching pushState once and re-broadcasting it closes that gap.
+ * `replaceState` is deliberately left alone: setFilters() below uses it, and
+ * echoing our own writes back would just re-render for no reason.
+ */
+const NAVIGATE_EVENT = "urlfilters:navigate";
+let pushStatePatched = false;
+
+function ensurePushStatePatched() {
+  if (pushStatePatched || typeof window === "undefined") return;
+  pushStatePatched = true;
+  const original = window.history.pushState;
+  window.history.pushState = function patched(
+    ...args: Parameters<History["pushState"]>
+  ) {
+    const result = original.apply(this, args);
+    window.dispatchEvent(new Event(NAVIGATE_EVENT));
+    return result;
+  };
+}
+
 export function useUrlFilters(keys: readonly string[]) {
   // Empty on the server and on first client render, so hydration matches
   // the prerendered HTML.
   const [filters, setState] = useState<Filters>({});
 
   useEffect(() => {
+    ensurePushStatePatched();
     setState(readFromLocation(keys));
 
-    // Back/forward should restore the filters they were captured with.
-    const onPop = () => setState(readFromLocation(keys));
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
+    // Back/forward should restore the filters they were captured with;
+    // a same-route <Link> should apply the ones it carries.
+    const reread = () => setState(readFromLocation(keys));
+    window.addEventListener("popstate", reread);
+    window.addEventListener(NAVIGATE_EVENT, reread);
+    return () => {
+      window.removeEventListener("popstate", reread);
+      window.removeEventListener(NAVIGATE_EVENT, reread);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keys.join(",")]);
 

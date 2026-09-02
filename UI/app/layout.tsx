@@ -55,6 +55,28 @@ export default function RootLayout({
             }}
           />
         </noscript>
+        {/*
+          Theme bootstrap. Runs before first paint so a dark-theme visitor
+          never sees a white flash. Kept in sync with THEME_STORAGE_KEY in
+          components/public/ThemeToggle.tsx.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                try {
+                  var stored = localStorage.getItem('agri-energy-theme');
+                  var dark = stored
+                    ? stored === 'dark'
+                    : window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+                } catch (e) {
+                  document.documentElement.dataset.theme = 'light';
+                }
+              })();
+            `,
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -69,7 +91,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-gray-50">
+      <body className="min-h-screen bg-ink-50">
         <IntlProvider>
           {/* Keyboard users land here first — jumps past the header nav. */}
           <SkipLink />

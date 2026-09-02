@@ -37,7 +37,7 @@ export default function CountUp({
   value,
   formatted,
   compact = false,
-  duration = 2000,
+  duration = 850,
   className,
 }: CountUpProps) {
   const ref = useRef<HTMLSpanElement>(null);

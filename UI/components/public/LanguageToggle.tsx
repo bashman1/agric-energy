@@ -38,7 +38,7 @@ export default function LanguageToggle({
       <label htmlFor={selectId} className="sr-only">
         {t("change")}
       </label>
-      <span aria-hidden="true" className={isDark ? "text-gray-500" : "text-gray-400"}>
+      <span aria-hidden="true" className={isDark ? "text-shade-500" : "text-gray-400"}>
         🌐
       </span>
       <select
@@ -47,7 +47,7 @@ export default function LanguageToggle({
         onChange={(e) => onChange(e.target.value as Locale)}
         className={`text-sm font-medium rounded-md py-1.5 pl-2 pr-6 border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:opacity-60 ${
           isDark
-            ? "bg-gray-900 border-gray-700 text-gray-300 hover:text-white"
+            ? "bg-shade-900 border-shade-800 text-shade-300 hover:text-white"
             : "bg-white border-gray-200 text-gray-700 hover:text-primary-700"
         }`}
       >

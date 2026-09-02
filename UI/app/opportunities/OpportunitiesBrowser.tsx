@@ -61,7 +61,9 @@ export default function OpportunitiesBrowser({ all }: { all: Opportunity[] }) {
                     <li key={t.slug || "all"}>
                       <Link
                         href={
-                          t.slug ? `/opportunities?type=${t.slug}` : "/opportunities"
+                          // Trailing slash matches `trailingSlash: true`;
+                          // without it every tab click costs a 308.
+                          t.slug ? `/opportunities/?type=${t.slug}` : "/opportunities/"
                         }
                         aria-current={isActive ? "page" : undefined}
                         className={`inline-block px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
@@ -107,7 +109,7 @@ export default function OpportunitiesBrowser({ all }: { all: Opportunity[] }) {
                 message="Funding and investment opportunities will be listed here."
                 action={
                   active
-                    ? { label: "View all types", href: "/opportunities" }
+                    ? { label: "View all types", href: "/opportunities/" }
                     : undefined
                 }
               />

@@ -35,7 +35,18 @@ out tags center;`;
 
 // ── Cache ─────────────────────────────────────────────────────────────────────
 const GEOJSON_CACHE_KEY = "uga_districts_geojson_v4"; // bump on format change
-const META_CACHE_KEY    = "uga_districts_meta_v2";
+// Bumped to _v3 to discard any short list an earlier session cached: the
+// accept-anything check below used to store whatever the first attempt
+// produced, so one bad parse or a thin Overpass response could leave a
+// browser stuck on a handful of districts until the tab was closed.
+const META_CACHE_KEY    = "uga_districts_meta_v3";
+
+/**
+ * Uganda has ~135 districts and cities. Anything well below that is a
+ * partial result, not a real answer — worth retrying the other source and
+ * never worth caching.
+ */
+const MIN_PLAUSIBLE_DISTRICTS = 100;
 const TTL_MS            = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -289,9 +300,44 @@ export async function fetchDistrictMeta(): Promise<DistrictMeta[]> {
     return cached;
   }
 
-  // Primary: derive names + regions from the bundled boundary files by
-  // point-in-polygon of each district centroid against the region polygons.
-  // No external call — the district dropdown always populates.
+  // Primary: the bundled DISTRICT layer, which already carries its region.
+  //
+  // This exists because /geo/uga-adm2.geojson — the file the fallback below
+  // reads — is geoBoundaries' UGA ADM2, and for Uganda that layer is
+  // *counties* (2006): Dodoth, Aringa, Aswa… It contains no Gulu, Mbale,
+  // Jinja, Masaka or Wakiso, so every district control on the platform was
+  // offering a vocabulary that matched almost nothing in the content.
+  // uga-districts.geojson is geoBoundaries UGA ADM3 (2020), canonically
+  // "District" — 136 of them, each pre-tagged with its region.
+  try {
+    const res = await fetch("/geo/uga-districts.geojson");
+    if (res.ok) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fc = (await res.json()) as any;
+      const out: DistrictMeta[] = [];
+      const seen = new Set<string>();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const f of (fc.features ?? []) as any[]) {
+        const name: string = f.properties?.shapeName;
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        out.push({ name, region: (f.properties?.region ?? "") as UgandaRegion | "" });
+      }
+      if (out.length >= MIN_PLAUSIBLE_DISTRICTS) {
+        out.sort((a, b) =>
+          (a.region || "zzz").localeCompare(b.region || "zzz") || a.name.localeCompare(b.name)
+        );
+        console.log(`[geo] meta: ${out.length} districts (bundled) — caching`);
+        cacheSet(META_CACHE_KEY, out);
+        return out;
+      }
+    }
+  } catch (e) {
+    console.warn("[geo] district layer unavailable — falling back", e);
+  }
+
+  // Fallback: derive names + regions from the county layer by
+  // point-in-polygon of each centroid against the region polygons.
   try {
     const [adm2Res, adm1Res] = await Promise.all([
       fetch("/geo/uga-adm2.geojson"),
@@ -326,13 +372,18 @@ export async function fetchDistrictMeta(): Promise<DistrictMeta[]> {
         }
         out.push({ name, region });
       }
-      if (out.length) {
+      if (out.length >= MIN_PLAUSIBLE_DISTRICTS) {
         out.sort((a, b) =>
           (a.region || "zzz").localeCompare(b.region || "zzz") || a.name.localeCompare(b.name)
         );
         console.log(`[geo] meta: ${out.length} items (local) — caching`);
         cacheSet(META_CACHE_KEY, out);
         return out;
+      }
+      if (out.length) {
+        console.warn(
+          `[geo] meta: only ${out.length} districts parsed locally — trying Overpass`
+        );
       }
     }
   } catch (e) {
@@ -378,7 +429,13 @@ export async function fetchDistrictMeta(): Promise<DistrictMeta[]> {
   result.sort((a, b) =>
     (a.region || "zzz").localeCompare(b.region || "zzz") || a.name.localeCompare(b.name)
   );
-  console.log(`[geo] meta: ${result.length} items (live) — caching`);
-  cacheSet(META_CACHE_KEY, result);
+  if (result.length >= MIN_PLAUSIBLE_DISTRICTS) {
+    console.log(`[geo] meta: ${result.length} items (live) — caching`);
+    cacheSet(META_CACHE_KEY, result);
+  } else {
+    // Return what we have so the control is usable, but do not freeze a
+    // partial list into the cache for the rest of the session.
+    console.warn(`[geo] meta: only ${result.length} districts — not caching`);
+  }
   return result;
 }

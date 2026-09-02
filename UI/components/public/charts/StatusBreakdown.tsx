@@ -65,7 +65,7 @@ export default function StatusBreakdown({ byStatus, total, activeFilters, onTogg
         {active && (
           <div
             role="status"
-            className="pointer-events-none absolute -top-1 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] font-medium text-white shadow-lg"
+            className="pointer-events-none absolute -top-1 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-shade-900 px-2 py-1 text-[11px] font-medium text-white shadow-lg"
             style={{ left: `clamp(3rem, ${midpoints.get(active.status)}%, calc(100% - 3rem))` }}
           >
             {active.status}: {active.count} ({Math.round(active.pct)}%)

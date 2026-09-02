@@ -9,6 +9,7 @@ import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import EmptyState from "@/components/shared/EmptyState";
 import { UGANDA_REGIONS } from "@/lib/geography/nominatim";
 import { useUrlFilters } from "@/lib/hooks/useUrlFilters";
+import { useDistrictNames } from "@/lib/geo/useDistricts";
 import type { Project, Taxonomy } from "@/lib/types";
 
 const KEYS = [
@@ -29,6 +30,7 @@ export default function ProjectsBrowser({
   taxonomy: Taxonomy;
 }) {
   const { filters, setFilters, clear } = useUrlFilters(KEYS);
+  const districtNames = useDistrictNames();
   const hasFilters = Object.values(filters).some(Boolean);
 
   const results = useMemo(() => {
@@ -101,17 +103,27 @@ export default function ProjectsBrowser({
                       </select>
                     </div>
 
-                    {/* District — free text */}
+                    {/* District — type-ahead over every Uganda district.
+                        Still a text input, so partial names keep working;
+                        the datalist just means you no longer have to guess
+                        which districts the platform knows about. */}
                     <div>
                       <label htmlFor="filter-district" className="block text-xs font-semibold text-gray-600 mb-1">District</label>
                       <input
                         id="filter-district"
                         name="district"
                         type="text"
+                        list="uganda-districts"
+                        autoComplete="off"
                         defaultValue={filters.district ?? ""}
-                        placeholder="e.g. Gulu District…"
+                        placeholder={districtNames.length ? "All districts" : "e.g. Gulu…"}
                         className="form-input"
                       />
+                      <datalist id="uganda-districts">
+                        {districtNames.map((d) => (
+                          <option key={d} value={d} />
+                        ))}
+                      </datalist>
                     </div>
 
                     {/* Value Chain */}

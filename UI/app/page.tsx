@@ -18,28 +18,31 @@ import BarChartH from "@/components/shared/charts/BarChartH";
 import ChartFrame from "@/components/shared/charts/ChartFrame";
 import SectionHeader from "@/components/home/SectionHeader";
 import { useAsync } from "@/lib/hooks/useAsync";
-import { getSiteConfig } from "@/lib/data/site-config";
-import { filterProjects, getPublishedProjects } from "@/lib/data/projects";
+import { getPublishedProjects } from "@/lib/data/projects";
 import { getPublishedTechnologies } from "@/lib/data/technologies";
 import { getPublishedThemes } from "@/lib/data/themes";
 import { getPublishedPartners } from "@/lib/data/partners";
 import { getLatestResources } from "@/lib/data/resources";
 import { getRegionStats } from "@/lib/data/open-data";
 import { fmtNumber, fmtBudget } from "@/lib/utils/format";
+import type { Project } from "@/lib/types";
 
 export default function HomePage() {
+  // Six requests, not eight. `getSiteConfig()` used to be awaited and then
+  // thrown away by the destructure, and the project list was fetched twice —
+  // once whole, once through filterProjects({featured:true}), which fetches
+  // the same list internally. Featured projects are now derived in memory.
   const { data, loading, error, reload } = useAsync(async () => {
-    const [, projects, technologies, themes, partners, resources, regionStats, allProjects] =
+    const [allProjects, technologies, themes, partners, resources, regionStats] =
       await Promise.all([
-        getSiteConfig(),
-        filterProjects({ featured: true }, true),
+        getPublishedProjects(),
         getPublishedTechnologies(),
         getPublishedThemes(),
         getPublishedPartners(),
         getLatestResources(4),
         getRegionStats(),
-        getPublishedProjects(),
       ]);
+    const projects = allProjects.filter((p) => p.featured);
     return { projects, technologies, themes, partners, resources, regionStats, allProjects };
   });
 
@@ -47,42 +50,36 @@ export default function HomePage() {
     document.title = "Agri-Energy Desk | Uganda's National Agri-Energy Platform";
   }, []);
 
-  if (loading) {
+  // The hero needs no data, so it paints on the first frame instead of
+  // waiting behind six requests — the page used to show a bare "Loading…"
+  // headline until every one of them resolved.
+  if (loading || error || !data) {
     return (
       <>
         <Header />
         <main id="main-content" className="overflow-x-hidden">
-          <section className="hero-band relative bg-primary-900 text-white overflow-hidden">
-            <div className="container-page relative py-20 lg:py-28 grid gap-10 lg:grid-cols-2 lg:gap-16 lg:items-center">
-              <Reveal className="max-w-3xl">
-                <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.08] tracking-tight mt-6">
-                  Loading…
-                </h1>
-              </Reveal>
+          <Hero featuredProjects={[]} />
+          {/* `loading` first: `data` is undefined for the whole of the load,
+              so testing !data ahead of it flashes the failure message on
+              every slow connection. */}
+          {loading ? (
+            <HomeSkeleton />
+          ) : (
+            <div className="container-page py-16">
+              <p className="text-red-700">
+                Failed to load homepage content.{" "}
+                <button onClick={reload} className="underline font-semibold">
+                  Retry
+                </button>
+              </p>
             </div>
-          </section>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <p className="text-gray-500">Loading homepage content…</p>
-          </div>
+          )}
         </main>
         <Footer />
       </>
     );
   }
 
-  if (error || !data) {
-    return (
-      <>
-        <Header />
-        <main id="main-content" className="overflow-x-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <p className="text-red-700">Failed to load homepage. <button onClick={reload} className="underline">Retry</button></p>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
 
   const { projects, technologies, themes, partners, resources, regionStats, allProjects } = data;
 
@@ -90,10 +87,13 @@ export default function HomePage() {
   const featuredThemes = themes.filter((t) => t.featured).slice(0, 6);
   const featuredProjects = projects.slice(0, 3);
 
-  const sliderPartnerSlugs = ["snv-uganda", "maaif", "nrep", "giz-uganda"];
+  // Every published ORGANISATION, not a hand-kept slug list: the old list
+  // named four partners and one of them ("nrep") was not in the database, so
+  // the strip silently showed three and anything added later never appeared.
+  // Individuals are excluded — this band is about collaborating institutions.
   const sliderPartners = partners
-    .filter((p) => sliderPartnerSlugs.includes(p.slug))
-    .sort((a, b) => sliderPartnerSlugs.indexOf(a.slug) - sliderPartnerSlugs.indexOf(b.slug));
+    .filter((p) => (p.entityKind ?? "organization") === "organization")
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   // Deliberately NOT useMemo: this sits after the loading and error early
   // returns, so a hook here is called on some renders and not others — which
@@ -127,98 +127,7 @@ export default function HomePage() {
     <>
       <Header />
       <main id="main-content" className="overflow-x-hidden">
-        {/* ─── HERO ──────────────────────────────────────────────── */}
-        <section className="hero-band relative bg-primary-900 text-white overflow-hidden">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 opacity-60"
-            style={{
-              backgroundImage:
-                "radial-gradient(60% 80% at 15% 0%, #166534 0%, transparent 60%), radial-gradient(50% 70% at 100% 20%, #0f766e 0%, transparent 55%)",
-            }}
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 opacity-[0.12]"
-            style={{
-              backgroundImage:
-                "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)",
-              backgroundSize: "22px 22px",
-            }}
-          />
-          <div className="container-page relative py-20 lg:py-28 grid gap-10 lg:grid-cols-2 lg:gap-16 lg:items-center">
-            <Reveal className="max-w-3xl">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-100 backdrop-blur-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-300" aria-hidden="true" />
-                Phase 1 prototype · sample data
-              </span>
-
-              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.08] tracking-tight mt-6">
-                Uganda&apos;s national<br />
-                <span className="text-primary-300">agri-energy platform</span>
-              </h1>
-
-              <p className="mt-6 text-lg text-primary-50/90 leading-relaxed max-w-2xl">
-                One place to map projects, compare technologies, and reach the
-                knowledge accelerating clean-energy adoption across Ugandan
-                agriculture.
-              </p>
-
-              {/* Search */}
-              <form
-                action="/search"
-                method="GET"
-                role="search"
-                className="mt-9 max-w-xl"
-              >
-                <label htmlFor="hero-search" className="sr-only">
-                  Search the Agri-Energy Desk
-                </label>
-                <div className="flex items-center gap-2 bg-white rounded-xl p-2 shadow-raise">
-                  <span className="pl-2 text-ink-400 text-xl" aria-hidden="true">
-                    <SearchIcon />
-                  </span>
-                  <input
-                    id="hero-search"
-                    name="q"
-                    type="search"
-                    placeholder="Search projects, technologies, resources…"
-                    className="flex-1 bg-transparent text-ink-900 placeholder-ink-400 px-1 py-2 text-base focus:outline-none min-w-0"
-                  />
-                  <button type="submit" className="btn btn-primary shrink-0">
-                    Search
-                  </button>
-                </div>
-              </form>
-
-              {/* Quick entry links */}
-              <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-primary-100">
-                <span className="text-primary-300/80">Jump to:</span>
-                {[
-                  ["Project map", "/map"],
-                  ["Technologies", "/technologies"],
-                  ["Open data", "/data"],
-                  ["Tenders", "/tenders"],
-                ].map(([label, href]) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="font-medium hover:text-white underline-offset-4 hover:underline"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            </Reveal>
-
-            {/* Fanned photo deck — fills the right side on large screens */}
-            {featuredProjects.length > 0 && (
-              <Reveal className="hidden lg:block">
-                <HeroPhotoDeck projects={featuredProjects} />
-              </Reveal>
-            )}
-          </div>
-        </section>
+        <Hero featuredProjects={featuredProjects} />
 
         {/* ─── IMPACT AT A GLANCE ────────────────────────────────── */}
         <section className="bg-white border-b border-ink-200">
@@ -299,7 +208,7 @@ export default function HomePage() {
                     coverage gaps are.
                   </p>
                 </div>
-                <span className="shrink-0 inline-flex items-center gap-2 bg-white text-primary-900 font-semibold px-5 py-3 rounded-lg group-hover:gap-3 transition-all">
+                <span className="shrink-0 inline-flex items-center gap-2 bg-paper text-primary-900 font-semibold px-5 py-3 rounded-lg group-hover:gap-3 transition-all">
                   Open the map
                   <ArrowRightIcon />
                 </span>
@@ -349,14 +258,25 @@ export default function HomePage() {
         </section>
 
         {/* ─── THEMATIC AREAS ────────────────────────────────────── */}
-        <section className="py-16 lg:py-20 bg-white">
-          <div className="container-page">
+        {/* Dark band: the knowledge hub reads as its own destination, and
+            the colour-banded theme cards sit brightest against it. */}
+        <section className="relative overflow-hidden bg-shade-950 py-16 lg:py-20">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 opacity-50"
+            style={{
+              backgroundImage:
+                "radial-gradient(55% 75% at 12% 0%, #14532d 0%, transparent 60%), radial-gradient(45% 65% at 95% 100%, #0f766e 0%, transparent 55%)",
+            }}
+          />
+          <div className="container-page relative">
             <SectionHeader
               eyebrow="Knowledge hub"
               title="Thematic areas"
               description="Curated insight organised by focus area, from productive use to finance."
               href="/themes"
               linkLabel="Explore all themes"
+              onDark
             />
             <StaggerGrid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredThemes.map((t) => (
@@ -416,7 +336,7 @@ export default function HomePage() {
               the landscape, surface gaps, and direct funding to priority areas.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3">
-              <Link href="/partner" className="btn btn-lg bg-white text-primary-900 hover:bg-primary-50">
+              <Link href="/partner" className="btn btn-lg bg-paper text-primary-900 hover:bg-primary-100">
                 Create account
               </Link>
               <Link
@@ -431,5 +351,133 @@ export default function HomePage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+
+// ─── Hero ─────────────────────────────────────────────────────
+// Rendered in every state, including while the data loads, so the search
+// box and headline are usable immediately. `featuredProjects` is empty
+// until the projects arrive; the photo deck simply sits it out.
+
+function Hero({ featuredProjects }: { featuredProjects: Project[] }) {
+  return (
+    <section className="hero-band relative bg-primary-900 text-white overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 opacity-60"
+        style={{
+          backgroundImage:
+            "radial-gradient(60% 80% at 15% 0%, #166534 0%, transparent 60%), radial-gradient(50% 70% at 100% 20%, #0f766e 0%, transparent 55%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 opacity-[0.12]"
+        style={{
+          backgroundImage:
+            "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)",
+          backgroundSize: "22px 22px",
+        }}
+      />
+      <div className="container-page relative py-20 lg:py-28 grid gap-10 lg:grid-cols-2 lg:gap-16 lg:items-center">
+        <Reveal className="max-w-3xl">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-100 backdrop-blur-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary-300" aria-hidden="true" />
+            Phase 1 prototype · sample data
+          </span>
+
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.08] tracking-tight mt-6">
+            Uganda&apos;s national<br />
+            <span className="text-primary-300">agri-energy platform</span>
+          </h1>
+
+          <p className="mt-6 text-lg text-primary-50/90 leading-relaxed max-w-2xl">
+            One place to map projects, compare technologies, and reach the
+            knowledge accelerating clean-energy adoption across Ugandan
+            agriculture.
+          </p>
+
+          {/* Search */}
+          <form
+            action="/search"
+            method="GET"
+            role="search"
+            className="mt-9 max-w-xl"
+          >
+            <label htmlFor="hero-search" className="sr-only">
+              Search the Agri-Energy Desk
+            </label>
+            <div className="flex items-center gap-2 bg-white rounded-xl p-2 shadow-raise">
+              <span className="pl-2 text-ink-400 text-xl" aria-hidden="true">
+                <SearchIcon />
+              </span>
+              <input
+                id="hero-search"
+                name="q"
+                type="search"
+                placeholder="Search projects, technologies, resources…"
+                className="flex-1 bg-transparent text-ink-900 placeholder-ink-400 px-1 py-2 text-base focus:outline-none min-w-0"
+              />
+              <button type="submit" className="btn btn-primary shrink-0">
+                Search
+              </button>
+            </div>
+          </form>
+
+          {/* Quick entry links */}
+          <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-primary-100">
+            <span className="text-primary-300/80">Jump to:</span>
+            {[
+              ["Project map", "/map"],
+              ["Technologies", "/technologies"],
+              ["Open data", "/data"],
+              ["Tenders", "/tenders"],
+            ].map(([label, href]) => (
+              <Link
+                key={href}
+                href={href}
+                className="font-medium hover:text-white underline-offset-4 hover:underline"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </Reveal>
+
+        {/* Fanned photo deck — fills the right side on large screens */}
+        {featuredProjects.length > 0 && (
+          <Reveal className="hidden lg:block">
+            <HeroPhotoDeck projects={featuredProjects} />
+          </Reveal>
+        )}
+      </div>
+    </section>
+
+  );
+}
+
+// ─── Loading placeholder ──────────────────────────────────────
+// Blocks matching the real sections' rhythm, so the page does not jump
+// when the content lands.
+
+function HomeSkeleton() {
+  return (
+    <div aria-hidden="true" className="container-page py-16 lg:py-20">
+      <div className="h-4 w-32 rounded bg-ink-100" />
+      <div className="mt-4 h-8 w-72 max-w-full rounded bg-ink-100" />
+      <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="card h-64 overflow-hidden">
+            <div className="h-20 bg-ink-100" />
+            <div className="p-5 space-y-3">
+              <div className="h-4 w-3/4 rounded bg-ink-100" />
+              <div className="h-3 w-full rounded bg-ink-100" />
+              <div className="h-3 w-5/6 rounded bg-ink-100" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

@@ -37,7 +37,7 @@ export default function PartnerNav({
         </Link>
         <Link
           href="/partner/register"
-          className="px-3 py-1.5 bg-white text-primary-800 font-bold rounded-lg text-xs"
+          className="px-3 py-1.5 bg-paper text-primary-900 font-bold rounded-lg text-xs"
         >
           Register
         </Link>
@@ -56,7 +56,7 @@ export default function PartnerNav({
       <Link href="/partner/notifications" className="relative text-primary-100 hover:text-white">
         Notifications
         {unreadCount > 0 && (
-          <span className="absolute -top-2 -right-3 bg-white text-primary-800 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+          <span className="absolute -top-2 -right-3 bg-paper text-primary-900 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}

@@ -64,11 +64,11 @@ export default function NewsletterSignup({
   };
 
   const labelClass = isFooter
-    ? "block text-xs font-semibold text-gray-300 mb-1"
+    ? "block text-xs font-semibold text-shade-300 mb-1"
     : "block text-xs font-semibold text-gray-600 mb-1";
 
   const inputClass = isFooter
-    ? "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400"
+    ? "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder-shade-400 focus:outline-none focus:ring-2 focus:ring-primary-400"
     : "form-input";
 
   const buttonClass = isFooter
@@ -98,7 +98,7 @@ export default function NewsletterSignup({
         <p
           className={
             isFooter
-              ? "text-xs text-gray-400 leading-relaxed mb-4"
+              ? "text-xs text-shade-400 leading-relaxed mb-4"
               : "text-sm text-gray-500 mb-6"
           }
         >
@@ -174,7 +174,7 @@ export default function NewsletterSignup({
       <p
         className={
           isFooter
-            ? "mt-3 text-[11px] text-gray-500 leading-relaxed"
+            ? "mt-3 text-[11px] text-shade-500 leading-relaxed"
             : "mt-4 text-xs text-gray-400 leading-relaxed"
         }
       >

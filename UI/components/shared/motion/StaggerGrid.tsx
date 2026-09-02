@@ -10,8 +10,10 @@
 import { Children, type ReactNode } from "react";
 import Reveal from "./Reveal";
 
-const STEP_MS = 100;
-const STEP_CAP = 8; // after 8 items the delay stops growing
+// Tuned down from 100ms/8: on a full grid the old cascade meant the last
+// card waited 800ms after the first, which read as the page being slow.
+const STEP_MS = 35;
+const STEP_CAP = 6; // after 6 items the delay stops growing
 
 interface StaggerGridProps {
   children: ReactNode;

@@ -237,7 +237,7 @@ export default function SearchAutocomplete({
           type="submit"
           className={
             isPage
-              ? "px-6 py-3 bg-white text-primary-800 font-bold rounded-xl hover:bg-primary-50 transition-colors text-sm whitespace-nowrap"
+              ? "px-6 py-3 bg-paper text-primary-900 font-bold rounded-xl hover:bg-primary-100 transition-colors text-sm whitespace-nowrap"
               : "px-3 py-2 bg-primary-700 text-white text-sm font-semibold rounded-lg hover:bg-primary-800 transition-colors whitespace-nowrap"
           }
         >

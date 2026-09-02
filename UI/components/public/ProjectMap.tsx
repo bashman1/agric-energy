@@ -882,7 +882,7 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
 
       {/* Fullscreen button */}
       <button onClick={toggleFullscreen} title={isFullscreen?"Exit fullscreen":"Fullscreen"}
-        className="absolute top-3 right-14 bg-white/90 hover:bg-white text-gray-700 rounded-lg shadow-md p-1.5 transition-all"
+        className="absolute top-3 right-14 bg-surface/90 hover:bg-surface text-gray-700 rounded-lg shadow-md p-1.5 transition-all"
         style={{ zIndex: 10 }}>
         {isFullscreen
           ? <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
@@ -899,7 +899,7 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
           /* Collapsed legend pill */
           <button
             onClick={() => setFsLegendCollapsed(false)}
-            className="flex items-center gap-1.5 bg-white/90 hover:bg-white backdrop-blur-sm rounded-lg shadow-md px-2.5 py-1.5 text-[10px] font-semibold text-gray-600 transition-all pointer-events-auto"
+            className="flex items-center gap-1.5 bg-surface/90 hover:bg-surface backdrop-blur-sm rounded-lg shadow-md px-2.5 py-1.5 text-[10px] font-semibold text-gray-600 transition-all pointer-events-auto"
             title="Show legend"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
@@ -908,7 +908,7 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
         ) : (
           /* Expanded legend */
           <div
-            className="bg-white/95 backdrop-blur-sm rounded-xl p-3 space-y-1.5 pointer-events-none"
+            className="bg-surface/95 backdrop-blur-sm rounded-xl p-3 space-y-1.5 pointer-events-none"
             role="group"
             aria-label="Map legend"
           >

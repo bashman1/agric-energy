@@ -1,33 +1,33 @@
 import Link from "next/link";
 import { Theme } from "@/lib/types";
-import { LayersIcon, ArrowRightIcon } from "@/components/shared/icons";
+import { ArrowRightIcon } from "@/components/shared/icons";
+import { themeAccent } from "@/lib/design/cardAccents";
 
 export default function ThemeCard({ theme }: { theme: Theme }) {
+  const accent = themeAccent(theme.slug, theme.icon);
+
   return (
     <Link
       href={`/themes/${theme.slug}`}
-      className="card card-hover group flex flex-col h-full"
+      className="card card-hover group flex flex-col h-full overflow-hidden"
     >
-      {/* Header: monochrome mark + eyebrow */}
-      <div className="flex items-start gap-3 p-5 pb-4">
+      {/* Colour band — one hue per theme, so the hub reads as a set */}
+      <div className={`${accent.gradient} relative flex h-24 items-center justify-center`}>
         <span
-          className="shrink-0 w-9 h-9 rounded-lg bg-primary-50 text-primary-700 flex items-center justify-center text-lg"
           aria-hidden="true"
+          className="text-4xl drop-shadow transition-transform duration-300 group-hover:scale-110"
         >
-          {theme.icon ? theme.icon : <LayersIcon />}
+          {accent.icon}
         </span>
-        <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-primary-700 truncate">
-            Knowledge theme
-          </div>
-          <div className="text-[11px] text-ink-400 mt-0.5">
-            {theme.featured ? "Featured" : "Theme"}
-          </div>
-        </div>
+        {theme.featured && (
+          <span className="absolute top-2 right-2 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+            Featured
+          </span>
+        )}
       </div>
 
       {/* Title + summary */}
-      <div className="px-5 flex-1">
+      <div className="flex-1 px-5 pt-4">
         <h3 className="font-semibold text-ink-900 leading-snug mb-2 group-hover:text-primary-700 transition-colors line-clamp-2">
           {theme.name}
         </h3>
@@ -36,7 +36,7 @@ export default function ThemeCard({ theme }: { theme: Theme }) {
         </p>
       </div>
 
-      {/* Meta: explore affordance */}
+      {/* Explore affordance */}
       <div className="mt-4 mx-5 mb-5 pt-3 border-t border-ink-100">
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-700">
           Explore theme

@@ -29,9 +29,10 @@ function getObserver(): IntersectionObserver | null {
           }
         }
       },
-      // Trigger once the element is a bit into the viewport, so the reveal
-      // plays as the user scrolls to it (more perceptible than firing early).
-      { rootMargin: "0px 0px -15% 0px", threshold: 0.15 }
+      // Fire as soon as an edge enters the viewport. The old -15%/0.15
+      // combination held content hidden until it was well on screen, which
+      // read as the page loading slowly rather than as deliberate motion.
+      { rootMargin: "0px 0px -2% 0px", threshold: 0.01 }
     );
   }
   return observer;

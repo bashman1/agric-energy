@@ -1,24 +1,29 @@
 import Link from "next/link";
 import { Project } from "@/lib/types";
-import Badge from "@/components/shared/Badge";
 import { MapPinIcon, SproutIcon, CalendarIcon } from "@/components/shared/icons";
+import { projectAccent } from "@/lib/design/cardAccents";
 
 interface ProjectCardProps {
   project: Project;
 }
 
-// Status → semantic color. This is the ONLY colour that varies per card;
-// everything else is neutral so a grid reads as one calm system.
-function statusColor(status: string): "green" | "blue" | "yellow" | "gray" {
-  if (status === "Active") return "green";
-  if (status === "Completed") return "blue";
-  if (status === "Pipeline") return "yellow";
-  return "gray";
+// Status pill sits on the colour band, so it carries its own translucent
+// treatment rather than the neutral <Badge> used on light surfaces.
+function statusPill(status: string): string {
+  switch (status) {
+    case "Active":
+      return "bg-emerald-300/95 text-emerald-950";
+    case "Completed":
+      return "bg-sky-200/95 text-sky-950";
+    case "Pipeline":
+      return "bg-amber-300/95 text-amber-950";
+    default:
+      return "bg-white/20 text-white";
+  }
 }
 
 export default function ProjectCard({ project }: ProjectCardProps) {
-  const isNational = project.region?.toLowerCase() === "national";
-  const eyebrow = project.valueChain || (isNational ? "National Programme" : "Agri-Energy");
+  const accent = projectAccent(project.region);
   const yearRange = project.startDate
     ? `${project.startDate.slice(0, 4)}${project.endDate ? `–${project.endDate.slice(0, 4)}` : "–present"}`
     : null;
@@ -26,29 +31,34 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link
       href={`/projects/${project.slug}`}
-      className="card card-hover group flex flex-col h-full"
+      className="card card-hover group flex flex-col h-full overflow-hidden"
     >
-      {/* Header: monochrome mark + eyebrow, status right */}
-      <div className="flex items-start gap-3 p-5 pb-4">
-        <span
-          className="shrink-0 w-9 h-9 rounded-lg bg-primary-50 text-primary-700 flex items-center justify-center text-lg"
-          aria-hidden="true"
-        >
-          <SproutIcon />
+      {/* Colour band — region identity, status, featured mark */}
+      <div className={`${accent.gradient} relative flex h-20 items-end justify-between gap-2 px-4 py-3`}>
+        <span className="flex min-w-0 items-center gap-2">
+          <span aria-hidden="true" className="text-2xl drop-shadow-sm">
+            {accent.icon}
+          </span>
+          <span className="truncate text-xs font-bold uppercase tracking-wider text-white/90">
+            {project.region || "Uganda"}
+          </span>
         </span>
-        <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-primary-700 truncate">
-            {eyebrow}
-          </div>
-          <div className="text-[11px] text-ink-400 mt-0.5">
-            {project.featured ? "Featured project" : "Project"}
-          </div>
-        </div>
-        <Badge label={project.status} color={statusColor(project.status)} dot />
+        {project.status && (
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${statusPill(project.status)}`}
+          >
+            {project.status}
+          </span>
+        )}
+        {project.featured && (
+          <span className="absolute top-2 right-3 text-[10px] font-bold uppercase tracking-wide text-white/80">
+            <span aria-hidden="true">★ </span>Featured
+          </span>
+        )}
       </div>
 
       {/* Title + summary */}
-      <div className="px-5 flex-1">
+      <div className="flex-1 px-5 pt-4">
         <h3 className="font-semibold text-ink-900 leading-snug mb-2 group-hover:text-primary-700 transition-colors line-clamp-2">
           {project.title}
         </h3>
