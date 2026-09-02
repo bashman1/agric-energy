@@ -482,11 +482,6 @@ footer :focus-visible,
 [data-theme="dark"] .text-purple-700, [data-theme="dark"] .text-purple-800,
 [data-theme="dark"] .text-violet-700, [data-theme="dark"] .text-violet-800 { color: #c4b5fd; }
 
-/* Photographic content is a touch hot against a dark page. */
-[data-theme="dark"] img:not([data-no-dim]) {
-  filter: brightness(0.94);
-}
-
 /* The toggle itself must not animate the whole page on switch. */
 .theme-toggle svg {
   width: 1rem;

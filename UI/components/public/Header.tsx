@@ -27,15 +27,15 @@ const navEntries: NavEntry[] = [
   { href: "/technologies", key: "technologies" },
   { href: "/themes", key: "themes" },
   {
-    // The directory and the two ways to join it. Both register links land
-    // on the same wizard; `?type` picks the flow and skips its first step
-    // (see app/partner/register/RegisterWizard.tsx).
+    // The directory holds two different kinds of actor and visitors arrive
+    // looking for one or the other, so the menu offers them separately
+    // rather than one undifferentiated "Partners" link. Both land on
+    // /partners with the kind pre-selected (see PartnersBrowser).
+    //
+    // Registration is deliberately NOT here — it lives on the Partner
+    // Portal link in the utility strip and on /partner itself.
     key: "ecosystem",
     children: [
-      // The directory holds two different kinds of actor and visitors arrive
-      // looking for one or the other, so the menu offers them separately
-      // rather than one undifferentiated "Partners" link. Both land on
-      // /partners with the kind pre-selected (see PartnersBrowser).
       {
         href: "/partners/?kind=individual",
         key: "partnersIndividual",
@@ -45,16 +45,6 @@ const navEntries: NavEntry[] = [
         href: "/partners/?kind=organization",
         key: "partnersOrganization",
         match: "/partners",
-      },
-      {
-        href: "/partner/register/?type=individual",
-        key: "registerIndividual",
-        match: "/partner/register",
-      },
-      {
-        href: "/partner/register/?type=organization",
-        key: "registerOrganization",
-        match: "/partner/register",
       },
     ],
   },

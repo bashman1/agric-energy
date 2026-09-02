@@ -87,13 +87,15 @@ export default function HomePage() {
   const featuredThemes = themes.filter((t) => t.featured).slice(0, 6);
   const featuredProjects = projects.slice(0, 3);
 
-  // Every published ORGANISATION, not a hand-kept slug list: the old list
-  // named four partners and one of them ("nrep") was not in the database, so
-  // the strip silently showed three and anything added later never appeared.
-  // Individuals are excluded — this band is about collaborating institutions.
-  const sliderPartners = partners
-    .filter((p) => (p.entityKind ?? "organization") === "organization")
-    .sort((a, b) => a.name.localeCompare(b.name));
+  // A deliberate four, in this order — the platform's core collaborators,
+  // not everyone in the directory. `nrep` used to be missing from this list's
+  // output because the partner record existed only as an unpublished draft;
+  // it is published now, so all four render. Anything named here that is not
+  // published simply drops out, so keep the two in step.
+  const sliderPartnerSlugs = ["snv-uganda", "maaif", "nrep", "giz-uganda"];
+  const sliderPartners = sliderPartnerSlugs
+    .map((slug) => partners.find((p) => p.slug === slug))
+    .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
   // Deliberately NOT useMemo: this sits after the loading and error early
   // returns, so a hook here is called on some renders and not others — which
