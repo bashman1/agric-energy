@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\Partner;
+use App\Rules\PhoneNumber;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -44,7 +45,7 @@ class AuthController extends Controller
             // (see login()), not an organisation-only display detail.
             'username' => 'required|string|max:255|unique:users,username',
             'password' => 'required|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:50',
+            'phone' => ['nullable', 'string', 'max:50', new PhoneNumber],
 
             // Organization profile (required_if the account is an org).
             'category' => 'required_if:accountType,organization|nullable|string|max:255',
@@ -55,7 +56,7 @@ class AuthController extends Controller
             'taxId' => 'required_if:accountType,organization|nullable|string|max:255',
             'yearEstablished' => 'nullable|string|max:10',
             'website' => 'nullable|string|max:255',
-            'telephone' => 'nullable|string|max:50',
+            'telephone' => ['nullable', 'string', 'max:50', new PhoneNumber],
             'physicalAddress' => 'required_if:accountType,organization|nullable|string|max:1000',
             'postalAddress' => 'nullable|string|max:255',
             'coverageScope' => 'required_if:accountType,organization|nullable|array',
@@ -63,17 +64,17 @@ class AuthController extends Controller
             'districtCoverage' => 'nullable|array',
             'countries' => 'nullable|array',
             'sectors' => 'required_if:accountType,organization|nullable|array|min:1',
-            'valueChains' => 'nullable|array',
+            'valueChains' => 'required|array|min:1',
             'mission' => 'required_if:accountType,organization|nullable|string|max:2000',
             'description' => 'required_if:accountType,organization|nullable|string|max:2000',
-            'employeesBand' => 'nullable|string|max:50',
-            'branchesBand' => 'nullable|string|max:50',
+            'employeesBand' => 'required_if:accountType,organization|nullable|string|max:50',
+            'branchesBand' => 'required_if:accountType,organization|nullable|string|max:50',
             'beneficiariesBand' => 'nullable|string|max:50',
             'annualBudgetRange' => 'nullable|string|max:100',
             'expertise' => 'required_if:accountType,organization|nullable|array|min:1|max:3',
             'contactName' => 'required_if:accountType,organization|nullable|string|max:255',
             'contactPosition' => 'required_if:accountType,organization|nullable|string|max:255',
-            'contactPhone' => 'required_if:accountType,organization|nullable|string|max:50',
+            'contactPhone' => ['required_if:accountType,organization', 'nullable', 'string', 'max:50', new PhoneNumber],
             // Not asked at registration any more — staff set the funding /
             // implementing type when they review the draft. Still accepted if sent.
             'partnerType' => 'nullable|in:Funding Partner,Implementing Partner',
@@ -90,6 +91,11 @@ class AuthController extends Controller
             'expertise.max' => 'Select at most 3 areas of expertise.',
             'position.required_if' => 'Your professional title or position is required.',
             'bio.required_if' => 'A short professional profile is required.',
+            'sectors.required_if' => 'Please select at least one sector of operation.',
+            'valueChains.required' => 'Please select at least one value chain.',
+            'valueChains.min' => 'Please select at least one value chain.',
+            'employeesBand.required_if' => 'Please select the number of employees.',
+            'branchesBand.required_if' => 'Please select the number of branches.',
         ]);
 
         // Individuals declare expertise and sectors on the same terms as

@@ -7,6 +7,7 @@
 // ============================================================
 import { useId, useState } from "react";
 import { ApiError, apiSend } from "@/lib/api/client";
+import { validateEmail } from "@/lib/validation/contact";
 
 type FormState = "idle" | "loading" | "success" | "error";
 
@@ -36,6 +37,12 @@ export default function NewsletterSignup({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const emailError = validateEmail(email, { label: "Email address", required: true });
+    if (emailError) {
+      setState("error");
+      setMessage(emailError);
+      return;
+    }
     setState("loading");
     setMessage("");
     try {

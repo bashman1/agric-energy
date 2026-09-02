@@ -1,10 +1,9 @@
 "use client";
-import { useState, useCallback, useId } from "react";
+import { useState, useId } from "react";
 import { useRouter } from "next/navigation";
 import type { Project, Partner, Technology, Theme } from "@/lib/types";
 import LocationPicker, { type LocationValue } from "@/components/admin/LocationPicker";
 import ComboSelect, { type ComboOption } from "@/components/admin/ComboSelect";
-import PartnerCreatePanel from "@/components/admin/PartnerCreatePanel";
 import AttachmentsUpload from "@/components/shared/AttachmentsUpload";
 import FileUpload from "@/components/shared/FileUpload";
 import Link from "next/link";
@@ -18,7 +17,6 @@ interface Props {
   themes: Theme[];
 }
 
-type PartnerPanel = { open: boolean; field: "funding" | "implementing"; initialName: string };
 
 export default function AdminProjectForm({ project, mode = "edit", partners, technologies, themes }: Props) {
   const router = useRouter();
@@ -56,30 +54,6 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
     district: project.district ?? "",
   });
 
-  // For partner combo (single-select), we store selected as an array of one
-  const [fundingPartnerIds, setFundingPartnerIds] = useState<string[]>(
-    project.fundingPartner ? [project.fundingPartner] : []
-  );
-
-  // ── Partner creation panel ─────────────────────────────────────────────────
-  const [panel, setPanel] = useState<PartnerPanel>({ open: false, field: "funding", initialName: "" });
-
-  const openPartnerPanel = useCallback((field: "funding" | "implementing", name: string) => {
-    setPanel({ open: true, field, initialName: name });
-  }, []);
-
-  const handlePartnerCreated = useCallback((slug: string, _name: string) => {
-    if (panel.field === "funding") {
-      setFundingPartnerIds([slug]);
-    } else {
-      setForm((prev) => ({
-        ...prev,
-        implementingPartnerIds: [...(prev.implementingPartnerIds ?? []), slug],
-      }));
-    }
-    setPanel((p) => ({ ...p, open: false }));
-  }, [panel.field]);
-
   // ── Helper setters ─────────────────────────────────────────────────────────
   const set = (field: keyof Project, value: unknown) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -97,12 +71,8 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
     setSaving(true);
     setMsg(null);
 
-    // Resolve funding partner: if selected id matches an existing partner slug, use slug; else use raw text
-    const resolvedFundingPartner = fundingPartnerIds[0] ?? "";
-
     const payload: Partial<Project> = {
       ...form,
-      fundingPartner: resolvedFundingPartner,
       regions: locationState.regions,
       districts: locationState.districts,
       region: locationState.regions[0] ?? "",
@@ -182,51 +152,47 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
             <h2 className="font-bold text-ink-900 text-sm mb-4">Partners &amp; Technologies</h2>
             <div className="space-y-5">
 
-              {/* Funding Partner (single select, free-text or existing partner) */}
+              {/*
+                One partner, by role and email address, replacing the old
+                funding-partner select and implementing-partner multi-select.
+                The API resolves the address to a registered partner and
+                writes through to the same fields the public project page has
+                always rendered, so nothing downstream changes — and the
+                address is notified when the project is published.
+              */}
               <div>
-                <label htmlFor={`${uid}-funding-partner`} className={labelClass}>Funding Partner</label>
-                <ComboSelect
-                  inputId={`${uid}-funding-partner`}
-                  options={partnerOptions}
-                  value={fundingPartnerIds}
-                  onChange={setFundingPartnerIds}
-                  multi={false}
-                  placeholder="Search existing partners or type a name…"
-                  allowCreate={true}
-                  createLabel="Use as funding partner (free text)"
-                  onCreateNew={(name) => openPartnerPanel("funding", name)}
-                />
-                <p className="text-[11px] text-ink-400 mt-1">Pick from the list, type a freeform name, or create a new partner profile.</p>
-                {panel.open && panel.field === "funding" && (
-                  <PartnerCreatePanel
-                    initialName={panel.initialName}
-                    onCreated={handlePartnerCreated}
-                    onCancel={() => setPanel((p) => ({ ...p, open: false }))}
-                  />
-                )}
+                <label htmlFor={`${uid}-partner-role`} className={labelClass}>Partner Role</label>
+                <select
+                  id={`${uid}-partner-role`}
+                  className={inputClass}
+                  value={form.partnerRole ?? ""}
+                  onChange={(e) => set("partnerRole", e.target.value)}
+                >
+                  <option value="">Select a partner role…</option>
+                  <option value="funding">Funding Partner</option>
+                  <option value="implementing">Implementing Partner</option>
+                </select>
               </div>
 
-              {/* Implementing Partners (multi-select) */}
-              <div>
-                <label htmlFor={`${uid}-implementing-partners`} className={labelClass}>Implementing Partner(s)</label>
-                <ComboSelect
-                  inputId={`${uid}-implementing-partners`}
-                  options={partnerOptions}
-                  value={form.implementingPartnerIds ?? []}
-                  onChange={(ids) => set("implementingPartnerIds", ids)}
-                  multi={true}
-                  placeholder="Search and select partners…"
-                  onCreateNew={(name) => openPartnerPanel("implementing", name)}
-                  createLabel="Create new partner"
-                />
-                {panel.open && panel.field === "implementing" && (
-                  <PartnerCreatePanel
-                    initialName={panel.initialName}
-                    onCreated={handlePartnerCreated}
-                    onCancel={() => setPanel((p) => ({ ...p, open: false }))}
+              {form.partnerRole && (
+                <div>
+                  <label htmlFor={`${uid}-partner-email`} className={labelClass}>
+                    {form.partnerRole === "funding" ? "Funding Partner" : "Implementing Partner"} Email
+                  </label>
+                  <input
+                    id={`${uid}-partner-email`}
+                    type="email"
+                    className={inputClass}
+                    value={form.partnerEmail ?? ""}
+                    onChange={(e) => set("partnerEmail", e.target.value)}
+                    placeholder="partner@organisation.org"
                   />
-                )}
-              </div>
+                  <p className="text-[11px] text-ink-400 mt-1">
+                    The address is notified by email — and in the portal, if it
+                    belongs to a registered account — once this project is published.
+                  </p>
+                </div>
+              )}
 
               {/* Technologies (multi-select, free-text allowed) */}
               <div>

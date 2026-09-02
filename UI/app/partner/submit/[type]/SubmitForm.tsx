@@ -192,6 +192,14 @@ export default function SubmitForm({ type, referenceData }: Props) {
 
       <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
         {fields.map((f) => {
+          // Conditional fields: the project partner email only makes sense
+          // once a role is chosen, and its label follows that choice.
+          if (f.showWhen) {
+            const gate = String(values[f.showWhen.key] ?? "");
+            if (!f.showWhen.equals.includes(gate)) return null;
+            const label = f.labelWhen?.[gate];
+            if (label) f = { ...f, label };
+          }
           if (f.type === "location") {
             return (
               <div key={f.key}>

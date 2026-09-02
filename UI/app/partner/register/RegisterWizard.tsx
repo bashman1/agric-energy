@@ -18,6 +18,7 @@ import { TextField, TextArea, SelectField, CheckboxGroup, RadioGroup, labelClass
 import { UGANDA_REGIONS } from "@/lib/geography/nominatim";
 import { fetchDistrictMeta } from "@/lib/geo/ugandaGeo";
 import { register } from "@/lib/auth/actions";
+import { validateEmail, validatePhone } from "@/lib/validation/contact";
 import {
   ORG_CATEGORIES,
   SECTORS,
@@ -34,7 +35,6 @@ import {
 
 type AccountType = "" | "individual" | "organization";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const INITIAL = {
   accountType: "" as AccountType,
@@ -114,7 +114,11 @@ export default function RegisterWizard() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [districtOpts, setDistrictOpts] = useState<{ id: string; label: string }[]>([]);
+  // `region` is carried through so the picker can be narrowed to the
+  // regions the registrant selected (see visibleDistrictOpts below).
+  const [districtOpts, setDistrictOpts] = useState<
+    { id: string; label: string; region: string }[]
+  >([]);
 
   const up =
     <K extends keyof FormState>(k: K) =>
@@ -148,7 +152,10 @@ export default function RegisterWizard() {
     let alive = true;
     fetchDistrictMeta()
       .then((ds) => {
-        if (alive) setDistrictOpts(ds.map((d) => ({ id: d.name, label: d.name })));
+        if (alive)
+          setDistrictOpts(
+            ds.map((d) => ({ id: d.name, label: d.name, region: d.region }))
+          );
       })
       .catch(() => {});
     return () => {
@@ -169,6 +176,45 @@ export default function RegisterWizard() {
     setStep(1);
   }
 
+  // Districts belong to regions, so once a region is chosen the picker is
+  // narrowed to it — offering all 136 districts after someone has said
+  // "Northern Uganda" made the control useless. No region selected yet is
+  // no constraint, so the full list shows.
+  //
+  // Not memoised on purpose: it is a filter over an in-memory array of 136,
+  // and a hook here would sit below the early returns above it.
+  const visibleDistrictOpts = form.regions.length
+    ? districtOpts.filter((d) => form.regions.includes(d.region))
+    : districtOpts;
+
+  /**
+   * Changing the regions must also drop any district that no longer falls
+   * inside one — otherwise a district picked under an earlier selection
+   * stays in the payload while being invisible in the control.
+   */
+  function setRegions(next: string[]) {
+    setForm((s) => ({
+      ...s,
+      regions: next,
+      districtCoverage: next.length
+        ? s.districtCoverage.filter((name) =>
+            districtOpts.some((d) => d.id === name && next.includes(d.region))
+          )
+        : s.districtCoverage,
+    }));
+  }
+
+  /**
+   * Username + password rules, shared by the individual "personal" step and
+   * the organisation "credentials" step so the two cannot drift apart.
+   */
+  function personalCredentials(f: typeof form): string | null {
+    if (!f.username.trim()) return "Username is required.";
+    if (f.password.length < 8) return "Password must be at least 8 characters.";
+    if (f.password !== f.password_confirmation) return "Passwords do not match.";
+    return null;
+  }
+
   function validate(k: string): string | null {
     const f = form;
     switch (k) {
@@ -177,17 +223,16 @@ export default function RegisterWizard() {
         return null;
       case "personal":
         if (!f.name.trim()) return "Full name is required.";
-        if (!EMAIL_RE.test(f.email)) return "A valid email is required.";
-        if (!f.username.trim()) return "Username is required.";
-        if (f.password.length < 8) return "Password must be at least 8 characters.";
-        if (f.password !== f.password_confirmation) return "Passwords do not match.";
-        return null;
+        return validateEmail(f.email, { label: "Email", required: true })
+          ?? validatePhone(f.phone, { label: "Phone" })
+          ?? personalCredentials(f);
       case "individual_profile":
         if (!f.position.trim()) return "Your professional title or position is required.";
         if (!f.bio.trim()) return "A short professional profile is required.";
         return null;
       case "individual_focus":
-        if (!f.sectors.length) return "Please select at least one sector.";
+        if (!f.sectors.length) return "Please select at least one sector of operation.";
+        if (!f.valueChains.length) return "Please select at least one value chain.";
         if (!f.expertise.length) return "Please select at least one area of expertise.";
         if (f.expertise.length > 3) return "Select up to 3 areas of expertise.";
         return null;
@@ -199,28 +244,30 @@ export default function RegisterWizard() {
         if (!f.registrationNumber.trim()) return "Registration number is required.";
         if (!f.taxId.trim()) return "Tax Identification Number is required.";
         if (!f.physicalAddress.trim()) return "Physical address is required.";
-        if (!f.email.trim()) return "Organisation email is required.";
-        return null;
-      // Sectors are collected on the focus step, so they are checked there.
+        return validateEmail(f.email, { label: "Organisation email", required: true })
+          ?? validatePhone(f.telephone, { label: "Official telephone" });
+      // Sectors and value chains are collected on the focus step.
       case "focus":
-        if (!f.sectors.length) return "Please select at least one sector.";
+        if (!f.sectors.length) return "Please select at least one sector of operation.";
+        if (!f.valueChains.length) return "Please select at least one value chain.";
         return null;
       case "contact":
         if (!f.contactName.trim()) return "Contact person's full name is required.";
         if (!f.contactPosition.trim()) return "Contact person's position is required.";
-        if (!EMAIL_RE.test(f.contactEmail)) return "A valid contact email is required.";
-        if (!f.contactPhone.trim()) return "Contact person's phone number is required.";
-        return null;
+        return validateEmail(f.contactEmail, { label: "Contact email", required: true })
+          ?? validatePhone(f.contactPhone, {
+            label: "Contact person's phone number",
+            required: true,
+          });
       case "credentials":
-        if (!EMAIL_RE.test(f.email)) return "A valid login email is required.";
-        if (!f.username.trim()) return "Username is required.";
-        if (f.password.length < 8) return "Password must be at least 8 characters.";
-        if (f.password !== f.password_confirmation) return "Passwords do not match.";
-        return null;
+        return validateEmail(f.email, { label: "Login email", required: true })
+          ?? personalCredentials(f);
       default:
         if (k === "profile") {
           if (!f.mission.trim()) return "Mission is required.";
           if (!f.description.trim()) return "Brief description is required.";
+          if (!f.employeesBand) return "Please select the number of employees.";
+          if (!f.branchesBand) return "Please select the number of branches.";
           return null;
         }
         if (k === "expertise") {
@@ -387,7 +434,8 @@ export default function RegisterWizard() {
           form={form}
           up={up}
           pickType={pickType}
-          districtOpts={districtOpts}
+          districtOpts={visibleDistrictOpts}
+          setRegions={setRegions}
         />
 
         {/* Navigation */}
@@ -440,12 +488,15 @@ function StepBody({
   up,
   pickType,
   districtOpts,
+  setRegions,
 }: {
   k: string;
   form: FormState;
   up: <K extends keyof FormState>(k: K) => (v: FormState[K]) => void;
   pickType: (t: AccountType) => void;
-  districtOpts: { id: string; label: string }[];
+  /** Already narrowed to the selected regions by the parent. */
+  districtOpts: { id: string; label: string; region: string }[];
+  setRegions: (next: string[]) => void;
 }) {
   switch (k) {
     case "account":
@@ -492,7 +543,7 @@ function StepBody({
           <TextField label="Full name" value={form.name} onChange={up("name")} required autoComplete="name" />
           <TextField label="Email" type="email" value={form.email} onChange={up("email")} required autoComplete="email" />
           <TextField label="Username" value={form.username} onChange={up("username")} required help="Used to sign in." autoComplete="username" />
-          <TextField label="Phone" value={form.phone} onChange={up("phone")} autoComplete="tel" />
+          <TextField label="Phone" type="tel" value={form.phone} onChange={up("phone")} autoComplete="tel" />
           <TextField label="Password" type="password" value={form.password} onChange={up("password")} required help="At least 8 characters." autoComplete="new-password" />
           <TextField label="Confirm password" type="password" value={form.password_confirmation} onChange={up("password_confirmation")} required autoComplete="new-password" />
         </div>
@@ -521,7 +572,9 @@ function StepBody({
       return (
         <div className="space-y-5">
           <div>
-            <span className={labelClass}>Sector of Operation</span>
+            <span className={labelClass}>
+              Sector of Operation <span className="text-red-500">*</span>
+            </span>
             <ComboSelect
               multi
               options={toOptions(SECTORS)}
@@ -531,7 +584,9 @@ function StepBody({
             />
           </div>
           <div>
-            <span className={labelClass}>Value Chain Focus</span>
+            <span className={labelClass}>
+              Value Chain Focus <span className="text-red-500">*</span>
+            </span>
             <ComboSelect
               multi
               options={toOptions(VALUE_CHAINS)}
@@ -560,7 +615,7 @@ function StepBody({
                 label="Region(s)"
                 options={UGANDA_REGIONS}
                 value={form.regions}
-                onChange={up("regions")}
+                onChange={setRegions}
               />
               <div>
                 <span className={labelClass}>District(s)</span>
@@ -569,7 +624,13 @@ function StepBody({
                   options={districtOpts}
                   value={form.districtCoverage}
                   onChange={up("districtCoverage")}
-                  placeholder={districtOpts.length ? "Search districts…" : "Loading districts…"}
+                  placeholder={
+                    !districtOpts.length
+                      ? "Loading districts…"
+                      : form.regions.length
+                        ? "Search districts in the selected region(s)…"
+                        : "Search districts…"
+                  }
                 />
               </div>
             </div>
@@ -613,7 +674,7 @@ function StepBody({
           <TextField label="Year Established" value={form.yearEstablished} onChange={up("yearEstablished")} placeholder="e.g. 2015" />
           <TextField label="Website" type="url" value={form.website} onChange={up("website")} placeholder="https://" />
           <TextField label="Organisation Email" type="email" value={form.email} onChange={up("email")} required />
-          <TextField label="Official Telephone" value={form.telephone} onChange={up("telephone")} />
+          <TextField label="Official Telephone" type="tel" value={form.telephone} onChange={up("telephone")} />
           <div className="sm:col-span-2">
             <TextField label="Physical Address" value={form.physicalAddress} onChange={up("physicalAddress")} required />
           </div>
@@ -639,7 +700,7 @@ function StepBody({
                 label="Region(s)"
                 options={UGANDA_REGIONS}
                 value={form.regions}
-                onChange={up("regions")}
+                onChange={setRegions}
               />
               <div>
                 <span className={labelClass}>District(s)</span>
@@ -648,7 +709,13 @@ function StepBody({
                   options={districtOpts}
                   value={form.districtCoverage}
                   onChange={up("districtCoverage")}
-                  placeholder={districtOpts.length ? "Search districts…" : "Loading districts…"}
+                  placeholder={
+                    !districtOpts.length
+                      ? "Loading districts…"
+                      : form.regions.length
+                        ? "Search districts in the selected region(s)…"
+                        : "Search districts…"
+                  }
                 />
               </div>
             </div>
@@ -672,7 +739,9 @@ function StepBody({
       return (
         <div className="space-y-5">
           <div>
-            <span className={labelClass}>Sector of Operation</span>
+            <span className={labelClass}>
+              Sector of Operation <span className="text-red-500">*</span>
+            </span>
             <ComboSelect
               multi
               options={toOptions(SECTORS)}
@@ -682,7 +751,9 @@ function StepBody({
             />
           </div>
           <div>
-            <span className={labelClass}>Value Chain Focus</span>
+            <span className={labelClass}>
+              Value Chain Focus <span className="text-red-500">*</span>
+            </span>
             <ComboSelect
               multi
               options={toOptions(VALUE_CHAINS)}
@@ -707,8 +778,8 @@ function StepBody({
             required
           />
           <div className="grid sm:grid-cols-2 gap-4">
-            <SelectField label="Number of Employees" value={form.employeesBand} onChange={up("employeesBand")} options={EMPLOYEE_BANDS} />
-            <SelectField label="Number of Branches" value={form.branchesBand} onChange={up("branchesBand")} options={BRANCH_BANDS} />
+            <SelectField label="Number of Employees" value={form.employeesBand} onChange={up("employeesBand")} options={EMPLOYEE_BANDS} required />
+            <SelectField label="Number of Branches" value={form.branchesBand} onChange={up("branchesBand")} options={BRANCH_BANDS} required />
             <SelectField label="Beneficiaries Served" value={form.beneficiariesBand} onChange={up("beneficiariesBand")} options={BENEFICIARY_BANDS} />
             <SelectField label="Annual Budget Range" value={form.annualBudgetRange} onChange={up("annualBudgetRange")} options={ANNUAL_BUDGET_RANGES} help="Optional" />
           </div>
@@ -735,7 +806,7 @@ function StepBody({
           </div>
           <TextField label="Position" value={form.contactPosition} onChange={up("contactPosition")} required />
           <TextField label="Email" type="email" value={form.contactEmail} onChange={up("contactEmail")} required />
-          <TextField label="Phone Number" value={form.contactPhone} onChange={up("contactPhone")} required />
+          <TextField label="Phone Number" type="tel" value={form.contactPhone} onChange={up("contactPhone")} required autoComplete="tel" />
         </div>
       );
 

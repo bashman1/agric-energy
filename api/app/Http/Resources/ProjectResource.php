@@ -50,6 +50,8 @@ class ProjectResource extends JsonResource
             'featured' => (bool) $this->featured,
             'published' => (bool) $this->published,
             'notifyPartnerIds' => $this->notify_partner_ids ?? [],
+            'partnerRole' => $this->partner_role,
+            'partnerEmail' => $this->partner_email,
             'workflowStatus' => $this->workflow_status,
             'updatedAt' => optional($this->updated_at)->toISOString(),
         ];

@@ -3,6 +3,7 @@ import { useState } from "react";
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import { ApiError, apiSend } from "@/lib/api/client";
+import { validateEmail } from "@/lib/validation/contact";
 
 type FormState = "idle" | "loading" | "success" | "error";
 
@@ -18,6 +19,14 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // `type="email"` alone is not a guarantee — it is skipped whenever the
+    // form is submitted programmatically, and says nothing on older browsers.
+    const emailError = validateEmail(email, { label: "Email address", required: true });
+    if (emailError) {
+      setErrorMsg(emailError);
+      setState("error");
+      return;
+    }
     setState("loading");
     setErrorMsg("");
     try {

@@ -37,6 +37,14 @@ export interface FieldDef {
   multiple?: boolean;
   group?: string;
   default?: string;
+  /**
+   * Render this field only while another field holds one of these values.
+   * Added for the project partner email, which is meaningless until a
+   * partner role has been chosen and whose label depends on that choice.
+   */
+  showWhen?: { key: string; equals: string[] };
+  /** Label overrides keyed by the value of `showWhen.key`. */
+  labelWhen?: Record<string, string>;
 }
 
 export type OptionsFrom =
@@ -73,8 +81,30 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
     { key: "location", label: "Location & coverage", type: "location", required: true },
     { key: "valueChain", label: "Value chain", type: "select", optionsFrom: "taxonomy:valueChains" },
     { key: "status", label: "Status", type: "select", optionsFrom: "taxonomy:projectStatuses", default: "Active" },
-    { key: "fundingPartner", label: "Funding partner", type: "select", optionsFrom: "partners", multiple: false },
-    { key: "implementingPartnerIds", label: "Implementing partners", type: "multiselect", optionsFrom: "partners" },
+    // One partner, named by role and email address. The API resolves the
+    // address to a registered partner and writes through to the funding /
+    // implementing fields the public project page renders, and the address
+    // is notified when the project is published.
+    {
+      key: "partnerRole",
+      label: "Partner role",
+      type: "select",
+      options: [
+        { id: "funding", label: "Funding partner" },
+        { id: "implementing", label: "Implementing partner" },
+      ],
+    },
+    {
+      key: "partnerEmail",
+      label: "Partner email",
+      type: "text",
+      showWhen: { key: "partnerRole", equals: ["funding", "implementing"] },
+      labelWhen: {
+        funding: "Funding partner email",
+        implementing: "Implementing partner email",
+      },
+      help: "They are notified by email — and in the portal, if the address has an account — once this project is published.",
+    },
     { key: "technologyIds", label: "Technologies", type: "multiselect", optionsFrom: "technologies" },
     { key: "themeIds", label: "Thematic areas", type: "multiselect", optionsFrom: "themes" },
     { key: "beneficiaryCount", label: "Beneficiary count", type: "text" },

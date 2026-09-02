@@ -19,6 +19,7 @@ import {
 } from "@/lib/data/partnerOptions";
 import Link from "next/link";
 import { ApiError, apiSend } from "@/lib/api/client";
+import { validateEmail, validatePhone } from "@/lib/validation/contact";
 
 const PARTNER_TYPES = [
     "Government Institution",
@@ -110,6 +111,16 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // Both addresses and both numbers, checked before the round trip.
+        const contactError =
+            validateEmail(form.email ?? "", { label: "Email" }) ??
+            validatePhone(form.phone ?? "", { label: "Phone" }) ??
+            validateEmail(form.contactEmail ?? "", { label: "Contact email" }) ??
+            validatePhone(form.contactPhone ?? "", { label: "Contact phone" });
+        if (contactError) {
+            setMsg({ type: "error", text: contactError });
+            return;
+        }
         setSaving(true);
         setMsg(null);
         try {

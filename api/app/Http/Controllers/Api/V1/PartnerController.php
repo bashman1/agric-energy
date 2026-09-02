@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Resources\PartnerResource;
+use App\Rules\PhoneNumber;
 use App\Models\Partner;
 use App\Models\Project;
 use App\Models\Technology;
@@ -29,6 +30,9 @@ class PartnerController extends ContentController
         $request->validate([
             'name' => ($updating ? 'sometimes' : 'required') . '|string|max:255',
             'email' => 'nullable|email',
+            'contactEmail' => 'nullable|email',
+            'phone' => ['nullable', 'string', 'max:50', new PhoneNumber],
+            'contactPhone' => ['nullable', 'string', 'max:50', new PhoneNumber],
             'website' => 'nullable|string|max:255',
         ]);
 

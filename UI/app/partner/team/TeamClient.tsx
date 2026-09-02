@@ -22,6 +22,7 @@ import {
 import { ApiError } from "@/lib/api/client";
 import { PARTNER_TEAM_ROLES, ROLE, ROLE_LABELS } from "@/lib/auth/token";
 import { useSession } from "@/lib/auth/useSession";
+import { validateEmail, validatePhone } from "@/lib/validation/contact";
 
 const EMPTY = { name: "", email: "", phone: "", password: "", password_confirmation: "" };
 
@@ -95,6 +96,16 @@ export default function TeamClient() {
     e.preventDefault();
     setErrors({});
     setMessage("");
+
+    const contactErrors: Record<string, string> = {};
+    const emailError = validateEmail(form.email, { label: "Email", required: true });
+    if (emailError) contactErrors.email = emailError;
+    const phoneError = validatePhone(form.phone, { label: "Phone" });
+    if (phoneError) contactErrors.phone = phoneError;
+    if (Object.keys(contactErrors).length > 0) {
+      setErrors(contactErrors);
+      return;
+    }
 
     if (form.password !== form.password_confirmation) {
       setErrors({ password_confirmation: "Passwords do not match." });
@@ -179,7 +190,7 @@ export default function TeamClient() {
               <input className="form-input" type="email" value={form.email} onChange={set("email")} required />
             </Field>
             <Field label="Phone" hint="optional" error={errors.phone}>
-              <input className="form-input" value={form.phone} onChange={set("phone")} />
+              <input className="form-input" type="tel" value={form.phone} onChange={set("phone")} />
             </Field>
             <div className="hidden sm:block" />
             <Field label="Password" hint="at least 8 characters" error={errors.password}>

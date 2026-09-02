@@ -5,6 +5,7 @@ import { useState } from "react";
 import FileUpload from "@/components/shared/FileUpload";
 import { updateMyPartner } from "@/lib/data/partner-portal";
 import type { Partner } from "@/lib/types";
+import { validateEmail, validatePhone } from "@/lib/validation/contact";
 
 /**
  * Edit form for the caller's own Ecosystem profile.
@@ -48,6 +49,16 @@ export default function ProfileForm({ partner, onSaved }: Props) {
 
     if ((values.expertise?.length ?? 0) > MAX_EXPERTISE) {
       setError(`Select at most ${MAX_EXPERTISE} areas of expertise.`);
+      return;
+    }
+
+    const contactError =
+      validateEmail(values.email ?? "", { label: "Email" }) ??
+      validatePhone(values.phone ?? "", { label: "Telephone" }) ??
+      validateEmail(values.contactEmail ?? "", { label: "Contact person's email" }) ??
+      validatePhone(values.contactPhone ?? "", { label: "Contact person's phone" });
+    if (contactError) {
+      setError(contactError);
       return;
     }
 

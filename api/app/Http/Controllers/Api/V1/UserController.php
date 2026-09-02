@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Rules\PhoneNumber;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Support\Roles;
@@ -62,7 +63,7 @@ class UserController extends Controller
             // `confirmed` pairs with password_confirmation, matching the
             // rules self-registration already enforces in AuthController.
             'password' => 'required|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:50',
+            'phone' => ['nullable', 'string', 'max:50', new PhoneNumber],
             'organisation' => 'nullable|string|max:255',
             'roles' => 'required|array|min:1',
             'roles.*' => 'in:' . implode(',', self::ASSIGNABLE_ROLES),

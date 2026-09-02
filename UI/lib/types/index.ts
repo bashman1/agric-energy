@@ -38,8 +38,19 @@ export interface Project {
   /** Center coordinate for map marker — auto-filled from Nominatim if not set */
   coordinates: Coordinates;
 
+  /**
+   * Kept as the public project page's source for "Funding partner" and
+   * "Implementing partners". They are no longer typed in directly: the
+   * create form asks for `partnerRole` + `partnerEmail`, and the API
+   * resolves that address to a partner and writes through to these.
+   */
   implementingPartnerIds: string[];
   fundingPartner: string;
+
+  /** Which side the named partner is on. Drives the email field's label. */
+  partnerRole?: "funding" | "implementing" | "";
+  /** Notified by email — and in-app, if the address has an account — on publish. */
+  partnerEmail?: string;
   budget?: number | null;
   budgetCurrency?: string;
   beneficiaryCount?: number | null;

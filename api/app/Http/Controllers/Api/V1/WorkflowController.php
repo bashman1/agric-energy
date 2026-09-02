@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Notification;
 use App\Models\ContentRevision;
 use App\Models\Event;
 use App\Models\Opportunity;
@@ -381,17 +382,29 @@ class WorkflowController extends Controller
     {
         try {
             $partnerSlugs = $model->getAttribute('notify_partner_ids') ?? [];
+            // A project also names one partner by email address on the create
+            // form. Kept separate because that address may belong to a partner
+            // with no account, or to nobody on the platform at all.
+            $partnerEmail = trim((string) $model->getAttribute('partner_email'));
 
-            if (empty($partnerSlugs)) {
+            if (empty($partnerSlugs) && $partnerEmail === '') {
                 return;
             }
 
-            $partners = Partner::whereIn('slug', $partnerSlugs)->get();
+            $notification = fn () => new ContentPublishedNotification($model, $type, $actorName);
+            $notified = [];
 
-            foreach ($partners as $partner) {
+            foreach (Partner::whereIn('slug', $partnerSlugs)->get() as $partner) {
                 foreach (User::where('partner_id', $partner->id)->get() as $user) {
-                    $user->notify(new ContentPublishedNotification($model, $type, $actorName));
+                    $user->notify($notification());
+                    $notified[] = strtolower($user->email);
                 }
+            }
+
+            // Only when no account at that address was reached above, so a
+            // partner with a user does not get the mail twice.
+            if ($partnerEmail !== '' && ! in_array(strtolower($partnerEmail), $notified, true)) {
+                Notification::route('mail', $partnerEmail)->notify($notification());
             }
         } catch (\Throwable $e) {
             report($e);

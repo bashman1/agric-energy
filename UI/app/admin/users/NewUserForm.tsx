@@ -15,6 +15,7 @@ import { createUser } from "@/lib/data/admin";
 import { ApiError } from "@/lib/api/client";
 import { ROLE, ROLE_LABELS } from "@/lib/auth/token";
 import { useSession } from "@/lib/auth/useSession";
+import { validateEmail, validatePhone } from "@/lib/validation/contact";
 
 const ASSIGNABLE = [
   ROLE.SUPER_ADMIN,
@@ -77,6 +78,18 @@ export default function NewUserForm({
     setErrors({});
     setMessage("");
 
+    // Same reasoning as the password check below: catch the obvious
+    // mistakes before the round trip, and keep the message on the field.
+    const contactErrors: Record<string, string> = {};
+    const emailError = validateEmail(form.email, { label: "Email", required: true });
+    if (emailError) contactErrors.email = emailError;
+    const phoneError = validatePhone(form.phone, { label: "Phone" });
+    if (phoneError) contactErrors.phone = phoneError;
+    if (Object.keys(contactErrors).length > 0) {
+      setErrors(contactErrors);
+      return;
+    }
+
     // Caught here as well as server-side so the user is not made to wait
     // for a round trip to learn the passwords differ.
     if (form.password !== form.password_confirmation) {
@@ -134,7 +147,7 @@ export default function NewUserForm({
           <input className="form-input" type="email" value={form.email} onChange={set("email")} required autoComplete="off" />
         </Field>
         <Field label="Phone" hint="optional" error={errors.phone}>
-          <input className="form-input" value={form.phone} onChange={set("phone")} autoComplete="off" />
+          <input className="form-input" type="tel" value={form.phone} onChange={set("phone")} autoComplete="off" />
         </Field>
         <Field label="Organisation" hint="optional" error={errors.organisation}>
           <input className="form-input" value={form.organisation} onChange={set("organisation")} autoComplete="off" />

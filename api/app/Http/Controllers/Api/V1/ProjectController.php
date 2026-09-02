@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Resources\ProjectResource;
 use App\Models\Partner;
+use App\Rules\EmailAddress;
 use App\Models\Project;
 use App\Models\Technology;
 use App\Models\Theme;
@@ -36,6 +37,12 @@ class ProjectController extends ContentController
             'summary' => 'nullable|string|max:2000',
             'coordinates.lat' => 'nullable|numeric',
             'coordinates.lng' => 'nullable|numeric',
+            'partnerRole' => 'nullable|in:funding,implementing',
+            // Required once a role is chosen — the address is the whole
+            // reason the role is asked for.
+            'partnerEmail' => ['required_with:partnerRole', 'nullable', 'string', 'max:255', new EmailAddress],
+        ], [
+            'partnerEmail.required_with' => 'Enter the partner\'s email address.',
         ]);
 
         return $request->all();
@@ -69,6 +76,8 @@ class ProjectController extends ContentController
             'featured' => 'featured',
             'published' => 'published',
             'notifyPartnerIds' => 'notify_partner_ids',
+            'partnerRole' => 'partner_role',
+            'partnerEmail' => 'partner_email',
         ];
 
         $attrs = [];
@@ -87,6 +96,38 @@ class ProjectController extends ContentController
             $attrs['slug'] = $data['slug'] ?? $data['title'];
         }
 
+        // The create form no longer asks for a funding partner and a list of
+        // implementing partners: it asks for ONE role and ONE partner email.
+        // Write that through to the fields the public project page already
+        // renders, so nothing on the site has to change and older projects
+        // keep working. An address matching no registered partner is still
+        // stored on partner_email and still gets notified at publish time.
+        $role = $data['partnerRole'] ?? null;
+        $email = trim((string) ($data['partnerEmail'] ?? ''));
+
+        if ($role && $email !== '') {
+            $partner = Partner::whereRaw('LOWER(email) = ?', [strtolower($email)])->first();
+
+            // Only a resolved partner's NAME goes into the public display
+            // field. Writing the raw address there would publish someone's
+            // email on the project page in place of an organisation name.
+            if ($role === 'funding' && $partner) {
+                $attrs['funding_partner'] = $partner->name;
+            }
+
+            // Nominating them for the publish notification is the whole point
+            // of collecting the address, so this happens for both roles.
+            // MERGED, not assigned: the form still has a separate "Partners
+            // to notify on publish" picker, and overwriting it here would
+            // silently drop everyone the author chose there.
+            if ($partner) {
+                $existing = $attrs['notify_partner_ids'] ?? ($data['notifyPartnerIds'] ?? []);
+                $attrs['notify_partner_ids'] = array_values(
+                    array_unique(array_merge(is_array($existing) ? $existing : [], [$partner->slug]))
+                );
+            }
+        }
+
         return $attrs;
     }
 
@@ -97,6 +138,8 @@ class ProjectController extends ContentController
             'technologyIds',
             'themeIds',
             'implementingPartnerIds',
+            'partnerRole',
+            'partnerEmail',
         ];
     }
 
@@ -112,6 +155,20 @@ class ProjectController extends ContentController
         if (array_key_exists('implementingPartnerIds', $data)) {
             $ids = $this->idsForSlugs(Partner::class, $data['implementingPartnerIds'] ?? []);
             $model->partners()->sync(array_fill_keys($ids, ['role' => 'implementing']));
+        }
+
+        // `partnerRole: implementing` is the pivot's new entry point. Only
+        // touched when the form actually sent a role, so an update that does
+        // not mention it leaves an existing list alone.
+        if (($data['partnerRole'] ?? null) === 'implementing') {
+            $email = trim((string) ($data['partnerEmail'] ?? ''));
+            $partner = $email === ''
+                ? null
+                : Partner::whereRaw('LOWER(email) = ?', [strtolower($email)])->first();
+
+            $model->partners()->sync(
+                $partner ? [$partner->id => ['role' => 'implementing']] : []
+            );
         }
     }
 }

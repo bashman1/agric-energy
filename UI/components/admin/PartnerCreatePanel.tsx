@@ -2,6 +2,7 @@
 
 import { useState, useId } from "react";
 import { ApiError, apiSend } from "@/lib/api/client";
+import { validateEmail, validatePhone } from "@/lib/validation/contact";
 
 const PARTNER_TYPES = [
     "Government Institution",
@@ -50,6 +51,10 @@ export default function PartnerCreatePanel({ initialName = "", onCreated, onCanc
 
     const handleSubmit = async () => {
         if (!form.name.trim()) { setError("Partner name is required."); return; }
+        const contactError =
+            validateEmail(form.email, { label: "Email" }) ??
+            validatePhone(form.phone, { label: "Phone" });
+        if (contactError) { setError(contactError); return; }
         setSaving(true);
         setError(null);
 
