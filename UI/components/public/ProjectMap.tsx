@@ -13,6 +13,15 @@ const REGIONS = ["Central Uganda","Eastern Uganda","Northern Uganda","Western Ug
 // same colour as its segment in the breakdown chart and its filter chip.
 const STATUS_COLORS: Record<string, string> = STATUS_COLOR;
 
+/**
+ * Basemap: OpenFreeMap's hosted "Liberty" style — OpenStreetMap data as
+ * MapLibre vector tiles, served without an API key and without usage caps.
+ *
+ * Swap to ".../styles/positron" for the muted grey alternative, which gives
+ * a quieter ground for the choropleth at the cost of road and terrain colour.
+ */
+const BASEMAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
+
 const UGANDA_CENTER: [number, number] = [32.35, 1.35];
 const UGANDA_BOUNDS: [[number, number], [number, number]] = [[29.57, -1.55], [35.0, 4.23]];
 
@@ -403,31 +412,21 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
 
         const map = new maplibregl.Map({
           container: containerRef.current!,
-          style: {
-            version: 8 as const,
-            glyphs: "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
-            // Carto "Voyager" raster basemap — roads, towns, water and terrain
-            // for geographic context. Free, key-less; choropleth sits on top at
-            // reduced opacity so the streets read through.
-            sources: {
-              basemap: {
-                type: "raster",
-                tiles: [
-                  "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-                  "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-                  "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-                  "https://d.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-                ],
-                tileSize: 256,
-                attribution:
-                  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-              },
-            },
-            layers: [
-              { id: "background", type: "background", paint: { "background-color": "#e8edf0" } },
-              { id: "basemap", type: "raster", source: "basemap" },
-            ],
-          },
+          // OpenFreeMap "Liberty" — roads, towns, water and terrain for
+          // geographic context, as MapLibre vector tiles. Key-less and
+          // unmetered.
+          //
+          // This replaced CARTO's Voyager raster basemap, which we used
+          // without a key until CARTO withdrew anonymous access: their CDN
+          // kept returning HTTP 200 but stamped "API KEY REQUIRED" across
+          // every tile, so the watermark showed on every environment.
+          //
+          // Vector rather than raster also means the basemap's own labels are
+          // separate layers, so the choropleth can be slipped UNDERNEATH them
+          // (see BASEMAP_STYLE usage in the load handler) and town names stay
+          // readable through it — which is what the translucent fill was
+          // always for.
+          style: BASEMAP_STYLE,
           center: UGANDA_CENTER, zoom: 6.5, minZoom: 5, maxZoom: 14,
           maxBounds: [[26, -5], [37, 7]] as [[number, number], [number, number]],
           attributionControl: false,
@@ -435,6 +434,10 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
         mapRef.current = map;
 
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+        // No customAttribution: OpenFreeMap's TileJSON at
+        // tiles.openfreemap.org/planet already carries the OpenFreeMap /
+        // OpenMapTiles / OpenStreetMap credit, and MapLibre renders it from
+        // there. Supplying our own as well printed it twice.
         map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
 
         // Only a real gesture counts as "the user moved the map"; every
@@ -456,38 +459,47 @@ export default function ProjectMap({ projects, regionFilter, districtFilter, reg
           map.addSource("adm2",     { type: "geojson", data: adm2, generateId: false });
           // Note: no separate "projects" source — project data is embedded in adm2 properties
 
+          // Everything we draw goes UNDER the basemap's first symbol layer,
+          // so place and road labels stay on top of the translucent
+          // choropleth instead of being buried by it. Looked up rather than
+          // hardcoded — the hosted style is free to change its layer names.
+          // Undefined (no symbol layers) simply appends, as before.
+          const labelsBelow = map
+            .getStyle()
+            .layers?.find((l) => l.type === "symbol")?.id;
+
           // Layers: back → front
           // Faint wash to lift Uganda from its neighbours without hiding roads.
           map.addLayer({ id: "uganda-fill", type: "fill", source: "adm0",
-            paint: { "fill-color": "#ffffff", "fill-opacity": 0.12 } });
+            paint: { "fill-color": "#ffffff", "fill-opacity": 0.12 } }, labelsBelow);
 
           map.addLayer({ id: "districts-fill", type: "fill", source: "adm2",
             paint: { "fill-color": ["interpolate",["linear"],["get","projectCount"],
               ...rampStops(DISTRICT_STOPS, DISTRICT_RAMP)],
-              "fill-opacity": 0.55 } });
+              "fill-opacity": 0.55 } }, labelsBelow);
 
           // (districts-dim removed — isolation approach hides non-matching features instead)
 
           map.addLayer({ id: "districts-hover", type: "fill", source: "adm2",
             paint: { "fill-color": "#f59e0b",
-              "fill-opacity": ["case",["boolean",["feature-state","hover"],false],0.4,0] } });
+              "fill-opacity": ["case",["boolean",["feature-state","hover"],false],0.4,0] } }, labelsBelow);
 
           map.addLayer({ id: "districts-line", type: "line", source: "adm2",
-            paint: { "line-color": "#4b5563", "line-width": 0.5, "line-opacity": 0.45 } });
+            paint: { "line-color": "#4b5563", "line-width": 0.5, "line-opacity": 0.45 } }, labelsBelow);
 
           // Regional choropleth (open-data aggregates) — hidden until selected.
           map.addLayer({ id: "regions-fill", type: "fill", source: "adm1",
             layout: { visibility: "none" },
             paint: { "fill-color": ["interpolate",["linear"],["get","projectCount"],
               ...rampStops(REGION_STOPS, REGION_RAMP)],
-              "fill-opacity": ["case",["boolean",["feature-state","hover"],false],0.75,0.55] } });
+              "fill-opacity": ["case",["boolean",["feature-state","hover"],false],0.75,0.55] } }, labelsBelow);
 
           map.addLayer({ id: "regions-line", type: "line", source: "adm1",
-            paint: { "line-color": "#1f2937", "line-width": 1.5, "line-opacity": 0.6 } });
+            paint: { "line-color": "#1f2937", "line-width": 1.5, "line-opacity": 0.6 } }, labelsBelow);
 
           // Crisp national outline on top for a clear country boundary.
           map.addLayer({ id: "uganda-border", type: "line", source: "adm0",
-            paint: { "line-color": "#0f3d23", "line-width": 1.5, "line-opacity": 0.75 } });
+            paint: { "line-color": "#0f3d23", "line-width": 1.5, "line-opacity": 0.75 } }, labelsBelow);
 
 
           // ── Apply initial filter (read from refs to avoid stale closure) ──
