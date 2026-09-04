@@ -8,6 +8,7 @@ import AttachmentsUpload from "@/components/shared/AttachmentsUpload";
 import FileUpload from "@/components/shared/FileUpload";
 import Link from "next/link";
 import { ApiError, apiSend } from "@/lib/api/client";
+import { mediaUrl } from "@/lib/utils/mediaUrl";
 
 interface Props {
   project: Partial<Project>;
@@ -256,7 +257,7 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
               <div className="mb-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={form.featuredImage}
+                  src={mediaUrl(form.featuredImage)}
                   alt="Featured"
                   className="w-full h-36 object-cover rounded-lg border border-ink-200"
                 />

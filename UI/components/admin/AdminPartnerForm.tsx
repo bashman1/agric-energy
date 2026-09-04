@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import { ApiError, apiSend } from "@/lib/api/client";
 import { validateEmail, validatePhone } from "@/lib/validation/contact";
+import { mediaUrl } from "@/lib/utils/mediaUrl";
 
 const PARTNER_TYPES = [
     "Government Institution",
@@ -279,7 +280,7 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
                                 {form.logo && (
                                     <div className="mt-2 flex items-center gap-3">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={form.logo} alt="Logo preview" className="h-10 object-contain border border-ink-100 rounded-lg p-1 bg-white" />
+                                        <img src={mediaUrl(form.logo)} alt="Logo preview" className="h-10 object-contain border border-ink-100 rounded-lg p-1 bg-white" />
                                         <span className="text-xs text-ink-400">Logo preview</span>
                                     </div>
                                 )}
@@ -522,7 +523,7 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
                             <h3 className="font-bold text-ink-900 text-sm mb-3">Logo Preview</h3>
                             <div className="flex items-center justify-center bg-ink-50 rounded-lg p-4 border border-ink-100 h-24">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={form.logo} alt="Partner logo" className="max-h-full max-w-full object-contain" />
+                                <img src={mediaUrl(form.logo)} alt="Partner logo" className="max-h-full max-w-full object-contain" />
                             </div>
                         </div>
                     )}

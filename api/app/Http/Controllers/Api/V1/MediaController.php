@@ -57,7 +57,18 @@ class MediaController extends Controller
 
         return response()->json([
             'data' => [
-                'url' => Storage::disk('public')->url($path),
+                // ROOT-RELATIVE, deliberately. Storage::url() builds this from
+                // APP_URL, which stamps one environment's hostname into a value
+                // that is then saved to the database and served to everyone —
+                // so an image uploaded on UAT came back as
+                // http://localhost:8000/storage/... and rendered as a broken
+                // image for every visitor. nginx puts the API, the frontend and
+                // /storage on a single origin (see deploy/nginx/*.conf), so a
+                // relative path is correct in every environment and survives a
+                // domain change. `next dev` is the one split-origin case, and
+                // the frontend re-attaches the origin there — see
+                // UI/lib/utils/mediaUrl.ts.
+                'url' => '/storage/' . ltrim($path, '/'),
                 'path' => $path,
                 'name' => $file->getClientOriginalName(),
                 'size' => $file->getSize(),

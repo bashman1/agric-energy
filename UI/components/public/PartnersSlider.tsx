@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { mediaUrl } from "@/lib/utils/mediaUrl";
 
 interface SliderPartner {
     id: string;
@@ -70,7 +71,7 @@ export default function PartnersSlider({ partners }: { partners: SliderPartner[]
                             {p.logo ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img
-                                    src={p.logo}
+                                    src={mediaUrl(p.logo)}
                                     alt={p.name}
                                     draggable={false}
                                     className="max-h-full max-w-full object-contain opacity-50 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-300 select-none"

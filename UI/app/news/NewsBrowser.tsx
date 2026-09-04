@@ -15,6 +15,7 @@ import {
   categoryLabel,
   formatPublished as fmt,
 } from "./categories";
+import { mediaUrl } from "@/lib/utils/mediaUrl";
 
 
 
@@ -121,7 +122,7 @@ function LeadCard({ post }: { post: Post }) {
       {post.featuredImage && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={post.featuredImage}
+          src={mediaUrl(post.featuredImage)}
           alt={post.title}
           className="w-full h-56 sm:h-72 object-cover"
         />
@@ -149,7 +150,7 @@ function PostCard({ post }: { post: Post }) {
       {post.featuredImage && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={post.featuredImage}
+          src={mediaUrl(post.featuredImage)}
           alt={post.title}
           className="w-full h-36 object-cover"
         />

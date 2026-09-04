@@ -37,27 +37,21 @@ return new class extends Migration
 
     public function up(): void
     {
-        // Assign a cover only where the project has no usable image of its
-        // own. A real photo uploaded later must survive this migration being
-        // re-run after a rollback.
+        // Assign a cover only where the project has NO image of its own — an
+        // empty column, nothing more. A loopback URL is not treated as absent
+        // here even though it is broken: the file behind it usually exists on
+        // whichever server took the upload, so the next migration repairs the
+        // path and only clears it if there is genuinely no file. Claiming
+        // those rows here would overwrite a real photo with stock artwork
+        // before anything had a chance to fix it.
         foreach (self::COVERS as $slug => $path) {
             DB::table('projects')
                 ->where('slug', $slug)
                 ->where(fn ($q) => $q
                     ->whereNull('featured_image')
-                    ->orWhere('featured_image', '')
-                    ->orWhere('featured_image', 'like', 'http://localhost%')
-                    ->orWhere('featured_image', 'like', 'http://127.0.0.1%'))
+                    ->orWhere('featured_image', ''))
                 ->update(['featured_image' => $path, 'updated_at' => now()]);
         }
-
-        // Any project still pointing at a loopback address cannot resolve for
-        // a visitor. Empty it so the brand default cover takes over.
-        DB::table('projects')
-            ->where(fn ($q) => $q
-                ->where('featured_image', 'like', 'http://localhost%')
-                ->orWhere('featured_image', 'like', 'http://127.0.0.1%'))
-            ->update(['featured_image' => '', 'updated_at' => now()]);
     }
 
     /**

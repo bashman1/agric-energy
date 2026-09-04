@@ -72,6 +72,18 @@ else
   sudo rm -rf "$APP/public/static.old"
 fi
 
+# public/storage must point at the storage of the app that is RUNNING. The
+# copy above brings api/public/storage along as a symlink, and if it was ever
+# created by running artisan inside api/ it still points at
+# $APP/api/storage/app/public — while php-fpm, running from $APP, writes
+# uploads to $APP/storage/app/public. Uploads then land on disk correctly and
+# 404 over HTTP. --force because the link already exists.
+echo "Re-linking public/storage to this app's storage..."
+sudo -u "$OWNER" php artisan storage:link --force || {
+  echo "storage:link failed — uploaded images will not be served."
+  exit 1
+}
+
 echo "Running database migrations..."
 sudo -u "$OWNER" php artisan migrate --force || {
   echo "Database migration failed."

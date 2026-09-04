@@ -11,6 +11,7 @@ import { useAsync } from "@/lib/hooks/useAsync";
 import { useRouteSlug } from "@/lib/routing/useRouteSlug";
 import { getPostBySlug } from "@/lib/data/posts";
 import { categoryLabel, formatPublished } from "../categories";
+import { mediaUrl } from "@/lib/utils/mediaUrl";
 
 export default function PostDetailClient({ slug: routeSlug }: { slug: string }) {
   // The exported HTML is one shell for the whole collection, so the
@@ -97,7 +98,7 @@ export default function PostDetailClient({ slug: routeSlug }: { slug: string }) 
             {post.featuredImage && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={post.featuredImage}
+                src={mediaUrl(post.featuredImage)}
                 alt={post.title}
                 className="w-full rounded-xl border border-gray-100 mb-8 object-cover max-h-96"
               />
