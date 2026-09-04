@@ -8,7 +8,7 @@
   "website": "https://www.nrep.go.ug",
   "email": "info@nrep.go.ug",
   "phone": "+256 414 123 456",
-  "logo": "https://nrep.ug/wp-content/uploads/elementor/thumbs/NREP-LOGO-COLORED-scaled-rieu65sc8owur5gv83ut1t3sbzktkadyvrk9beiom8.png",
+  "logo": "/logos/nrep.png",
   "regions": [
     "Central",
     "Eastern",
@@ -34,6 +34,6 @@
     "project-008"
   ],
   "featured": true,
-  "published": false,
+  "published": true,
   "updatedAt": "2026-04-01T13:09:37.761Z"
 }

@@ -51,6 +51,21 @@ if [[ $SKIP_PULL -eq 0 ]]; then
   git -C "$REPO" fetch --prune origin
   git -C "$REPO" checkout "$BRANCH"
   git -C "$REPO" reset --hard "origin/${BRANCH}"
+
+  # api/public/static is a build artefact, committed whole (build-static.sh
+  # does `rm -rf` before copying, so the tree in git is always complete and
+  # nothing under it is ignored). Untracked files there can only be debris
+  # from an older build made ON this host — and debris is not harmless: the
+  # export used to prerender one directory per record, so a stale
+  # static/projects/<slug>/index.html is matched by nginx's try_files and
+  # served INSTEAD of the collection shell. That is how UAT ended up serving
+  # a pre-shell-fix error page for every record that existed at the time,
+  # while records created later resolved fine.
+  #
+  # `git reset --hard` cannot clear it: it deletes files the target commit
+  # removed, but leaves untracked ones alone, and it aborts outright when an
+  # untracked file collides with one the target commit adds.
+  git -C "$REPO" clean -fdq -- api/public/static
 fi
 log "Deploying $(git -C "$REPO" rev-parse --short HEAD) — $(git -C "$REPO" log -1 --format=%s)"
 
@@ -174,6 +189,28 @@ if [[ "$bytes" -lt 8000 ]]; then
 else
   printf '  \033[1;32mok\033[0m   %-28s %s bytes\n' "/projects body" "$bytes"
 fi
+
+# Record pages are the ones a stale build breaks silently: they answer 200
+# with Next's error document ("404 | This page could not be found") rather
+# than a failing status code, so every check above still passes. Take one
+# real slug per collection from the API and assert the page that comes back
+# is a page — no `id="__next_error__"` — for each one.
+log "Verifying record pages resolve"
+for collection in projects technologies themes partners resources events opportunities news; do
+  slug=$(curl -sS --max-time 20 "https://${DOMAIN}/api/v1/${collection}" \
+    | sed -n 's/.*"slug":"\([^"]*\)".*/\1/p' | head -1)
+  [[ -n "$slug" ]] || { printf '  \033[1;33mskip\033[0m %-28s no records\n' "/${collection}/…"; continue; }
+
+  body=$(curl -sS --max-time 20 "https://${DOMAIN}/${collection}/${slug}")
+  if grep -q '__next_error__' <<<"$body"; then
+    printf '  \033[1;31mFAIL\033[0m %-28s Next error page\n' "/${collection}/${slug}"
+    warn "A stale prerendered file is shadowing the ${collection} shell."
+    warn "Clear the debris:  git -C ${REPO} clean -fd -- api/public/static"
+    fail=1
+  else
+    printf '  \033[1;32mok\033[0m   %-28s %s bytes\n' "/${collection}/${slug}" "${#body}"
+  fi
+done
 
 if [[ $fail -eq 0 ]]; then
   log "Deploy complete — https://${DOMAIN}"

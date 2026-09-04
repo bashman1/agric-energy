@@ -92,7 +92,7 @@ export default function HomePage() {
   // output because the partner record existed only as an unpublished draft;
   // it is published now, so all four render. Anything named here that is not
   // published simply drops out, so keep the two in step.
-  const sliderPartnerSlugs = ["snv-uganda", "maaif", "nrep", "giz-uganda"];
+  const sliderPartnerSlugs = ["snv-uganda", "maaif", "nrep", "memd"];
   const sliderPartners = sliderPartnerSlugs
     .map((slug) => partners.find((p) => p.slug === slug))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
