@@ -52,9 +52,9 @@ export default async function AdminSiteConfigPage() {
       </div>
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-        <p className="text-sm text-amber-700 font-semibold mb-1">Read-Only in Prototype</p>
+        <p className="text-sm text-amber-700 font-semibold mb-1">Read-only</p>
         <p className="text-xs text-amber-600 leading-relaxed">
-          Site config editing via the UI will be enabled in Phase 2. For now, edit <code className="font-mono">data/site/config.json</code> directly to change these values. Changes take effect on next server restart.
+          Site config editing via the UI is not yet enabled. For now, edit <code className="font-mono">data/site/config.json</code> directly to change these values. Changes take effect on next server restart.
         </p>
       </div>
     </div>

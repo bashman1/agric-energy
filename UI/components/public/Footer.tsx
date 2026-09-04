@@ -123,7 +123,6 @@ export default function Footer() {
 
         <div className="border-t border-white/10 mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-shade-500">
           <p>{t("copyright", { year: String(new Date().getFullYear()) })}</p>
-          <p>{t("builtWith")}</p>
         </div>
       </div>
     </footer>

@@ -160,8 +160,8 @@ export default function HomePage() {
                   ))}
                 </dl>
                 <p className="mt-8 text-xs text-ink-400">
-                  Figures aggregate published sample projects — prototype data,
-                  not official statistics.
+                  Figures aggregate projects published on this platform — not
+                  official national statistics.
                 </p>
               </div>
 
@@ -384,12 +384,7 @@ function Hero({ featuredProjects }: { featuredProjects: Project[] }) {
       />
       <div className="container-page relative py-20 lg:py-28 grid gap-10 lg:grid-cols-2 lg:gap-16 lg:items-center">
         <Reveal className="max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-100 backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary-300" aria-hidden="true" />
-            Phase 1 prototype · sample data
-          </span>
-
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.08] tracking-tight mt-6">
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.08] tracking-tight">
             Uganda&apos;s national<br />
             <span className="text-primary-300">agri-energy platform</span>
           </h1>

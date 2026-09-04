@@ -79,8 +79,7 @@
     "contact": "Nous contacter",
     "submitInformation": "Soumettre une information",
     "adminPortal": "Portail d'administration",
-    "copyright": "© {year} Agri-Energy Desk — Plateforme nationale des énergies renouvelables (NREP), Ouganda.",
-    "builtWith": "Prototype de phase 1 — Propulsé par Next.js"
+    "copyright": "© {year} Agri-Energy Desk — Plateforme nationale des énergies renouvelables (NREP), Ouganda."
   },
   "Common": {
     "loading": "Chargement…",

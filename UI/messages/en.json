@@ -79,8 +79,7 @@
     "contact": "Contact Us",
     "submitInformation": "Submit Information",
     "adminPortal": "Admin Portal",
-    "copyright": "© {year} Agri-Energy Desk — National Renewable Energy Platform (NREP), Uganda.",
-    "builtWith": "Phase 1 Prototype — Powered by Next.js"
+    "copyright": "© {year} Agri-Energy Desk — National Renewable Energy Platform (NREP), Uganda."
   },
   "Common": {
     "loading": "Loading…",
