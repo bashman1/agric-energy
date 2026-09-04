@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" role="img" aria-label="Biogas dome digester serving a dairy herd">
+  <defs>
+    <linearGradient id="bg-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#115e59"/>
+      <stop offset="1" stop-color="#14532d"/>
+    </linearGradient>
+    <linearGradient id="bg-sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="bg-flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#fef3c7"/>
+    </linearGradient>
+    <linearGradient id="bg-dome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#134e4a"/>
+      <stop offset="1" stop-color="#0b3b2e"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="300" height="400" fill="url(#bg-sky)"/>
+  <circle cx="238" cy="60" r="29" fill="url(#bg-sun)" opacity="0.9"/>
+
+  <path d="M0 286 Q76 254 156 278 T300 272 V400 H0 Z" fill="#166534"/>
+  <path d="M0 330 Q96 302 194 324 T300 320 V400 H0 Z" fill="#15803d"/>
+  <path d="M0 366 Q108 348 208 364 T300 360 V400 H0 Z" fill="#052e16"/>
+
+  <!-- Gas line from the dome up to a lit burner -->
+  <g fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M186 214 L228 214 L228 166"/>
+  </g>
+  <rect x="218" y="156" width="20" height="10" rx="2" fill="#0b3b2e" stroke="#34d399" stroke-width="1.4"/>
+  <path d="M228 118 c12 14 16 20 16 28 a16 16 0 0 1 -32 0 c0 -10 8 -14 16 -28 Z" fill="url(#bg-flame)" opacity="0.95"/>
+  <path d="M228 136 c5 7 7 10 7 14 a7 7 0 0 1 -14 0 c0 -5 4 -7 7 -14 Z" fill="#fffbeb" opacity="0.85"/>
+
+  <!-- Fixed-dome digester, with its feed inlet on the left -->
+  <g>
+    <path d="M118 240 a34 34 0 0 1 68 0 Z" fill="url(#bg-dome)" stroke="#34d399" stroke-width="1.6"/>
+    <rect x="118" y="240" width="68" height="32" fill="#0b3b2e" stroke="#34d399" stroke-width="1.6"/>
+    <g stroke="#34d399" stroke-width="1" opacity="0.5">
+      <path d="M134 240 a18 18 0 0 1 36 0"/>
+      <line x1="118" y1="256" x2="186" y2="256"/>
+    </g>
+    <path d="M118 228 L100 228 L100 272 L118 272" fill="none" stroke="#34d399" stroke-width="1.6" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Dairy cow. Drawn as a solid LIGHT silhouette: a dark one with outline
+       detail disappears against the hill at card size. -->
+  <g fill="#a7f3d0">
+    <rect x="18" y="228" width="50" height="25" rx="11"/>
+    <rect x="62" y="220" width="19" height="16" rx="5"/>
+    <rect x="77" y="226" width="9" height="9" rx="3.5"/>
+    <path d="M64 220 l-7 -8 l10 2 Z"/>
+    <ellipse cx="44" cy="252" rx="8" ry="4"/>
+    <g>
+      <rect x="22" y="250" width="5.5" height="17" rx="2.5"/>
+      <rect x="33" y="250" width="5.5" height="17" rx="2.5"/>
+      <rect x="49" y="250" width="5.5" height="17" rx="2.5"/>
+      <rect x="60" y="250" width="5.5" height="17" rx="2.5"/>
+    </g>
+  </g>
+  <path d="M18 232 q-9 6 -5 18" fill="none" stroke="#a7f3d0" stroke-width="2.4" stroke-linecap="round"/>
+</svg>
