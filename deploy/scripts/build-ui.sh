@@ -22,6 +22,15 @@ die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 
 [ -d "$UI_DIR" ] || die "UI directory not found at $UI_DIR"
 
+# One build at a time — see the lock in build-static.sh for why a parallel
+# `npm ci` corrupts node_modules instead of failing. Taken here too so running
+# this script on its own is covered, but skipped when build-static.sh already
+# holds it: re-locking the same file from a child would deadlock.
+if [ -z "${AGRI_BUILD_LOCK_HELD:-}" ]; then
+  exec 9>"$UI_DIR/.build.lock"
+  flock -n 9 || die "another build is already running in this checkout — wait for it to finish"
+fi
+
 cd "$UI_DIR"
 
 # Next 16 refuses to build on anything older. Catch it here rather than

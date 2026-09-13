@@ -38,6 +38,20 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 log() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 
+# ── One build at a time ──────────────────────────────────────────────
+# Two builds in parallel destroy each other rather than failing cleanly:
+# `npm ci` deletes node_modules and re-extracts it, so a second run deletes
+# files the first is still unpacking. The symptom is hundreds of
+# `npm warn tar TAR_ENTRY_ERROR ENOENT` lines across every package and a
+# half-installed tree — nothing about it points at the real cause. The copy
+# into api/public/static below races the same way. Refuse instead.
+#
+# The lock is inherited by build-ui.sh via the environment, so it does not
+# try to take the same lock again and deadlock against its own parent.
+exec 9>"$REPO_ROOT/UI/.build.lock"
+flock -n 9 || die "another build is already running in this checkout — wait for it to finish"
+export AGRI_BUILD_LOCK_HELD=1
+
 # ── Node 20 via nvm ──────────────────────────────────────────────────
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 # shellcheck disable=SC1091
