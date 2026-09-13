@@ -90,6 +90,51 @@ export async function rejectRevision(id: number, notes: string, token?: string) 
   return apiSend("POST", `revisions/${id}/reject`, { notes }, { token });
 }
 
+/**
+ * Any content record by type and slug, including unpublished ones.
+ *
+ * Generic on purpose: the review queue mixes nine content types and needs to
+ * show whichever one a reviewer opened, without a per-type branch. `admin=true`
+ * is what lifts the published-only filter; the API grants it to reviewers and
+ * content managers and refuses everyone else.
+ */
+export async function getAdminRecord(
+  type: string,
+  slug: string,
+  token?: string
+): Promise<Record<string, unknown> | null> {
+  return apiGet<Record<string, unknown> | null>(`${type}/${slug}`, null, {
+    params: { admin: true },
+    token,
+  });
+}
+
+/**
+ * One queued edit, field by field, as it would change the live record.
+ *
+ * The record's own page shows the PUBLISHED version — a revision leaves that
+ * untouched until it is approved — so this is the only way to see what an edit
+ * actually proposes.
+ */
+export interface RevisionDetail {
+  id: number;
+  kind: "revision";
+  type: string;
+  slug: string;
+  title: string;
+  author: string | null;
+  submittedAt: string | null;
+  changes: { field: string; before: unknown; after: unknown }[];
+  relations: Record<string, unknown>;
+}
+
+export async function getRevision(
+  id: number,
+  token?: string
+): Promise<RevisionDetail | null> {
+  return apiGet<RevisionDetail | null>(`revisions/${id}`, null, { token });
+}
+
 /** Route a queue item to whichever pair of endpoints applies to it. */
 export async function approveQueueItem(item: ReviewQueueItem, token?: string) {
   return item.kind === "revision" && item.revisionId

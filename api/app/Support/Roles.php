@@ -152,4 +152,26 @@ final class Roles
         self::KNOWLEDGE_MANAGER,
         self::REVIEWER,
     ];
+
+    /**
+     * Roles that sign off their OWN organisation's submissions before NREP is
+     * asked to review them.
+     *
+     * The knowledge manager belongs here for the same reason the platform's
+     * knowledge-manager sits in REVIEWERS: checking a colleague's work is the
+     * editorial half of the role, and confining it to the administrator meant
+     * an organisation whose admin was away, or who authored the submission
+     * themselves, had nobody who could move it on. The separation-of-duties
+     * rule still holds — ContentPolicy::approveForOrg refuses the author
+     * whatever role they hold — so widening the group cannot let anyone
+     * endorse their own work.
+     *
+     * The content contributor is deliberately absent: they author, and a queue
+     * where every member can clear their colleague's work in a ring is not a
+     * review.
+     */
+    public const ORG_REVIEWERS = [
+        self::PARTNER_ADMIN,
+        self::PARTNER_KNOWLEDGE_MANAGER,
+    ];
 }

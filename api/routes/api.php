@@ -45,6 +45,10 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
         // Partner self-service: the caller's own submissions across types.
         Route::get('my/content', [MyContentController::class, 'index']);
+        // One of those submissions in full, so an organisation's reviewer can
+        // read a colleague's work before endorsing it to NREP. Organisation
+        // scoped in the controller, read-only.
+        Route::get('my/content/{type}/{slug}', [MyContentController::class, 'show']);
         // …and the directory profile they registered, which is theirs to keep
         // current rather than something an administrator re-types for them.
         Route::get('my/partner', [MyPartnerController::class, 'show']);
@@ -159,6 +163,11 @@ Route::prefix('v1')->group(function () {
         // changing the live version; these act on the queued edit, not the
         // record, so they are keyed by revision id. Declared before the
         // {type}/{slug} routes below so "review" is never read as a type.
+        // Read one queued edit as a before/after. The record itself still
+        // shows the published version — that is the point of a revision — so
+        // without this a reviewer can see WHICH fields an edit touches but
+        // never what it proposes to put in them.
+        Route::get('revisions/{id}', [WorkflowController::class, 'showRevision']);
         Route::post('revisions/{id}/approve', [WorkflowController::class, 'approveRevision']);
         Route::post('revisions/{id}/reject', [WorkflowController::class, 'rejectRevision']);
 

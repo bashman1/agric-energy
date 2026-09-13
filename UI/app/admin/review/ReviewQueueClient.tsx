@@ -4,7 +4,13 @@ import Link from "next/link";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { CheckCircleIcon } from "@/components/shared/icons";
 import type { ReviewQueueItem } from "@/lib/data/admin";
-import { approveQueueItem, rejectQueueItem } from "@/lib/data/admin";
+import {
+  approveQueueItem,
+  rejectQueueItem,
+  getAdminRecord,
+  getRevision,
+} from "@/lib/data/admin";
+import { RecordFields, FieldChanges, type FieldChange } from "@/components/shared/ReviewPanel";
 import AdminTableFilters, { type SelectFilter } from "@/components/admin/AdminTableFilters";
 
 const TYPE_LABEL: Record<string, string> = {
@@ -29,6 +35,16 @@ export default function ReviewQueueClient({
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
+
+  // Which row is expanded for review, and what has been loaded for it. The
+  // content is fetched on demand rather than with the queue: a queue of forty
+  // items would otherwise pull forty full records nobody has asked to read.
+  const [open, setOpen] = useState<string | null>(null);
+  const [detail, setDetail] = useState<
+    Record<string, unknown> | { changes: FieldChange[] } | null
+  >(null);
+  const [detailError, setDetailError] = useState("");
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   // A live record and a queued edit against it share a type and slug, so the
   // kind has to be part of the key or the two rows collide.
@@ -68,6 +84,37 @@ export default function ReviewQueueClient({
         }]
       : []),
   ];
+
+  /** Expand a row and load what it is proposing. */
+  const toggle = async (i: ReviewQueueItem) => {
+    const id = key(i);
+    if (open === id) {
+      setOpen(null);
+      setDetail(null);
+      return;
+    }
+
+    setOpen(id);
+    setDetail(null);
+    setDetailError("");
+    setLoadingDetail(true);
+    try {
+      if (i.kind === "revision" && i.revisionId) {
+        // A revision's own record still shows the LIVE version, so the queued
+        // payload is the only place the proposed values exist.
+        const rev = await getRevision(i.revisionId);
+        setDetail(rev ? { changes: rev.changes as FieldChange[] } : null);
+      } else {
+        setDetail(await getAdminRecord(i.type, i.slug));
+      }
+    } catch (e) {
+      setDetailError(
+        e instanceof Error ? e.message : "Could not load this submission."
+      );
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
 
   const approve = async (i: ReviewQueueItem) => {
     setBusy(key(i));
@@ -137,10 +184,8 @@ export default function ReviewQueueClient({
           ) : (
         <div className="bg-white rounded-xl border border-ink-200 shadow-card divide-y divide-ink-100">
           {shown.map((i) => (
-            <div
-              key={key(i)}
-              className="flex items-center gap-4 px-4 py-3.5"
-            >
+            <div key={key(i)} className="px-4 py-3.5">
+            <div className="flex items-center gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-primary-50 text-primary-700 border border-primary-100">
@@ -169,12 +214,13 @@ export default function ReviewQueueClient({
                   </p>
                 )}
               </div>
-              <Link
-                href={`/admin/${i.type}/${i.slug}`}
-                className="text-xs font-semibold text-ink-500 hover:text-primary-700"
+              <button
+                onClick={() => toggle(i)}
+                aria-expanded={open === key(i)}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-ink-200 text-ink-600 hover:bg-ink-50"
               >
-                View
-              </Link>
+                {open === key(i) ? "Hide" : "View"}
+              </button>
               <button
                 onClick={() => reject(i)}
                 disabled={busy === key(i)}
@@ -189,6 +235,43 @@ export default function ReviewQueueClient({
               >
                 {busy === key(i) ? "…" : "Approve"}
               </button>
+            </div>
+
+            {open === key(i) && (
+              <div className="mt-3 rounded-lg border border-ink-200 bg-ink-50/40 p-4">
+                {loadingDetail ? (
+                  <p className="text-sm text-ink-400" role="status">Loading…</p>
+                ) : detailError ? (
+                  <p className="text-sm text-red-600">{detailError}</p>
+                ) : detail === null ? (
+                  <p className="text-sm text-ink-400">Nothing to show.</p>
+                ) : "changes" in detail ? (
+                  <>
+                    <p className="text-xs text-ink-500 mb-2">
+                      What this edit would change. The published version stays
+                      live unless you approve it.
+                    </p>
+                    <FieldChanges changes={(detail as { changes: FieldChange[] }).changes} />
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-ink-500 mb-2">
+                      The full submission, as it would be published.
+                    </p>
+                    <RecordFields record={detail as Record<string, unknown>} />
+                  </>
+                )}
+
+                <div className="mt-3 pt-3 border-t border-ink-200">
+                  <Link
+                    href={`/admin/${i.type}/edit?slug=${encodeURIComponent(i.slug)}`}
+                    className="text-xs font-semibold text-primary-700 hover:text-primary-800"
+                  >
+                    Open in the editor →
+                  </Link>
+                </div>
+              </div>
+            )}
             </div>
           ))}
         </div>

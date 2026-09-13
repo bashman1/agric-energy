@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\EventResource;
+use App\Http\Resources\OpportunityResource;
+use App\Http\Resources\PartnerResource;
+use App\Http\Resources\ProjectResource;
+use App\Http\Resources\ResourceResource;
+use App\Http\Resources\TechnologyResource;
 use App\Models\Event;
 use App\Models\Opportunity;
 use App\Models\Partner;
@@ -37,6 +43,21 @@ class MyContentController extends Controller
         'partners' => Partner::class,
         'events' => Event::class,
         'opportunities' => Opportunity::class,
+    ];
+
+    /**
+     * How each type is shaped for the client. The same resources the public
+     * API uses, so a submission under review reads exactly as it will once
+     * published — a reviewer should be looking at the finished article, not a
+     * different rendering of it.
+     */
+    private const RESOURCES = [
+        'projects' => ProjectResource::class,
+        'technologies' => TechnologyResource::class,
+        'resources' => ResourceResource::class,
+        'partners' => PartnerResource::class,
+        'events' => EventResource::class,
+        'opportunities' => OpportunityResource::class,
     ];
 
     public function index(Request $request): JsonResponse
@@ -81,6 +102,46 @@ class MyContentController extends Controller
         usort($out, fn ($a, $b) => strcmp($b['updatedAt'] ?? '', $a['updatedAt'] ?? ''));
 
         return response()->json(['data' => $out, 'total' => count($out)]);
+    }
+
+    /**
+     * One of those submissions, in full.
+     *
+     * Without this an organisation's reviewer had the list and nothing else:
+     * a title, a truncated summary, and two buttons. Endorsing a colleague's
+     * work means sending it to NREP over the organisation's name, and there
+     * was no way to read the thing first — the public detail page is no help
+     * because the record is unpublished, and the admin API refuses anyone who
+     * is not platform staff.
+     *
+     * Scoped exactly as the list is: the caller's own organisation, never
+     * another's. Read-only — endorsing still goes through orgApprove(), which
+     * keeps the author out of their own sign-off.
+     */
+    public function show(Request $request, string $type, string $slug): JsonResponse
+    {
+        $user = $request->user();
+
+        $modelClass = self::TYPES[$type] ?? null;
+        abort_if($modelClass === null, 404, 'Unknown content type.');
+
+        $item = $modelClass::where('slug', $slug)
+            ->whereIn('created_by', $this->visibleAuthorIds($user))
+            ->with('author')
+            ->first();
+
+        // 404 rather than 403 on another organisation's record: whether it
+        // exists is not this caller's business either.
+        abort_if($item === null, 404, 'Not found.');
+
+        $resourceClass = self::RESOURCES[$type];
+
+        return response()->json([
+            'data' => (new $resourceClass($item))->toArray($request) + [
+                'author' => $item->author?->name,
+                'isMine' => (int) $item->created_by === (int) $user->id,
+            ],
+        ]);
     }
 
     /**

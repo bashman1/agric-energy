@@ -182,13 +182,24 @@ export function canManagePartnerTeam(user: Pick<StoredUser, "roles"> | null): bo
 }
 
 /**
+ * Roles that sign off their OWN organisation's submissions. Mirrors
+ * Roles::ORG_REVIEWERS in the API — keep the two in step.
+ */
+export const ORG_REVIEWER_ROLES = [
+  ROLE.PARTNER_ADMIN,
+  ROLE.PARTNER_KNOWLEDGE_MANAGER,
+] as const;
+
+/**
  * Can sign off their OWN organisation's submissions before the platform sees
- * them. Same holder as canManagePartnerTeam() today — the organisation's
- * administrator — but a separate predicate because the API gates the two
- * separately (`manage-partner-team` vs `org-review-queue`).
+ * them. Separate from canManagePartnerTeam() — which is the administrator
+ * alone — because the API gates the two separately (`manage-partner-team` vs
+ * `org-review-queue`), and the knowledge manager reviews without administering
+ * accounts. The author is still excluded from their own sign-off; that rule
+ * lives in the API and is not a role question.
  */
 export function canApproveOrgContent(user: Pick<StoredUser, "roles"> | null): boolean {
-  return !!user?.roles?.includes(ROLE.PARTNER_ADMIN);
+  return hasAnyRole(user, ORG_REVIEWER_ROLES);
 }
 
 /** Super-admin only: system settings, audit trail, backups. */

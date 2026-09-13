@@ -269,6 +269,66 @@ class WorkflowController extends Controller
     // ── Revisions to live records ─────────────────────────────────────
 
     /** Apply a pending edit to the live record it was raised against. */
+    /**
+     * One queued edit, as a field-by-field before/after.
+     *
+     * The queue lists only which fields an edit touches, which is enough to
+     * say "something changed" and nothing like enough to decide whether it
+     * should go live. Opening the record itself does not help either: that
+     * shows the CURRENT published version, because the whole point of a
+     * revision is that the live record is untouched until approval. So the
+     * proposed values have to be read out of the revision payload and paired
+     * with what they would replace.
+     */
+    public function showRevision(Request $request, int $id): JsonResponse
+    {
+        $revision = ContentRevision::pending()->with(['revisable', 'author'])->findOrFail($id);
+        $model = $revision->revisable;
+
+        if (! $model) {
+            return response()->json(['error' => 'The record this edit belongs to no longer exists.'], 410);
+        }
+
+        // Same gate as acting on it: whoever may approve this may read it, and
+        // an author still may not review their own edit.
+        $this->authorize('review', $model);
+
+        $changes = [];
+        foreach ($revision->attributesPayload() as $field => $after) {
+            $changes[] = [
+                'field' => $field,
+                'before' => $model->getAttribute($field),
+                'after' => $after,
+            ];
+        }
+
+        return response()->json([
+            'data' => [
+                'id' => $revision->id,
+                'kind' => 'revision',
+                'type' => $this->typeSlugFor($model),
+                'slug' => $model->slug,
+                'title' => $model->title ?? $model->name,
+                'author' => $revision->author?->name,
+                'submittedAt' => optional($revision->created_at)->toISOString(),
+                'changes' => $changes,
+                'relations' => $revision->relationsPayload(),
+            ],
+        ]);
+    }
+
+    /** The queue's type slug for a model instance, e.g. Project::class => "projects". */
+    private function typeSlugFor(Model $model): ?string
+    {
+        foreach (self::TYPES as $slug => $class) {
+            if ($model instanceof $class) {
+                return $slug;
+            }
+        }
+
+        return null;
+    }
+
     public function approveRevision(Request $request, int $id): JsonResponse
     {
         $revision = ContentRevision::pending()->with('revisable')->findOrFail($id);

@@ -116,7 +116,7 @@ class ContentPolicy
     public function approveForOrg(User $user, Model $model): bool
     {
         if (! $user->isApproved()
-            || ! $user->hasRole(Roles::PARTNER_ADMIN)
+            || ! $user->hasAnyRole(Roles::ORG_REVIEWERS)
             || $user->partner_id === null) {
             return false;
         }

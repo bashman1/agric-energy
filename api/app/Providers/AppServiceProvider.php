@@ -87,7 +87,7 @@ class AppServiceProvider extends ServiceProvider
         // separate gate because they answer different questions, and a
         // future deployment may well want one without the other.
         Gate::define('org-review-queue', fn (User $user) => $user->isApproved()
-            && $user->hasRole(Roles::PARTNER_ADMIN)
+            && $user->hasAnyRole(Roles::ORG_REVIEWERS)
             && $user->partner_id !== null);
 
         // Core system settings and the audit trail are super-admin-only: the

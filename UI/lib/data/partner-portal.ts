@@ -74,6 +74,25 @@ export async function getOrgQueue(token?: string): Promise<OrgQueueItem[]> {
 }
 
 /** Endorse it: it moves into the platform review queue, still unpublished. */
+/**
+ * A colleague's submission in full, so it can be read before it is endorsed.
+ *
+ * Organisation-scoped by the API — never another organisation's record — and
+ * read-only. The public detail page is no substitute: the record is not
+ * published yet, which is the whole reason it is in this queue.
+ */
+export async function getOrgSubmission(
+  type: string,
+  slug: string,
+  token?: string
+): Promise<Record<string, unknown> | null> {
+  return apiGet<Record<string, unknown> | null>(
+    `my/content/${type}/${slug}`,
+    null,
+    { token }
+  );
+}
+
 export async function endorseOrgItem(item: OrgQueueItem, token?: string) {
   return apiSend("POST", `${item.type}/${item.slug}/org-approve`, {}, { token });
 }

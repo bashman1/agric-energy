@@ -20,9 +20,11 @@ import Link from "next/link";
 import {
   endorseOrgItem,
   getOrgQueue,
+  getOrgSubmission,
   returnOrgItem,
   type OrgQueueItem,
 } from "@/lib/data/partner-portal";
+import { RecordFields } from "@/components/shared/ReviewPanel";
 import { useSession } from "@/lib/auth/useSession";
 
 const key = (i: OrgQueueItem) => `${i.type}/${i.slug}`;
@@ -36,6 +38,14 @@ export default function ApprovalsClient() {
   // Which item's "return with notes" box is open, and what is in it.
   const [returning, setReturning] = useState("");
   const [notes, setNotes] = useState("");
+  // Which submission is expanded for reading, and its content. Endorsing sends
+  // a colleague's work to NREP over the organisation's name, so the reviewer
+  // has to be able to read it first — the record is unpublished, so the public
+  // page shows nothing.
+  const [open, setOpen] = useState("");
+  const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
+  const [detailError, setDetailError] = useState("");
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -55,11 +65,35 @@ export default function ApprovalsClient() {
       <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
         <h1 className="text-lg font-bold text-gray-900">Approvals</h1>
         <p className="text-sm text-gray-500 mt-2">
-          Only your organisation&apos;s administrator approves its submissions.
+          Your organisation&apos;s administrator and knowledge manager approve its
+          submissions.
         </p>
       </div>
     );
   }
+
+  const toggle = async (item: OrgQueueItem) => {
+    const id = key(item);
+    if (open === id) {
+      setOpen("");
+      setDetail(null);
+      return;
+    }
+
+    setOpen(id);
+    setDetail(null);
+    setDetailError("");
+    setLoadingDetail(true);
+    try {
+      setDetail(await getOrgSubmission(item.type, item.slug));
+    } catch (e) {
+      setDetailError(
+        e instanceof Error ? e.message : "Could not load this submission."
+      );
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
 
   const endorse = async (item: OrgQueueItem) => {
     setBusy(key(item));
@@ -141,12 +175,35 @@ export default function ApprovalsClient() {
                   {item.submittedAt && ` · ${new Date(item.submittedAt).toLocaleDateString()}`}
                 </p>
 
+                <button
+                  type="button"
+                  onClick={() => toggle(item)}
+                  aria-expanded={open === id}
+                  className="mt-2 text-xs font-semibold text-primary-700 hover:text-primary-800"
+                >
+                  {open === id ? "Hide submission" : "View full submission"}
+                </button>
+
+                {open === id && (
+                  <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50/60 p-3">
+                    {loadingDetail ? (
+                      <p className="text-sm text-gray-400" role="status">Loading…</p>
+                    ) : detailError ? (
+                      <p className="text-sm text-red-600">{detailError}</p>
+                    ) : detail === null ? (
+                      <p className="text-sm text-gray-400">Nothing to show.</p>
+                    ) : (
+                      <RecordFields record={detail} />
+                    )}
+                  </div>
+                )}
+
                 {/* An admin never signs off their own work — the API refuses
                     it, so the buttons are not offered in the first place. */}
                 {item.isMine ? (
                   <p className="text-xs text-gray-500 mt-3">
-                    This is your own submission, so a colleague with the Organisation
-                    Admin role has to approve it.
+                    This is your own submission, so a colleague who reviews for your
+                    organisation has to approve it.
                   </p>
                 ) : returning === id ? (
                   <div className="mt-3">

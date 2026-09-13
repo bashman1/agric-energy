@@ -295,13 +295,19 @@ abstract class ContentController extends Controller
      * Whether this account's submissions need their own organisation's
      * sign-off before reaching the platform queue.
      *
-     * The organisation administrator is excluded on purpose: they ARE the
-     * sign-off, and ContentPolicy::approveForOrg() refuses to let anyone
-     * approve their own submission, so routing their work through
-     * `org_pending` would strand it with nobody able to move it on.
+     * One question decides it: is there SOMEBODY ELSE in this organisation who
+     * is allowed to sign this off? ContentPolicy::approveForOrg() refuses to
+     * let anyone endorse their own submission, so routing work into
+     * `org_pending` when nobody else can clear it strands it there with no way
+     * forward — which is the only reason this method exists.
      *
-     * An organisation with no administrator would strand its contributors'
-     * work just as badly, so the stage only applies where one exists.
+     * This used to name the administrator as that somebody, and skip the stage
+     * whenever the author held that role. Now that a knowledge manager also
+     * reviews (Roles::ORG_REVIEWERS), asking the general question is both
+     * simpler and strictly better: an administrator's own submission is now
+     * checked by their knowledge manager instead of bypassing organisational
+     * review altogether, which is the behaviour the two-gate workflow was
+     * supposed to have.
      */
     protected function needsOrgApproval(?User $user): bool
     {
@@ -309,24 +315,28 @@ abstract class ContentController extends Controller
             return false;
         }
 
-        if (! $user->hasAnyRole([Roles::PARTNER_KNOWLEDGE_MANAGER, Roles::PARTNER_CONTENT_CONTRIBUTOR])) {
-            return false;
-        }
-
-        if ($user->hasRole(Roles::PARTNER_ADMIN)) {
+        // Only content authored inside an organisation has an organisational
+        // stage at all; a lone `partner` account answers to NREP directly.
+        if (! $user->hasAnyRole(Roles::PARTNER_TEAM_ROLES)) {
             return false;
         }
 
         return User::where('partner_id', $user->partner_id)
             ->whereKeyNot($user->id)
-            ->whereHas('roles', fn ($q) => $q->where('name', Roles::PARTNER_ADMIN))
+            ->whereHas('roles', fn ($q) => $q->whereIn('name', Roles::ORG_REVIEWERS))
             ->exists();
     }
 
     /**
      * True when the caller asked for — and is permitted to see — unpublished
-     * records. Only content managers get full draft visibility; contributors
-     * never see other authors' drafts this way.
+     * records. Content managers and reviewers get full draft visibility;
+     * contributors never see other authors' drafts this way.
+     *
+     * Roles::REVIEWERS rather than CONTENT_MANAGERS because the `reviewer`
+     * role holds no content-manager powers, and without this it could open the
+     * review queue but not read a single thing in it — approve or reject was
+     * the only interaction available, which is not a review. REVIEWERS is a
+     * superset of CONTENT_MANAGERS, so nobody loses access here.
      */
     protected function wantsAdmin(Request $request): bool
     {
@@ -336,7 +346,7 @@ abstract class ContentController extends Controller
 
         return $request->boolean('admin')
             && $user !== null
-            && $user->hasAnyRole(Roles::CONTENT_MANAGERS);
+            && $user->hasAnyRole(Roles::REVIEWERS);
     }
 
     /** Generate a slug unique across the model's table. */
