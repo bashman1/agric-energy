@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { apiSend, apiGet } from "@/lib/api/client";
+import Pagination, { usePagination } from "@/components/admin/Pagination";
 
 interface NotificationItem {
   id: string;
@@ -21,6 +22,16 @@ export default function NotificationsClient() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [marking, setMarking] = useState<string | null>(null);
+
+  const {
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    setItemsPerPage,
+    totalPages,
+    totalItems,
+    paginatedItems,
+  } = usePagination(notifications, 1, 10);
 
   const load = async () => {
     const res = await apiGet<{ data: NotificationItem[]; unreadCount: number }>("notifications", { data: [], unreadCount: 0 });
@@ -84,7 +95,7 @@ export default function NotificationsClient() {
       )}
 
       <div className="space-y-3">
-        {notifications.map((n) => (
+        {paginatedItems.map((n) => (
           <div
             key={n.id}
             className={`bg-white rounded-xl border p-4 ${n.read ? "border-gray-200" : "border-primary-200 bg-primary-50/30"}`}
@@ -122,6 +133,19 @@ export default function NotificationsClient() {
           </div>
         ))}
       </div>
+      {totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination
+            totalItems={totalItems}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+            pageSizeOptions={[10, 25, 50, 100]}
+            showPageSize={true}
+          />
+        </div>
+      )}
     </div>
   );
 }

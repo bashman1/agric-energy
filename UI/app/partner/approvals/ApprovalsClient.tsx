@@ -26,6 +26,7 @@ import {
 } from "@/lib/data/partner-portal";
 import { RecordFields } from "@/components/shared/ReviewPanel";
 import { useSession } from "@/lib/auth/useSession";
+import Pagination, { usePagination } from "@/components/admin/Pagination";
 
 const key = (i: OrgQueueItem) => `${i.type}/${i.slug}`;
 
@@ -35,17 +36,22 @@ export default function ApprovalsClient() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState("");
-  // Which item's "return with notes" box is open, and what is in it.
   const [returning, setReturning] = useState("");
   const [notes, setNotes] = useState("");
-  // Which submission is expanded for reading, and its content. Endorsing sends
-  // a colleague's work to NREP over the organisation's name, so the reviewer
-  // has to be able to read it first — the record is unpublished, so the public
-  // page shows nothing.
   const [open, setOpen] = useState("");
   const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
   const [detailError, setDetailError] = useState("");
   const [loadingDetail, setLoadingDetail] = useState(false);
+
+  const {
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    setItemsPerPage,
+    totalPages,
+    totalItems,
+    paginatedItems,
+  } = usePagination(items, 1, 10);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -152,114 +158,129 @@ export default function ApprovalsClient() {
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-          {items.map((item) => {
-            const id = key(item);
-            const isBusy = busy === id;
+        <>
+          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+            {paginatedItems.map((item) => {
+              const id = key(item);
+              const isBusy = busy === id;
 
-            return (
-              <div key={id} className="px-4 py-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                    {item.type}
-                  </span>
-                  <span className="font-semibold text-gray-800 text-sm">{item.title}</span>
-                </div>
-
-                {item.summary && (
-                  <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">{item.summary}</p>
-                )}
-
-                <p className="text-[11px] text-gray-400 mt-1.5">
-                  Submitted by {item.author ?? "a colleague"}
-                  {item.submittedAt && ` · ${new Date(item.submittedAt).toLocaleDateString()}`}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => toggle(item)}
-                  aria-expanded={open === id}
-                  className="mt-2 text-xs font-semibold text-primary-700 hover:text-primary-800"
-                >
-                  {open === id ? "Hide submission" : "View full submission"}
-                </button>
-
-                {open === id && (
-                  <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50/60 p-3">
-                    {loadingDetail ? (
-                      <p className="text-sm text-gray-400" role="status">Loading…</p>
-                    ) : detailError ? (
-                      <p className="text-sm text-red-600">{detailError}</p>
-                    ) : detail === null ? (
-                      <p className="text-sm text-gray-400">Nothing to show.</p>
-                    ) : (
-                      <RecordFields record={detail} />
-                    )}
+              return (
+                <div key={id} className="px-4 py-4">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                      {item.type}
+                    </span>
+                    <span className="font-semibold text-gray-800 text-sm">{item.title}</span>
                   </div>
-                )}
 
-                {/* An admin never signs off their own work — the API refuses
-                    it, so the buttons are not offered in the first place. */}
-                {item.isMine ? (
-                  <p className="text-xs text-gray-500 mt-3">
-                    This is your own submission, so a colleague who reviews for your
-                    organisation has to approve it.
+                  {item.summary && (
+                    <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">{item.summary}</p>
+                  )}
+
+                  <p className="text-[11px] text-gray-400 mt-1.5">
+                    Submitted by {item.author ?? "a colleague"}
+                    {item.submittedAt && ` · ${new Date(item.submittedAt).toLocaleDateString()}`}
                   </p>
-                ) : returning === id ? (
-                  <div className="mt-3">
-                    <label htmlFor={`notes-${id}`} className="block text-xs font-semibold text-gray-600 mb-1">
-                      What needs changing?
-                    </label>
-                    <textarea
-                      id={`notes-${id}`}
-                      rows={3}
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="These notes go to the author with the submission."
-                      className="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30"
-                    />
-                    <div className="flex gap-2 mt-2">
+
+                  <button
+                    type="button"
+                    onClick={() => toggle(item)}
+                    aria-expanded={open === id}
+                    className="mt-2 text-xs font-semibold text-primary-700 hover:text-primary-800"
+                  >
+                    {open === id ? "Hide submission" : "View full submission"}
+                  </button>
+
+                  {open === id && (
+                    <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50/60 p-3">
+                      {loadingDetail ? (
+                        <p className="text-sm text-gray-400" role="status">Loading…</p>
+                      ) : detailError ? (
+                        <p className="text-sm text-red-600">{detailError}</p>
+                      ) : detail === null ? (
+                        <p className="text-sm text-gray-400">Nothing to show.</p>
+                      ) : (
+                        <RecordFields record={detail} />
+                      )}
+                    </div>
+                  )}
+
+                  {/* An admin never signs off their own work — the API refuses
+                      it, so the buttons are not offered in the first place. */}
+                  {item.isMine ? (
+                    <p className="text-xs text-gray-500 mt-3">
+                      This is your own submission, so a colleague who reviews for your
+                      organisation has to approve it.
+                    </p>
+                  ) : returning === id ? (
+                    <div className="mt-3">
+                      <label htmlFor={`notes-${id}`} className="block text-xs font-semibold text-gray-600 mb-1">
+                        What needs changing?
+                      </label>
+                      <textarea
+                        id={`notes-${id}`}
+                        rows={3}
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="These notes go to the author with the submission."
+                        className="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30"
+                      />
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => sendBack(item)}
+                          disabled={isBusy || !notes.trim()}
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          {isBusy ? "Returning…" : "Return to author"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setReturning(""); setNotes(""); }}
+                          className="px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-800"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2 mt-3">
                       <button
                         type="button"
-                        onClick={() => sendBack(item)}
-                        disabled={isBusy || !notes.trim()}
-                        className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        onClick={() => endorse(item)}
+                        disabled={isBusy}
+                        className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-primary-200 text-primary-700 hover:bg-primary-50 disabled:opacity-50"
                       >
-                        {isBusy ? "Returning…" : "Return to author"}
+                        {isBusy ? "Approving…" : "Approve & send for platform review"}
                       </button>
                       <button
                         type="button"
-                        onClick={() => { setReturning(""); setNotes(""); }}
-                        className="px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-800"
+                        onClick={() => { setReturning(id); setNotes(""); }}
+                        disabled={isBusy}
+                        className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
                       >
-                        Cancel
+                        Return with notes
                       </button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      type="button"
-                      onClick={() => endorse(item)}
-                      disabled={isBusy}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-primary-200 text-primary-700 hover:bg-primary-50 disabled:opacity-50"
-                    >
-                      {isBusy ? "Approving…" : "Approve & send for platform review"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setReturning(id); setNotes(""); }}
-                      disabled={isBusy}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                    >
-                      Return with notes
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {totalPages > 1 && (
+            <div className="mt-4">
+              <Pagination
+                totalItems={totalItems}
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+                pageSizeOptions={[10, 25, 50, 100]}
+                showPageSize={true}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
