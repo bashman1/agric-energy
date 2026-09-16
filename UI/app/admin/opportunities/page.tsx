@@ -15,7 +15,7 @@ const TYPE_LABELS: Record<string, string> = {
 export default function AdminOpportunitiesPage() {
   return (
     <AdminDataPage title="Manage Opportunities" load={() => getAllOpportunities()}>
-      {(opportunities) => {
+      {(opportunities, reload) => {
       const rows: ContentRow[] = [...opportunities]
         .sort((a, b) => (a.deadline ?? "9999").localeCompare(b.deadline ?? "9999"))
         .map((o) => ({
@@ -30,7 +30,7 @@ export default function AdminOpportunitiesPage() {
         }));
 
       return (
-        <AdminContentListClient module="opportunities" rows={rows} badgeLabel="Type" dateLabel="Deadline" />
+        <AdminContentListClient onChanged={reload} module="opportunities" rows={rows} badgeLabel="Type" dateLabel="Deadline" />
       );
       }}
     </AdminDataPage>

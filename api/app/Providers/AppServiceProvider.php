@@ -2,33 +2,26 @@
 
 namespace App\Providers;
 
-use App\Models\Event;
-use App\Models\Opportunity;
-use App\Models\Partner;
-use App\Models\Policy as PolicyModel;
-use App\Models\Post;
-use App\Models\Project;
 use App\Models\Resource;
 use App\Models\SiteConfig;
 use App\Models\Submission;
 use App\Models\TaxonomyItem;
-use App\Models\Technology;
-use App\Models\Theme;
 use App\Models\User;
 use App\Observers\ResourceObserver;
 use App\Policies\ContentPolicy;
+use App\Support\ContentTypes;
 use App\Support\Roles;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /** Content models governed by the shared ContentPolicy. */
-    private const CONTENT_MODELS = [
-        Project::class, Technology::class, Theme::class, Partner::class,
-        Resource::class, Event::class, Opportunity::class, PolicyModel::class,
-        Post::class,
-    ];
+    /**
+     * Content models governed by the shared ContentPolicy — read from the
+     * canonical type map so a newly published entity cannot be routable and
+     * bulk-actionable while silently having no policy bound to it.
+     */
+    private const CONTENT_MODELS = ContentTypes::MAP;
 
     public function register(): void
     {

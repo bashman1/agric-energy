@@ -7,7 +7,7 @@ import AdminContentListClient, { type ContentRow } from "@/components/admin/Admi
 export default function AdminEventsPage() {
   return (
     <AdminDataPage title="Manage Events" load={() => getAllEvents()}>
-      {(events) => {
+      {(events, reload) => {
       const rows: ContentRow[] = [...events]
         .sort((a, b) => (b.startsAt ?? "").localeCompare(a.startsAt ?? ""))
         .map((e) => ({
@@ -22,7 +22,7 @@ export default function AdminEventsPage() {
         }));
 
       return (
-        <AdminContentListClient module="events" rows={rows} badgeLabel="Type" dateLabel="Starts" />
+        <AdminContentListClient onChanged={reload} module="events" rows={rows} badgeLabel="Type" dateLabel="Starts" />
       );
       }}
     </AdminDataPage>

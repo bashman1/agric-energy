@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useId, useState, useMemo } from "react";
 
 interface PaginationProps {
   totalItems: number;
@@ -26,6 +26,9 @@ export default function Pagination({
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  // Generated rather than fixed: two paginated lists on one page would
+  // otherwise share an id, and the second label would focus the first select.
+  const pageSizeId = useId();
 
   const pageNumbers = useMemo(() => {
     if (totalPages <= 7) {
@@ -80,11 +83,11 @@ export default function Pagination({
     >
       {showPageSize && onItemsPerPageChange && (
         <div className="flex items-center gap-2">
-          <label htmlFor="pagination-page-size" className="text-xs font-medium text-ink-500">
+          <label htmlFor={pageSizeId} className="text-xs font-medium text-ink-500">
             Rows per page:
           </label>
           <select
-            id="pagination-page-size"
+            id={pageSizeId}
             value={itemsPerPage}
             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
             className="py-1.5 px-2 bg-white border border-ink-200 rounded-lg text-sm text-ink-800 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-100"
@@ -163,20 +166,27 @@ export default function Pagination({
   );
 }
 
+/**
+ * Client-side slicing over an already-loaded list.
+ *
+ * `page` is clamped on read rather than corrected by an effect. Filtering a
+ * list shorter while on page 5 has to land somewhere sensible, and the two
+ * alternatives are both worse: writing state during render (which this hook
+ * used to do, and React warns about) or letting a post-render effect fix it,
+ * which paints one empty frame first. Deriving the page the caller actually
+ * gets means there is never a render showing nothing.
+ */
 export function usePagination<T>(items: T[], initialPage = 1, initialPageSize = 10) {
-  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [requestedPage, setCurrentPage] = useState(initialPage);
   const [itemsPerPage, setItemsPerPage] = useState(initialPageSize);
 
   const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
+  const currentPage = Math.min(Math.max(1, requestedPage), totalPages);
 
   const paginatedItems = useMemo(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(1);
-      return items.slice(0, itemsPerPage);
-    }
     const start = (currentPage - 1) * itemsPerPage;
     return items.slice(start, start + itemsPerPage);
-  }, [items, currentPage, itemsPerPage, totalPages]);
+  }, [items, currentPage, itemsPerPage]);
 
   return {
     currentPage,

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AnalyticsController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\AuditController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\BulkActionController;
 use App\Http\Controllers\Api\V1\EmailVerificationController;
 use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\MediaController;
@@ -170,6 +171,12 @@ Route::prefix('v1')->group(function () {
         Route::get('revisions/{id}', [WorkflowController::class, 'showRevision']);
         Route::post('revisions/{id}/approve', [WorkflowController::class, 'approveRevision']);
         Route::post('revisions/{id}/reject', [WorkflowController::class, 'rejectRevision']);
+
+        // Bulk delete / publish / unpublish from the admin list tables.
+        // Declared before the {type}/… routes below so "bulk" is never read
+        // as a content type. Every record in the batch is authorised, logged
+        // and notified individually — see BulkActionController.
+        Route::post('bulk/{type}', [BulkActionController::class, 'store']);
 
         Route::post('{type}/{slug}/submit', [WorkflowController::class, 'submit']);
         Route::post('{type}/{slug}/org-approve', [WorkflowController::class, 'orgApprove']);

@@ -14,7 +14,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default function AdminPostsPage() {
   return (
     <AdminDataPage title="Manage Posts" load={() => getAllPosts()}>
-      {(posts) => {
+      {(posts, reload) => {
       const rows: ContentRow[] = [...posts]
         .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
         .map((p) => ({
@@ -29,7 +29,7 @@ export default function AdminPostsPage() {
         }));
 
       return (
-        <AdminContentListClient module="posts" rows={rows} badgeLabel="Category" dateLabel="Published" />
+        <AdminContentListClient onChanged={reload} module="posts" rows={rows} badgeLabel="Category" dateLabel="Published" />
       );
       }}
     </AdminDataPage>

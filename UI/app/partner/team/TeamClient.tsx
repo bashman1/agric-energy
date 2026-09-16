@@ -19,6 +19,7 @@ import {
   setTeamMemberStatus,
   type AdminUser,
 } from "@/lib/data/admin";
+import Pagination, { usePagination } from "@/components/admin/Pagination";
 import { ApiError } from "@/lib/api/client";
 import { PARTNER_TEAM_ROLES, ROLE, ROLE_LABELS } from "@/lib/auth/token";
 import { useSession } from "@/lib/auth/useSession";
@@ -67,6 +68,10 @@ export default function TeamClient() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // Called before the permission check below so the hook order never changes.
+  const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage, totalItems, paginatedItems } =
+    usePagination(team, 1, 10);
 
   if (!canManagePartnerTeam) {
     return (
@@ -255,7 +260,7 @@ export default function TeamClient() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {team.map((m) => {
+              {paginatedItems.map((m) => {
                 const isSelf = m.id === user?.userId;
                 return (
                   <tr key={m.id}>
@@ -306,6 +311,20 @@ export default function TeamClient() {
           </table>
         )}
       </div>
+
+      {totalItems > 0 && (
+        <Pagination
+          className="mt-4"
+          totalItems={totalItems}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(size) => {
+            setItemsPerPage(size);
+            setCurrentPage(1);
+          }}
+        />
+      )}
     </div>
   );
 }

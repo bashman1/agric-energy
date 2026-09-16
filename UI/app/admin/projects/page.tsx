@@ -8,9 +8,9 @@ import AdminProjectsClient from "./AdminProjectsClient";
 export default function AdminProjectsPage() {
   return (
     <AdminDataPage title="Manage Projects" load={() => getAllProjects()}>
-      {(projects) => {
+      {(projects, reload) => {
       const sorted = [...projects].sort((a, b) => a.title.localeCompare(b.title));
-      return <AdminProjectsClient projects={sorted} />;
+      return <AdminProjectsClient projects={sorted} onChanged={reload} />;
       }}
     </AdminDataPage>
   );

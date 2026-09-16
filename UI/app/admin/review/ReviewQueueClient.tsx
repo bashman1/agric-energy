@@ -12,6 +12,7 @@ import {
 } from "@/lib/data/admin";
 import { RecordFields, FieldChanges, type FieldChange } from "@/components/shared/ReviewPanel";
 import AdminTableFilters, { type SelectFilter } from "@/components/admin/AdminTableFilters";
+import Pagination, { usePagination } from "@/components/admin/Pagination";
 
 const TYPE_LABEL: Record<string, string> = {
   projects: "Project",
@@ -182,9 +183,61 @@ export default function ReviewQueueClient({
               No submissions match these filters.
             </div>
           ) : (
-        <div className="bg-white rounded-xl border border-ink-200 shadow-card divide-y divide-ink-100">
-          {shown.map((i) => (
-            <div key={key(i)} className="px-4 py-3.5">
+            <QueueList
+              rows={shown}
+              rowKey={key}
+              open={open}
+              detail={detail}
+              detailError={detailError}
+              loadingDetail={loadingDetail}
+              busy={busy}
+              toggle={toggle}
+              approve={approve}
+              reject={reject}
+            />
+          )}
+        </AdminTableFilters>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The queue rows, split out so `usePagination` has a component to live in —
+ * the filtered rows only exist inside AdminTableFilters' render prop, and a
+ * hook cannot be called there.
+ */
+function QueueList({
+  rows,
+  rowKey,
+  open,
+  detail,
+  detailError,
+  loadingDetail,
+  busy,
+  toggle,
+  approve,
+  reject,
+}: {
+  rows: ReviewQueueItem[];
+  rowKey: (i: ReviewQueueItem) => string;
+  open: string | null;
+  detail: Record<string, unknown> | { changes: FieldChange[] } | null;
+  detailError: string;
+  loadingDetail: boolean;
+  busy: string | null;
+  toggle: (i: ReviewQueueItem) => void;
+  approve: (i: ReviewQueueItem) => void;
+  reject: (i: ReviewQueueItem) => void;
+}) {
+  const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage, totalItems, paginatedItems } =
+    usePagination(rows, 1, 10);
+
+  return (
+    <div>
+      <div className="bg-white rounded-xl border border-ink-200 shadow-card divide-y divide-ink-100">
+        {paginatedItems.map((i) => (
+          <div key={rowKey(i)} className="px-4 py-3.5">
             <div className="flex items-center gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -216,28 +269,28 @@ export default function ReviewQueueClient({
               </div>
               <button
                 onClick={() => toggle(i)}
-                aria-expanded={open === key(i)}
+                aria-expanded={open === rowKey(i)}
                 className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-ink-200 text-ink-600 hover:bg-ink-50"
               >
-                {open === key(i) ? "Hide" : "View"}
+                {open === rowKey(i) ? "Hide" : "View"}
               </button>
               <button
                 onClick={() => reject(i)}
-                disabled={busy === key(i)}
+                disabled={busy === rowKey(i)}
                 className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
               >
                 Reject
               </button>
               <button
                 onClick={() => approve(i)}
-                disabled={busy === key(i)}
+                disabled={busy === rowKey(i)}
                 className="px-3 py-1.5 text-xs font-bold rounded-lg bg-primary-700 text-white hover:bg-primary-800 disabled:opacity-50"
               >
-                {busy === key(i) ? "…" : "Approve"}
+                {busy === rowKey(i) ? "…" : "Approve"}
               </button>
             </div>
 
-            {open === key(i) && (
+            {open === rowKey(i) && (
               <div className="mt-3 rounded-lg border border-ink-200 bg-ink-50/40 p-4">
                 {loadingDetail ? (
                   <p className="text-sm text-ink-400" role="status">Loading…</p>
@@ -272,11 +325,22 @@ export default function ReviewQueueClient({
                 </div>
               </div>
             )}
-            </div>
-          ))}
-        </div>
-          )}
-        </AdminTableFilters>
+          </div>
+        ))}
+      </div>
+
+      {totalItems > 0 && (
+        <Pagination
+          className="mt-4"
+          totalItems={totalItems}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(size) => {
+            setItemsPerPage(size);
+            setCurrentPage(1);
+          }}
+        />
       )}
     </div>
   );

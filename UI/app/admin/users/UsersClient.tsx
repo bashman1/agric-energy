@@ -6,6 +6,7 @@ import { ROLE, ROLE_LABELS } from "@/lib/auth/token";
 import { useSession } from "@/lib/auth/useSession";
 import NewUserForm from "./NewUserForm";
 import AdminTableFilters, { type SelectFilter } from "@/components/admin/AdminTableFilters";
+import Pagination, { usePagination } from "@/components/admin/Pagination";
 
 /**
  * Roles shown as assignable pills, in tier order: platform-wide first, then
@@ -150,6 +151,45 @@ export default function UsersClient({
         dateField={{ key: "createdAt", label: "Registered" }}
       >
         {(shown) => (
+          <UsersTable
+            rows={shown}
+            busy={busy}
+            isSuperAdmin={isSuperAdmin}
+            approve={approve}
+            suspend={suspend}
+            toggleRole={toggleRole}
+          />
+        )}
+      </AdminTableFilters>
+    </div>
+  );
+}
+
+/**
+ * The table itself, split out so `usePagination` has a component to live in —
+ * the filtered rows only exist inside AdminTableFilters' render prop, and a
+ * hook cannot be called there.
+ */
+function UsersTable({
+  rows,
+  busy,
+  isSuperAdmin,
+  approve,
+  suspend,
+  toggleRole,
+}: {
+  rows: AdminUser[];
+  busy: number | null;
+  isSuperAdmin: boolean;
+  approve: (u: AdminUser) => void;
+  suspend: (u: AdminUser) => void;
+  toggleRole: (u: AdminUser, role: string) => void;
+}) {
+  const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage, totalItems, paginatedItems } =
+    usePagination(rows, 1, 10);
+
+  return (
+    <div>
       <div className="bg-white rounded-xl border border-ink-200 shadow-card overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-ink-50 text-ink-500 text-xs uppercase tracking-wide">
@@ -161,14 +201,14 @@ export default function UsersClient({
             </tr>
           </thead>
           <tbody className="divide-y divide-ink-100">
-            {shown.length === 0 && (
+            {paginatedItems.length === 0 && (
               <tr>
                 <td colSpan={4} className="text-center text-ink-400 py-10 text-sm">
                   No users match these filters.
                 </td>
               </tr>
             )}
-            {shown.map((u) => (
+            {paginatedItems.map((u) => (
               <tr key={u.id} className="align-top">
                 <td className="px-4 py-3">
                   <div className="font-semibold text-ink-800">{u.name}</div>
@@ -247,8 +287,20 @@ export default function UsersClient({
           </tbody>
         </table>
       </div>
-        )}
-      </AdminTableFilters>
+
+      {totalItems > 0 && (
+        <Pagination
+          className="mt-4"
+          totalItems={totalItems}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(size) => {
+            setItemsPerPage(size);
+            setCurrentPage(1);
+          }}
+        />
+      )}
     </div>
   );
 }

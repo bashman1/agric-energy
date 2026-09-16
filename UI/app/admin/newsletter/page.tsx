@@ -1,7 +1,8 @@
 "use client";
 
 import AdminDataPage from "@/components/admin/AdminDataPage";
-import { getSubscribers, exportSubscribersUrl } from "@/lib/data/newsletter";
+import Pagination, { usePagination } from "@/components/admin/Pagination";
+import { getSubscribers, exportSubscribersUrl, type Subscriber } from "@/lib/data/newsletter";
 import { DownloadIcon } from "@/components/shared/icons";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -34,38 +35,7 @@ export default function AdminNewsletterPage() {
             </a>
           </div>
 
-          <div className="bg-white rounded-xl border border-ink-200 shadow-card overflow-hidden">
-            <table className="responsive-table min-w-full divide-y divide-ink-100">
-              <thead>
-                <tr className="bg-ink-50">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Email</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Name</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Status</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Subscribed</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ink-50">
-                {subscribers.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="text-center text-ink-400 py-10 text-sm">No subscribers yet.</td>
-                  </tr>
-                ) : (
-                  subscribers.map((s) => (
-                    <tr key={s.id} className="hover:bg-ink-50 transition-colors">
-                      <td className="px-4 py-3 text-sm font-medium text-ink-900 max-w-xs truncate">{s.email}</td>
-                      <td className="px-4 py-3 text-sm text-ink-600">{s.name || "—"}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[s.status] ?? STATUS_STYLES.unsubscribed}`}>
-                          {s.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-ink-500">{s.subscribedAt?.slice(0, 10) ?? "—"}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          <SubscribersTable subscribers={subscribers} />
 
           <p className="text-xs text-ink-400 mt-4">
             The CSV export contains confirmed, active subscribers only — pending and unsubscribed entries are excluded.
@@ -74,5 +44,61 @@ export default function AdminNewsletterPage() {
       );
       }}
     </AdminDataPage>
+  );
+}
+
+function SubscribersTable({ subscribers }: { subscribers: Subscriber[] }) {
+  const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage, totalItems, paginatedItems } =
+    usePagination(subscribers, 1, 10);
+
+  return (
+    <div>
+      <div className="bg-white rounded-xl border border-ink-200 shadow-card overflow-hidden">
+        <table className="responsive-table min-w-full divide-y divide-ink-100">
+          <thead>
+            <tr className="bg-ink-50">
+              <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Email</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Name</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Status</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Subscribed</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-ink-50">
+            {paginatedItems.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="text-center text-ink-400 py-10 text-sm">No subscribers yet.</td>
+              </tr>
+            ) : (
+              paginatedItems.map((s) => (
+                <tr key={s.id} className="hover:bg-ink-50 transition-colors">
+                  <td className="px-4 py-3 text-sm font-medium text-ink-900 max-w-xs truncate">{s.email}</td>
+                  <td className="px-4 py-3 text-sm text-ink-600">{s.name || "—"}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full border ${STATUS_STYLES[s.status] ?? STATUS_STYLES.unsubscribed}`}>
+                      {s.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-ink-500">{s.subscribedAt?.slice(0, 10) ?? "—"}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {totalItems > 0 && (
+        <Pagination
+          className="mt-4"
+          totalItems={totalItems}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(size) => {
+            setItemsPerPage(size);
+            setCurrentPage(1);
+          }}
+        />
+      )}
+    </div>
   );
 }

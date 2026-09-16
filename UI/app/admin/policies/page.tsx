@@ -7,7 +7,7 @@ import AdminContentListClient, { type ContentRow } from "@/components/admin/Admi
 export default function AdminPoliciesPage() {
   return (
     <AdminDataPage title="Manage Policies" load={() => getAllPolicies()}>
-      {(policies) => {
+      {(policies, reload) => {
       const rows: ContentRow[] = [...policies]
         .sort((a, b) => (b.publicationDate ?? "").localeCompare(a.publicationDate ?? ""))
         .map((p) => ({
@@ -22,7 +22,7 @@ export default function AdminPoliciesPage() {
         }));
 
       return (
-        <AdminContentListClient module="policies" rows={rows} badgeLabel="Category" dateLabel="Published" />
+        <AdminContentListClient onChanged={reload} module="policies" rows={rows} badgeLabel="Category" dateLabel="Published" />
       );
       }}
     </AdminDataPage>

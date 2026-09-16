@@ -3,13 +3,10 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Notification;
+use App\Http\Controllers\Api\V1\Concerns\NotifiesAboutContent;
+use App\Support\ContentTypes;
 use App\Models\ContentRevision;
-use App\Models\Event;
-use App\Models\Opportunity;
 use App\Models\Partner;
-use App\Models\Policy;
-use App\Models\Post;
 use App\Models\Project;
 use App\Models\Resource;
 use App\Models\Technology;
@@ -41,18 +38,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class WorkflowController extends Controller
 {
-    /** URL type slug => content model. */
-    private const TYPES = [
-        'projects' => Project::class,
-        'technologies' => Technology::class,
-        'themes' => Theme::class,
-        'partners' => Partner::class,
-        'resources' => Resource::class,
-        'events' => Event::class,
-        'opportunities' => Opportunity::class,
-        'policies' => Policy::class,
-        'posts' => Post::class,
-    ];
+    use NotifiesAboutContent;
+
+    /**
+     * URL type slug => content model. Kept as an alias of the canonical map
+     * in App\Support\ContentTypes so the workflow and bulk actions can never
+     * disagree about which types exist.
+     */
+    private const TYPES = ContentTypes::MAP;
 
     /** Items awaiting review — new submissions and edits to live records. */
     public function queue(Request $request): JsonResponse
@@ -431,69 +424,6 @@ class WorkflowController extends Controller
     }
 
     // ── Notifications ─────────────────────────────────────────────────
-
-    /**
-     * Tell the partners nominated on the record that it is live.
-     *
-     * Wrapped because a mail or database failure must not roll back an
-     * approval a reviewer has already made.
-     */
-    private function notifyNominatedPartners(Model $model, string $type, ?string $actorName): void
-    {
-        try {
-            $partnerSlugs = $model->getAttribute('notify_partner_ids') ?? [];
-            // A project also names one partner by email address on the create
-            // form. Kept separate because that address may belong to a partner
-            // with no account, or to nobody on the platform at all.
-            $partnerEmail = trim((string) $model->getAttribute('partner_email'));
-
-            if (empty($partnerSlugs) && $partnerEmail === '') {
-                return;
-            }
-
-            $notification = fn () => new ContentPublishedNotification($model, $type, $actorName);
-            $notified = [];
-
-            foreach (Partner::whereIn('slug', $partnerSlugs)->get() as $partner) {
-                foreach (User::where('partner_id', $partner->id)->get() as $user) {
-                    $user->notify($notification());
-                    $notified[] = strtolower($user->email);
-                }
-            }
-
-            // Only when no account at that address was reached above, so a
-            // partner with a user does not get the mail twice.
-            if ($partnerEmail !== '' && ! in_array(strtolower($partnerEmail), $notified, true)) {
-                Notification::route('mail', $partnerEmail)->notify($notification());
-            }
-        } catch (\Throwable $e) {
-            report($e);
-        }
-    }
-
-    /**
-     * Tell the author what happened to their submission.
-     *
-     * A rejection previously reached nobody: the contributor found out by
-     * going back to the portal and noticing the status, and the reviewer's
-     * notes went unread. Both outcomes are notified now.
-     */
-    private function notifyAuthor(Model $model, string $type, bool $published, ?string $notes, ?User $actor): void
-    {
-        try {
-            $author = $model->author;
-
-            if (! $author || ($actor && $author->id === $actor->id)) {
-                return; // nobody to tell, or they just did it themselves
-            }
-
-            $author->notify($published
-                ? new ContentPublishedNotification($model, $type, $actor?->name)
-                : new ContentRejectedNotification($model, $type, $notes ?? '', $actor?->name));
-        } catch (\Throwable $e) {
-            report($e);
-        }
-    }
 
     /**
      * Tell the author what their own organisation decided.

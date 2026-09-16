@@ -2,6 +2,7 @@
 import { useId, useState } from "react";
 import EmptyState from "@/components/shared/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import Pagination, { usePagination } from "@/components/admin/Pagination";
 import type { AuditEntry } from "@/lib/data/admin";
 
 /** activitylog event names we emit; "" = all. */
@@ -57,6 +58,11 @@ export default function AuditClient({ entries, event, subjectType, limit }: Prop
   const eventId = useId();
   const subjectId = useId();
   const limitId = useId();
+
+  // Pages through whatever the `?limit=` control fetched — the server-side
+  // limit decides how much is here, this decides how much is on screen.
+  const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage, totalItems, paginatedItems } =
+    usePagination(entries, 1, 10);
 
   return (
     <div className="max-w-5xl">
@@ -127,86 +133,102 @@ export default function AuditClient({ entries, event, subjectType, limit }: Prop
           message="Nothing matches these filters yet. Content changes appear here as soon as they happen."
         />
       ) : (
-        <div className="bg-white rounded-xl border border-ink-200 shadow-card overflow-hidden">
-          <table className="w-full text-sm">
-            <caption className="sr-only">
-              Audit trail of content changes, most recent first
-            </caption>
-            <thead className="bg-ink-50 text-ink-500 text-xs uppercase tracking-wide">
-              <tr>
-                <th scope="col" className="text-left font-semibold px-4 py-3">When</th>
-                <th scope="col" className="text-left font-semibold px-4 py-3">Who</th>
-                <th scope="col" className="text-left font-semibold px-4 py-3">Event</th>
-                <th scope="col" className="text-left font-semibold px-4 py-3">Record</th>
-                <th scope="col" className="text-right font-semibold px-4 py-3">Changes</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-ink-100">
-              {entries.map((entry) => {
-                const rows = diffRows(entry.changes ?? {});
-                const isOpen = expanded === entry.id;
-                return (
-                  <tr key={entry.id} className="align-top">
-                    <td className="px-4 py-3 whitespace-nowrap text-ink-600 text-xs">
-                      {formatWhen(entry.at)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="font-semibold text-ink-800">
-                        {entry.causer ?? "System"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
-                          EVENT_STYLE[entry.event] ?? "bg-ink-50 text-ink-600 border-ink-200"
-                        }`}
-                      >
-                        {entry.event || entry.description}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-ink-800">{entry.subjectType || "—"}</div>
-                      {entry.subjectId !== null && (
-                        <div className="text-xs text-ink-400">#{entry.subjectId}</div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {rows.length === 0 ? (
-                        <span className="text-xs text-ink-400">—</span>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setExpanded(isOpen ? null : entry.id)}
-                            aria-expanded={isOpen}
-                            className="text-xs font-semibold text-primary-700 hover:text-primary-800"
-                          >
-                            {isOpen ? "Hide" : `${rows.length} field${rows.length === 1 ? "" : "s"}`}
-                          </button>
-                          {isOpen && (
-                            <dl className="mt-2 text-left bg-ink-50 rounded-lg p-3 space-y-1.5">
-                              {rows.map(({ key, before, after }) => (
-                                <div key={key} className="text-xs">
-                                  <dt className="font-semibold text-ink-600">{key}</dt>
-                                  <dd className="text-ink-500 break-words">
-                                    <span className="line-through text-red-500">
-                                      {renderValue(before)}
-                                    </span>
-                                    <span className="mx-1.5 text-ink-400" aria-hidden="true">→</span>
-                                    <span className="text-emerald-700">{renderValue(after)}</span>
-                                  </dd>
-                                </div>
-                              ))}
-                            </dl>
-                          )}
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div>
+          <div className="bg-white rounded-xl border border-ink-200 shadow-card overflow-hidden">
+            <table className="w-full text-sm">
+              <caption className="sr-only">
+                Audit trail of content changes, most recent first
+              </caption>
+              <thead className="bg-ink-50 text-ink-500 text-xs uppercase tracking-wide">
+                <tr>
+                  <th scope="col" className="text-left font-semibold px-4 py-3">When</th>
+                  <th scope="col" className="text-left font-semibold px-4 py-3">Who</th>
+                  <th scope="col" className="text-left font-semibold px-4 py-3">Event</th>
+                  <th scope="col" className="text-left font-semibold px-4 py-3">Record</th>
+                  <th scope="col" className="text-right font-semibold px-4 py-3">Changes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-ink-100">
+                {paginatedItems.map((entry) => {
+                  const rows = diffRows(entry.changes ?? {});
+                  const isOpen = expanded === entry.id;
+                  return (
+                    <tr key={entry.id} className="align-top">
+                      <td className="px-4 py-3 whitespace-nowrap text-ink-600 text-xs">
+                        {formatWhen(entry.at)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-semibold text-ink-800">
+                          {entry.causer ?? "System"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                            EVENT_STYLE[entry.event] ?? "bg-ink-50 text-ink-600 border-ink-200"
+                          }`}
+                        >
+                          {entry.event || entry.description}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-ink-800">{entry.subjectType || "—"}</div>
+                        {entry.subjectId !== null && (
+                          <div className="text-xs text-ink-400">#{entry.subjectId}</div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {rows.length === 0 ? (
+                          <span className="text-xs text-ink-400">—</span>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setExpanded(isOpen ? null : entry.id)}
+                              aria-expanded={isOpen}
+                              className="text-xs font-semibold text-primary-700 hover:text-primary-800"
+                            >
+                              {isOpen ? "Hide" : `${rows.length} field${rows.length === 1 ? "" : "s"}`}
+                            </button>
+                            {isOpen && (
+                              <dl className="mt-2 text-left bg-ink-50 rounded-lg p-3 space-y-1.5">
+                                {rows.map(({ key, before, after }) => (
+                                  <div key={key} className="text-xs">
+                                    <dt className="font-semibold text-ink-600">{key}</dt>
+                                    <dd className="text-ink-500 break-words">
+                                      <span className="line-through text-red-500">
+                                        {renderValue(before)}
+                                      </span>
+                                      <span className="mx-1.5 text-ink-400" aria-hidden="true">→</span>
+                                      <span className="text-emerald-700">{renderValue(after)}</span>
+                                    </dd>
+                                  </div>
+                                ))}
+                              </dl>
+                            )}
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {totalItems > 0 && (
+            <Pagination
+              className="mt-4"
+              totalItems={totalItems}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(size) => {
+                setItemsPerPage(size);
+                setCurrentPage(1);
+              }}
+            />
+          )}
         </div>
       )}
     </div>

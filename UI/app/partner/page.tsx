@@ -1,9 +1,10 @@
 "use client";
 
 import AdminDataPage from "@/components/admin/AdminDataPage";
+import Pagination, { usePagination } from "@/components/admin/Pagination";
 import { useSession } from "@/lib/auth/useSession";
 import Link from "next/link";
-import { getMyContent } from "@/lib/data/partner-portal";
+import { getMyContent, type MyContentItem } from "@/lib/data/partner-portal";
 
 const STATUS_STYLE: Record<string, string> = {
   draft: "bg-gray-100 text-gray-600",
@@ -98,44 +99,69 @@ export default function PartnerDashboard() {
               You haven&rsquo;t submitted anything yet. Use the buttons above to get started.
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-              {items.map((i) => (
-                <div key={`${i.type}/${i.slug}`} className="px-4 py-3.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                      {i.type}
-                    </span>
-                    <span className="font-semibold text-gray-800 text-sm">{i.title}</span>
-                    <span
-                      className={`ml-auto text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                        STATUS_STYLE[i.workflowStatus] ?? "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {STATUS_LABELS[i.workflowStatus] ?? i.workflowStatus.replace(/_/g, " ")}
-                    </span>
-                  </div>
-                  {!i.isMine && i.author && (
-                    <p className="text-[11px] text-gray-400 mt-1">Submitted by {i.author}</p>
-                  )}
-                  {i.pendingEdit && (
-                    <p className="text-xs text-blue-700 mt-1.5">
-                      Your edit is with a reviewer. The published version stays live until
-                      it is approved.
-                    </p>
-                  )}
-                  {i.workflowStatus === "rejected" && i.reviewNotes && (
-                    <p className="text-xs text-red-600 mt-1.5">
-                      <strong>Reviewer notes:</strong> {i.reviewNotes}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+            <SubmissionsList items={items} />
           )}
         </div>
       );
       }}
     </AdminDataPage>
+  );
+}
+
+function SubmissionsList({ items }: { items: MyContentItem[] }) {
+  const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage, totalItems, paginatedItems } =
+    usePagination(items, 1, 10);
+
+  return (
+    <div>
+      <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+        {paginatedItems.map((i) => (
+          <div key={`${i.type}/${i.slug}`} className="px-4 py-3.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                {i.type}
+              </span>
+              <span className="font-semibold text-gray-800 text-sm">{i.title}</span>
+              <span
+                className={`ml-auto text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                  STATUS_STYLE[i.workflowStatus] ?? "bg-gray-100 text-gray-600"
+                }`}
+              >
+                {STATUS_LABELS[i.workflowStatus] ?? i.workflowStatus.replace(/_/g, " ")}
+              </span>
+            </div>
+            {!i.isMine && i.author && (
+              <p className="text-[11px] text-gray-400 mt-1">Submitted by {i.author}</p>
+            )}
+            {i.pendingEdit && (
+              <p className="text-xs text-blue-700 mt-1.5">
+                Your edit is with a reviewer. The published version stays live until
+                it is approved.
+              </p>
+            )}
+            {i.workflowStatus === "rejected" && i.reviewNotes && (
+              <p className="text-xs text-red-600 mt-1.5">
+                <strong>Reviewer notes:</strong> {i.reviewNotes}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {totalItems > 0 && (
+        <Pagination
+          className="mt-4"
+          totalItems={totalItems}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(size) => {
+            setItemsPerPage(size);
+            setCurrentPage(1);
+          }}
+        />
+      )}
+    </div>
   );
 }
 
