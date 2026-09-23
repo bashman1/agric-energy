@@ -5,9 +5,11 @@ import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import DownloadDetail from "@/components/public/DownloadDetail";
 import Link from "next/link";
+import RichText from "@/components/shared/RichText";
 import { useAsync } from "@/lib/hooks/useAsync";
 import { useRouteSlug } from "@/lib/routing/useRouteSlug";
 import { getOpportunityBySlug } from "@/lib/data/opportunities";
+import { hasHtmlContent } from "@/lib/html/sanitize";
 
 function fmtDate(date: string | null): string {
   if (!date) return "Rolling / no deadline";
@@ -20,6 +22,14 @@ function fmtDate(date: string | null): string {
 
 function isPastDeadline(deadline: string | null | undefined): boolean {
   return deadline ? new Date(deadline).getTime() < Date.now() : false;
+}
+
+/** What the attached file is called, by opportunity type. */
+function documentLabel(type: string): string {
+  if (type === "tender") return "Download tender document";
+  if (type === "procurement") return "Download procurement notice";
+  if (type === "job") return "Download job description";
+  return "Download document";
 }
 
 function InfoTile({
@@ -97,6 +107,7 @@ export default function OpportunityDetailClient({ slug: routeSlug }: { slug: str
   }
 
   const closed = isPastDeadline(o.deadline);
+  const isJob = o.opportunityType === "job";
 
   return (
     <>
@@ -113,7 +124,13 @@ export default function OpportunityDetailClient({ slug: routeSlug }: { slug: str
             <div className="flex items-start justify-between gap-6">
               <div>
                 <h1 className="text-3xl font-extrabold mt-4">{o.title}</h1>
-                {o.funder && <p className="text-primary-100 mt-2">Offered by {o.funder}</p>}
+                {/* Tenders and vacancies name the issuing body; grants and
+                    investment name whoever funds them. */}
+                {o.organization ? (
+                  <p className="text-primary-100 mt-2">{o.organization}</p>
+                ) : (
+                  o.funder && <p className="text-primary-100 mt-2">Offered by {o.funder}</p>
+                )}
               </div>
               <DownloadDetail
                 type="opportunities"
@@ -129,24 +146,64 @@ export default function OpportunityDetailClient({ slug: routeSlug }: { slug: str
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div className="grid sm:grid-cols-2 gap-4 mb-8">
               <InfoTile
-                label="Deadline"
+                label={isJob ? "Application deadline" : "Deadline"}
                 value={fmtDate(o.deadline)}
                 highlight={closed ? "closed" : "open"}
               />
               {o.amount && (
                 <InfoTile
-                  label="Amount"
+                  label={isJob ? "Remuneration" : "Amount"}
                   value={`${o.currency ? o.currency + " " : ""}${o.amount}`}
                 />
               )}
+              {isJob && o.minimumEducation && (
+                <InfoTile label="Minimum education" value={o.minimumEducation} />
+              )}
+              {isJob && o.experience && (
+                <InfoTile label="Experience" value={o.experience} />
+              )}
               {o.sector && <InfoTile label="Sector" value={o.sector} />}
-              {o.region && <InfoTile label="Region" value={o.region} />}
+              {o.region && (
+                <InfoTile label={isJob ? "Duty station" : "Region"} value={o.region} />
+              )}
             </div>
 
             {o.summary && <p className="text-lg text-gray-700 mb-6">{o.summary}</p>}
-            {o.description && (
-              <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-line mb-6">
-                {o.description}
+
+            {/* On a vacancy the details field holds the job summary, so it
+                gets a heading of its own rather than running on from the
+                teaser above it. */}
+            {hasHtmlContent(o.description) && (
+              <div className="mb-6">
+                {isJob && (
+                  <h2 className="font-bold text-gray-900 text-sm mb-2">Job Summary</h2>
+                )}
+                <RichText
+                  html={o.description}
+                  className="prose prose-sm max-w-none text-gray-700"
+                />
+              </div>
+            )}
+
+            {isJob && hasHtmlContent(o.dutiesResponsibilities) && (
+              <div className="mb-6">
+                <h2 className="font-bold text-gray-900 text-sm mb-2">
+                  Duties And Responsibilities
+                </h2>
+                <RichText
+                  html={o.dutiesResponsibilities}
+                  className="prose prose-sm max-w-none text-gray-700"
+                />
+              </div>
+            )}
+
+            {isJob && hasHtmlContent(o.competences) && (
+              <div className="mb-6">
+                <h2 className="font-bold text-gray-900 text-sm mb-2">Competences</h2>
+                <RichText
+                  html={o.competences}
+                  className="prose prose-sm max-w-none text-gray-700"
+                />
               </div>
             )}
 
@@ -159,6 +216,20 @@ export default function OpportunityDetailClient({ slug: routeSlug }: { slug: str
               </div>
             )}
 
+            {/* The notice itself. Shown even once the deadline has passed —
+                a closed tender is still a document people need to read. */}
+            {o.documentUrl && (
+              <div className="mb-6">
+                <a
+                  href={o.documentUrl}
+                  download
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-800 font-bold rounded-lg hover:border-primary-300 hover:text-primary-700 transition-colors"
+                >
+                  📄 {documentLabel(o.opportunityType)}
+                </a>
+              </div>
+            )}
+
             {o.externalUrl && !closed && (
               <a
                 href={o.externalUrl}
@@ -166,12 +237,14 @@ export default function OpportunityDetailClient({ slug: routeSlug }: { slug: str
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-5 py-2.5 bg-primary-700 text-white font-bold rounded-lg hover:bg-primary-800"
               >
-                Apply / learn more →
+                {isJob ? "Apply for this role →" : "Apply / learn more →"}
               </a>
             )}
             {closed && (
               <p className="text-sm font-semibold text-gray-500">
-                This opportunity has closed.
+                {isJob
+                  ? "Applications for this vacancy have closed."
+                  : "This opportunity has closed."}
               </p>
             )}
           </div>

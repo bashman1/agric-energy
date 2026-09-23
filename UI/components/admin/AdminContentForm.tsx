@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import FileUpload from "@/components/shared/FileUpload";
+import RichTextEditor from "@/components/shared/RichTextEditor";
 import { ApiError, apiSend } from "@/lib/api/client";
 import {
   CONTENT_SCHEMAS,
@@ -52,6 +53,17 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
 
   // ── Field renderer ─────────────────────────────────────────────────────────
   const renderField = (field: ContentFieldDef) => {
+    // Conditional fields: the job/vacancy boxes only appear once the
+    // opportunity type says this posting is one, and some shared fields
+    // read differently on a vacancy ("Deadline" → "Application deadline").
+    if (field.showWhen) {
+      const gate = String(form[field.showWhen.key] ?? "");
+      if (!field.showWhen.equals.includes(gate)) return null;
+    }
+    const label = field.labelWhen
+      ? (field.labelWhen.labels[String(form[field.labelWhen.key] ?? "")] ?? field.label)
+      : field.label;
+
     const id = `field-${field.key}`;
     const value = form[field.key];
     const gallery = Array.isArray(form.gallery) ? (form.gallery as string[]) : [];
@@ -68,7 +80,7 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
               onChange={(e) => set(field.key, e.target.checked)}
               className="w-4 h-4 rounded accent-primary-700"
             />
-            <span className="text-sm text-ink-700">{field.label}</span>
+            <span className="text-sm text-ink-700">{label}</span>
           </label>
           {field.help && <p className="text-[11px] text-ink-400 mt-1">{field.help}</p>}
         </div>
@@ -87,6 +99,17 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
             value={typeof value === "string" ? value : ""}
             onChange={(e) => set(field.key, e.target.value)}
             required={field.required}
+            placeholder={field.placeholder}
+          />
+        );
+        break;
+
+      case "richtext":
+        control = (
+          <RichTextEditor
+            id={id}
+            value={typeof value === "string" ? value : ""}
+            onChange={(html) => set(field.key, html)}
             placeholder={field.placeholder}
           />
         );
@@ -218,9 +241,17 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
 
     return (
       <div key={field.key} className={field.half ? "" : "md:col-span-2"}>
-        <label htmlFor={id} className={labelClass}>
-          {field.label}{field.required ? " *" : ""}
-        </label>
+        {/* The editor is a div, not a form control, so <label for> would
+            point at nothing focusable. */}
+        {field.type === "richtext" ? (
+          <span className={labelClass}>
+            {label}{field.required ? " *" : ""}
+          </span>
+        ) : (
+          <label htmlFor={id} className={labelClass}>
+            {label}{field.required ? " *" : ""}
+          </label>
+        )}
         {control}
         {field.help && <p className="text-[11px] text-ink-400 mt-1">{field.help}</p>}
       </div>

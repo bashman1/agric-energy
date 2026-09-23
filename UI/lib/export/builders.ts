@@ -412,18 +412,28 @@ async function buildOpportunity(slug: string, origin: string) {
     heading: "Opportunity Details",
     fields: fields([
       ["Type", opp.opportunityType],
+      // A vacancy names its employer; every other type names its funder.
+      ["Organization", opp.organization],
       ["Funder", opp.funder],
       ["Amount", [opp.currency, opp.amount].filter(Boolean).join(" ")],
+      ["Minimum Education", opp.minimumEducation],
+      ["Experience", opp.experience],
       ["Sector", opp.sector],
       ["Value Chain", opp.valueChain],
       ["Region", opp.region],
       ["Deadline", fmtDate(opp.deadline)],
       ["Application Link", opp.externalUrl],
+      ["Document", opp.documentUrl],
       ["Last Updated", fmtDate(opp.updatedAt)],
     ]),
   });
   pushBlock(blocks, textBlock("Summary", opp.summary));
   pushBlock(blocks, textBlock("Description", plainText(opp.description)));
+  pushBlock(
+    blocks,
+    textBlock("Duties And Responsibilities", plainText(opp.dutiesResponsibilities))
+  );
+  pushBlock(blocks, textBlock("Competences", plainText(opp.competences)));
   pushBlock(blocks, textBlock("Eligibility", plainText(opp.eligibility)));
 
   return {

@@ -18,7 +18,8 @@ const TYPES = [
   { slug: "investment", label: "Investment" },
   { slug: "tender", label: "Tenders" },
   { slug: "procurement", label: "Procurement" },
-  { slug: "job", label: "Jobs" },
+  // Jobs and vacancies are one listing, not two.
+  { slug: "job", label: "Jobs / Vacancies" },
 ] as const;
 
 function daysLeft(deadline: string | null): string {
@@ -103,10 +104,21 @@ export default function OpportunitiesBrowser({ all }: { all: Opportunity[] }) {
             </div>
 
             {opportunities.length === 0 ? (
+              // The vacancies tab says so in its own words: "No open
+              // opportunities" reads like the site is broken when what the
+              // visitor asked for was jobs.
               <EmptyState
-                icon="💰"
-                title="No open opportunities"
-                message="Funding and investment opportunities will be listed here."
+                icon={active === "job" ? "🧑‍💼" : "💰"}
+                title={
+                  active === "job"
+                    ? "No vacancy/job available"
+                    : "No open opportunities"
+                }
+                message={
+                  active === "job"
+                    ? "Jobs and vacancies will be listed here as they open."
+                    : "Funding and investment opportunities will be listed here."
+                }
                 action={
                   active
                     ? { label: "View all types", href: "/opportunities/" }
@@ -140,8 +152,12 @@ export default function OpportunitiesBrowser({ all }: { all: Opportunity[] }) {
                           {status}
                         </span>
                       </div>
-                      {o.funder && (
-                        <p className="text-xs text-gray-500 mb-2">by {o.funder}</p>
+                      {/* Tenders and vacancies name the issuing body;
+                          grants and investment name whoever funds them. */}
+                      {(o.organization || o.funder) && (
+                        <p className="text-xs text-gray-500 mb-2">
+                          {o.organization ? o.organization : `by ${o.funder}`}
+                        </p>
                       )}
                       <p className="text-sm text-gray-600 line-clamp-2 mb-3">
                         {o.summary}

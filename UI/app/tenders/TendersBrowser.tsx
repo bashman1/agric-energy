@@ -156,11 +156,16 @@ function NoticeCard({ o }: { o: Opportunity }) {
           {status}
         </span>
       </div>
-      {o.funder && <p className="text-xs text-gray-500 mb-2">by {o.funder}</p>}
+      {/* A tender names the body that issued it. `funder` is the fallback
+          for notices written before the two were separated. */}
+      {(o.organization || o.funder) && (
+        <p className="text-xs text-gray-500 mb-2">{o.organization || o.funder}</p>
+      )}
       <p className="text-sm text-gray-600 line-clamp-2 mb-3">{o.summary}</p>
       <div className="flex flex-wrap gap-1.5">
         <Tag>{o.opportunityType === "procurement" ? "Procurement" : "Tender"}</Tag>
         <Tag>Deadline: {fmtDeadline(o.deadline)}</Tag>
+        {o.documentUrl && <Tag>📄 Document</Tag>}
         {o.sector && <Tag>{o.sector}</Tag>}
         {o.region && <Tag>{o.region}</Tag>}
         {o.amount && (

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FIELD_SCHEMAS, TYPE_LABELS, type FieldDef } from "./schemas";
 import FileUpload from "@/components/shared/FileUpload";
 import AttachmentsUpload from "@/components/shared/AttachmentsUpload";
+import RichTextEditor from "@/components/shared/RichTextEditor";
 import LocationPicker, { type LocationValue } from "@/components/admin/LocationPicker";
 import ComboSelect, { type ComboOption } from "@/components/admin/ComboSelect";
 import { apiSend } from "@/lib/api/client";
@@ -197,7 +198,9 @@ export default function SubmitForm({ type, referenceData }: Props) {
           if (f.showWhen) {
             const gate = String(values[f.showWhen.key] ?? "");
             if (!f.showWhen.equals.includes(gate)) return null;
-            const label = f.labelWhen?.[gate];
+          }
+          if (f.labelWhen) {
+            const label = f.labelWhen.labels[String(values[f.labelWhen.key] ?? "")];
             if (label) f = { ...f, label };
           }
           if (f.type === "location") {
@@ -388,6 +391,23 @@ export default function SubmitForm({ type, referenceData }: Props) {
                   ))}
                 </select>
                 {f.help && <p className="text-[11px] text-gray-400">{f.help}</p>}
+              </div>
+            );
+          }
+
+          if (f.type === "richtext") {
+            return (
+              <div key={f.key}>
+                {/* The editor is a div, so <label> would have nothing to
+                    point at — a span carries the text instead. */}
+                <span className="block text-xs font-semibold text-gray-600 mb-1">
+                  {f.label} {f.required && <span className="text-red-500">*</span>}
+                </span>
+                <RichTextEditor
+                  value={(values[f.key] as string) ?? ""}
+                  onChange={(html) => set(f.key, html)}
+                />
+                {f.help && <p className="text-[11px] text-gray-400 mt-1">{f.help}</p>}
               </div>
             );
           }

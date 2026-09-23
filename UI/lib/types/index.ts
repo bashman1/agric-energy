@@ -222,6 +222,27 @@ export interface Opportunity {
   deadline: string | null;
   eligibility: string;
   externalUrl: string;
+  /**
+   * The notice, call document or job description as an uploaded file.
+   * Optional on every type; "" when nothing was uploaded.
+   */
+  documentUrl: string;
+  /**
+   * The issuing or hiring body (tenders, procurement notices, vacancies).
+   * Grants and investment name a `funder` instead — see ORGANIZATION_TYPES
+   * and FUNDER_TYPES in components/admin/contentSchemas.
+   */
+  organization: string;
+  /**
+   * Job/vacancy fields. Empty strings on every other opportunity type —
+   * the admin and partner forms only expose them when opportunityType is
+   * "job". `title` doubles as the job title and `description` as the job
+   * summary, both authored as HTML through CKEditor.
+   */
+  dutiesResponsibilities: string;
+  minimumEducation: string;
+  experience: string;
+  competences: string;
   featured: boolean;
   published: boolean;
   updatedAt: string;

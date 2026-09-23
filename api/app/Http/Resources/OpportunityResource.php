@@ -25,6 +25,14 @@ class OpportunityResource extends JsonResource
             'deadline' => optional($this->deadline)->toDateString(),
             'eligibility' => $this->eligibility ?? '',
             'externalUrl' => $this->external_url ?? '',
+            'documentUrl' => $this->document_url ?? '',
+            // Job/vacancy fields. Empty strings on every other type, so the
+            // public page can test them without a type check.
+            'organization' => $this->organization ?? '',
+            'dutiesResponsibilities' => $this->duties_responsibilities ?? '',
+            'minimumEducation' => $this->minimum_education ?? '',
+            'experience' => $this->experience ?? '',
+            'competences' => $this->competences ?? '',
             'featured' => (bool) $this->featured,
             'published' => (bool) $this->published,
             'workflowStatus' => $this->workflow_status,

@@ -18,6 +18,11 @@ export type ContentFieldType =
   | "text"
   | "url"
   | "textarea"
+  /**
+   * CKEditor. Stores HTML, unlike "textarea" which stores plain text, so
+   * only use it for fields the public page renders through <RichText>.
+   */
+  | "richtext"
   | "select"
   | "date"
   | "datetime"
@@ -45,6 +50,19 @@ export interface ContentFieldDef {
   options?: SelectOption[];
   /** Render at half width inside the two-column grid. */
   half?: boolean;
+  /**
+   * Show this field only while another field holds one of these values.
+   * Added for the job/vacancy fields, which are meaningless on a grant or a
+   * tender. Mirrors `showWhen` on the partner submission schema.
+   */
+  showWhen?: { key: string; equals: string[] };
+  /**
+   * Relabel this field based on another field's value — how one shared
+   * column reads as "Deadline" on a grant and "Application deadline" on a
+   * vacancy. Independent of `showWhen`: a field can be relabelled without
+   * being conditional, and vice versa.
+   */
+  labelWhen?: { key: string; labels: Record<string, string> };
 }
 
 export interface ContentModuleDef {
@@ -62,6 +80,27 @@ export interface ContentModuleDef {
   apiPath: string;
   fields: ContentFieldDef[];
 }
+
+/**
+ * Opportunity types that are a job advert, and those that are not.
+ *
+ * "Job" and "vacancy" are one type, not two — see the merged select option
+ * below. These drive `showWhen` on the job-only fields, so a grant or a
+ * tender never shows a "Minimum Education" box.
+ */
+export const JOB_TYPES = ["job"];
+export const NON_JOB_TYPES = ["funding", "investment", "tender", "procurement"];
+
+/**
+ * Who issued the opportunity, split by what that word means.
+ *
+ * A tender, a procurement notice and a vacancy are put out by an
+ * ORGANIZATION. A grant or an investment names a FUNDER — whoever pays,
+ * which is not always whoever advertises. One field each, never both, so
+ * an editor is never asked the same question twice.
+ */
+export const ORGANIZATION_TYPES = ["job", "tender", "procurement"];
+export const FUNDER_TYPES = ["funding", "investment"];
 
 export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
   posts: {
@@ -123,7 +162,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
     publicPath: "/opportunities",
     apiPath: "opportunities",
     fields: [
-      { key: "title", label: "Title", type: "text", required: true, placeholder: "e.g. Solar Irrigation Equipment Tender — Lira" },
+      { key: "title", label: "Title", type: "text", required: true, placeholder: "e.g. Solar Irrigation Equipment Tender — Lira", labelWhen: { key: "opportunityType", labels: { job: "Job Title" } } },
       {
         key: "opportunityType",
         label: "Opportunity type",
@@ -135,20 +174,34 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
           { value: "investment", label: "Investment" },
           { value: "tender", label: "Tender" },
           { value: "procurement", label: "Procurement" },
-          { value: "job", label: "Job / vacancy" },
+          // One merged option: a job and a vacancy are the same posting, and
+          // offering both invited editors to guess which listing they land in.
+          { value: "job", label: "Job / Vacancy" },
         ],
       },
-      { key: "funder", label: "Funder / issuing body", type: "text", half: true },
-      { key: "summary", label: "Summary", type: "textarea", required: true, rows: 2, placeholder: "One to two sentence summary" },
-      { key: "description", label: "Details", type: "textarea", rows: 8 },
-      { key: "amount", label: "Amount", type: "text", half: true, placeholder: "e.g. 250,000" },
+      // ── Who issued it — one field or the other, never both ──
+      { key: "organization", label: "Organization", type: "text", half: true, showWhen: { key: "opportunityType", equals: ORGANIZATION_TYPES }, placeholder: "e.g. Ministry of Energy and Mineral Development" },
+      { key: "funder", label: "Funder", type: "text", half: true, showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+      { key: "summary", label: "Summary", type: "textarea", required: true, rows: 2, placeholder: "One to two sentence summary", labelWhen: { key: "opportunityType", labels: { job: "Listing teaser" } }, help: "Plain text, shown on listing cards and search results." },
+      { key: "description", label: "Details", type: "richtext", rows: 8, labelWhen: { key: "opportunityType", labels: { job: "Job Summary" } } },
+      { key: "dutiesResponsibilities", label: "Duties And Responsibilities", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
+      { key: "minimumEducation", label: "Minimum Education", type: "text", half: true, showWhen: { key: "opportunityType", equals: JOB_TYPES }, placeholder: "e.g. Bachelor's degree in Agricultural Engineering" },
+      { key: "experience", label: "Experience", type: "text", half: true, showWhen: { key: "opportunityType", equals: JOB_TYPES }, placeholder: "e.g. 5 years in renewable energy projects" },
+      { key: "competences", label: "Competences", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
+      // ── Shared ──
+      { key: "amount", label: "Amount", type: "text", half: true, placeholder: "e.g. 250,000", labelWhen: { key: "opportunityType", labels: { job: "Salary / remuneration" } } },
       { key: "currency", label: "Currency", type: "text", half: true, placeholder: "USD, UGX, EUR" },
       { key: "sector", label: "Sector", type: "text", half: true },
       { key: "valueChain", label: "Value chain", type: "text", half: true, placeholder: "e.g. Dairy, Rice" },
-      { key: "region", label: "Region", type: "text", half: true },
-      { key: "deadline", label: "Deadline", type: "date", half: true },
-      { key: "eligibility", label: "Eligibility", type: "textarea", rows: 4, placeholder: "Who can apply…" },
+      { key: "region", label: "Region", type: "text", half: true, labelWhen: { key: "opportunityType", labels: { job: "Duty station" } } },
+      { key: "deadline", label: "Deadline", type: "date", half: true, labelWhen: { key: "opportunityType", labels: { job: "Application deadline" } } },
+      // Superseded on a vacancy by the education/experience/competences trio.
+      { key: "eligibility", label: "Eligibility", type: "textarea", rows: 4, placeholder: "Who can apply…", showWhen: { key: "opportunityType", equals: NON_JOB_TYPES } },
       { key: "externalUrl", label: "Application link", type: "url", placeholder: "https://…" },
+      // The notice, call document or job description itself. Optional on
+      // every type — a tender is the case that needs it, but a grant has
+      // guidelines and a vacancy a full JD.
+      { key: "documentUrl", label: "Upload File", type: "upload-document", help: "Upload the tender notice, call document or job description — or paste a link below.", labelWhen: { key: "opportunityType", labels: { tender: "Tender document", procurement: "Procurement notice", job: "Job description" } } },
     ],
   },
 

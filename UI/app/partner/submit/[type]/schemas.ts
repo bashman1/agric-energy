@@ -2,9 +2,23 @@
 // Plain module (no "use client") so both the server page and the client
 // form can import the actual objects.
 
+// One definition of which opportunity types are a job advert, shared with
+// the admin schema — two copies would drift and partners would end up
+// filling in a different vacancy form from staff.
+import {
+  JOB_TYPES,
+  NON_JOB_TYPES,
+  ORGANIZATION_TYPES,
+  FUNDER_TYPES,
+} from "@/components/admin/contentSchemas";
+
 export type FieldType =
   | "text"
   | "textarea"
+  // CKEditor. Stores HTML rather than plain text; the API sanitises it on
+  // write (App\Support\HtmlSanitizer) and the public page renders it
+  // through <RichText>.
+  | "richtext"
   | "date"
   // Month-precision dates (project start/end). A plain text box asking for
   // "YYYY-MM" is a free-text field that silently accepts anything; the
@@ -43,8 +57,13 @@ export interface FieldDef {
    * partner role has been chosen and whose label depends on that choice.
    */
   showWhen?: { key: string; equals: string[] };
-  /** Label overrides keyed by the value of `showWhen.key`. */
-  labelWhen?: Record<string, string>;
+  /**
+   * Relabel this field based on another field's value — one shared column
+   * reading as "Deadline" on a grant and "Application deadline" on a
+   * vacancy. Independent of `showWhen`: a field can be relabelled without
+   * being conditional, and vice versa.
+   */
+  labelWhen?: { key: string; labels: Record<string, string> };
 }
 
 export type OptionsFrom =
@@ -100,8 +119,11 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
       type: "text",
       showWhen: { key: "partnerRole", equals: ["funding", "implementing"] },
       labelWhen: {
-        funding: "Funding partner email",
-        implementing: "Implementing partner email",
+        key: "partnerRole",
+        labels: {
+          funding: "Funding partner email",
+          implementing: "Implementing partner email",
+        },
       },
       help: "They are notified by email — and in the portal, if the address has an account — once this project is published.",
     },
@@ -177,19 +199,29 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
         { id: "investment", label: "Investment" },
         { id: "tender", label: "Tender" },
         { id: "procurement", label: "Procurement" },
-        { id: "job", label: "Job / vacancy" },
+        // One merged option — a job and a vacancy are the same posting.
+        { id: "job", label: "Job / Vacancy" },
       ],
     },
-    { key: "funder", label: "Funder / advertiser", type: "text" },
-    { key: "summary", label: "Summary", type: "textarea", required: true },
-    { key: "description", label: "Details", type: "textarea" },
-    { key: "amount", label: "Amount", type: "text" },
+    // ── Mirrors components/admin/contentSchemas.ts; change the two together
+    //    or partners and staff capture different things about the same
+    //    record. ──
+    { key: "organization", label: "Organization", type: "text", showWhen: { key: "opportunityType", equals: ORGANIZATION_TYPES } },
+    { key: "funder", label: "Funder", type: "text", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+    { key: "summary", label: "Summary", type: "textarea", required: true, help: "Plain text, shown on listing cards.", labelWhen: { key: "opportunityType", labels: { job: "Listing teaser" } } },
+    { key: "description", label: "Details", type: "richtext", labelWhen: { key: "opportunityType", labels: { job: "Job Summary" } } },
+    { key: "dutiesResponsibilities", label: "Duties And Responsibilities", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
+    { key: "minimumEducation", label: "Minimum Education", type: "text", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
+    { key: "experience", label: "Experience", type: "text", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
+    { key: "competences", label: "Competences", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
+    { key: "amount", label: "Amount", type: "text", labelWhen: { key: "opportunityType", labels: { job: "Salary / remuneration" } } },
     { key: "currency", label: "Currency", type: "text" },
     { key: "sector", label: "Sector", type: "text" },
     { key: "valueChain", label: "Value chain", type: "select", optionsFrom: "taxonomy:valueChains" },
-    { key: "region", label: "Region", type: "select", optionsFrom: "regions" },
-    { key: "deadline", label: "Deadline", type: "date" },
-    { key: "eligibility", label: "Eligibility", type: "textarea" },
+    { key: "region", label: "Region", type: "select", optionsFrom: "regions", labelWhen: { key: "opportunityType", labels: { job: "Duty station" } } },
+    { key: "deadline", label: "Deadline", type: "date", labelWhen: { key: "opportunityType", labels: { job: "Application deadline" } } },
+    { key: "eligibility", label: "Eligibility", type: "textarea", showWhen: { key: "opportunityType", equals: NON_JOB_TYPES } },
     { key: "externalUrl", label: "Application link", type: "text" },
+    { key: "documentUrl", label: "Upload File", type: "upload-document", help: "The tender notice, call document or job description.", labelWhen: { key: "opportunityType", labels: { tender: "Tender document", procurement: "Procurement notice", job: "Job description" } } },
   ],
 };
