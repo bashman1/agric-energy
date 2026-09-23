@@ -1,12 +1,15 @@
+"use client";
+
+// Loaded in the browser like every other admin page: as a server component
+// this fetched once at build time, and the static export (which sets no
+// API_URL) baked the fallback config into the HTML instead of the real one.
+import AdminDataPage from "@/components/admin/AdminDataPage";
 import { getSiteConfig } from "@/lib/data/site-config";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Site Configuration" };
-
-export default async function AdminSiteConfigPage() {
-  const config = await getSiteConfig();
-
+export default function AdminSiteConfigPage() {
   return (
+    <AdminDataPage title="Site Configuration" load={() => getSiteConfig()}>
+      {(config) => (
     <div className="max-w-2xl">
       <div className="mb-6">
         <h1 className="font-display text-2xl font-semibold text-ink-900">Site Configuration</h1>
@@ -58,5 +61,7 @@ export default async function AdminSiteConfigPage() {
         </p>
       </div>
     </div>
+      )}
+    </AdminDataPage>
   );
 }
