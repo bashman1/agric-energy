@@ -196,4 +196,81 @@ class JobVacancyTest extends TestCase
         // encoding is declared — a silent corruption worth pinning down.
         $this->assertStringContainsString('Karamoja — café', HtmlSanitizer::clean('<p>Karamoja — café</p>'));
     }
+
+    // ── Application email ────────────────────────────────────────────────────
+
+    public function test_application_email_is_stored_and_published(): void
+    {
+        Sanctum::actingAs($this->editor(), ['*']);
+
+        $res = $this->postJson('/api/v1/opportunities', [
+            'title' => 'Field Officer',
+            'opportunityType' => 'job',
+            'applicationEmail' => 'recruitment@example.go.ug',
+        ]);
+
+        $res->assertCreated();
+        $opp = Opportunity::where('slug', $res->json('data.slug'))->firstOrFail();
+        $this->assertSame('recruitment@example.go.ug', $opp->application_email);
+
+        $opp->update(['published' => true, 'workflow_status' => 'published']);
+
+        $this->getJson("/api/v1/opportunities/{$opp->slug}")
+            ->assertOk()
+            ->assertJsonPath('data.applicationEmail', 'recruitment@example.go.ug');
+    }
+
+    public function test_malformed_application_email_is_rejected(): void
+    {
+        Sanctum::actingAs($this->editor(), ['*']);
+
+        // This address is printed on the public page for people to write to,
+        // so a typo means a vacancy nobody can apply to.
+        $this->postJson('/api/v1/opportunities', [
+            'title' => 'Field Officer',
+            'opportunityType' => 'job',
+            'applicationEmail' => 'not-an-email',
+        ])->assertStatus(422)->assertJsonValidationErrors('applicationEmail');
+    }
+
+    // ── Education and experience became rich text ────────────────────────────
+
+    public function test_education_and_experience_keep_formatting_and_are_sanitised(): void
+    {
+        Sanctum::actingAs($this->editor(), ['*']);
+
+        $res = $this->postJson('/api/v1/opportunities', [
+            'title' => 'Field Officer',
+            'opportunityType' => 'job',
+            'minimumEducation' => '<ul><li>BSc Agricultural Engineering</li></ul><script>alert(1)</script>',
+            'experience' => '<p>5 years<img src=x onerror=alert(1)></p>',
+        ]);
+
+        $res->assertCreated();
+        $opp = Opportunity::where('slug', $res->json('data.slug'))->firstOrFail();
+
+        $this->assertStringContainsString('<li>BSc Agricultural Engineering</li>', $opp->minimum_education);
+        $this->assertStringNotContainsString('script', $opp->minimum_education);
+        $this->assertStringContainsString('5 years', $opp->experience);
+        $this->assertStringNotContainsString('onerror', $opp->experience);
+    }
+
+    public function test_education_accepts_more_than_a_varchar_would_hold(): void
+    {
+        Sanctum::actingAs($this->editor(), ['*']);
+
+        // These columns started life as varchar(255). A requirements list is
+        // routinely longer than that, and the truncation would be silent.
+        $long = '<ul>'.str_repeat('<li>A qualification requirement line</li>', 40).'</ul>';
+
+        $res = $this->postJson('/api/v1/opportunities', [
+            'title' => 'Field Officer',
+            'opportunityType' => 'job',
+            'minimumEducation' => $long,
+        ]);
+
+        $res->assertCreated();
+        $opp = Opportunity::where('slug', $res->json('data.slug'))->firstOrFail();
+        $this->assertGreaterThan(255, strlen($opp->minimum_education));
+    }
 }

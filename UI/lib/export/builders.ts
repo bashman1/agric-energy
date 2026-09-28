@@ -423,6 +423,7 @@ async function buildOpportunity(slug: string, origin: string) {
       ["Region", opp.region],
       ["Deadline", fmtDate(opp.deadline)],
       ["Application Link", opp.externalUrl],
+      ["Submit Applications To", opp.applicationEmail],
       ["Document", opp.documentUrl],
       ["Last Updated", fmtDate(opp.updatedAt)],
     ]),
@@ -433,13 +434,17 @@ async function buildOpportunity(slug: string, origin: string) {
     blocks,
     textBlock("Duties And Responsibilities", plainText(opp.dutiesResponsibilities))
   );
+  pushBlock(blocks, textBlock("Minimum Education", plainText(opp.minimumEducation)));
+  pushBlock(blocks, textBlock("Experience", plainText(opp.experience)));
   pushBlock(blocks, textBlock("Competences", plainText(opp.competences)));
   pushBlock(blocks, textBlock("Eligibility", plainText(opp.eligibility)));
 
   return {
     entity: "Opportunity",
     title: opp.title,
-    subtitle: opp.summary,
+    // Vacancies and tenders have no summary field; fall back to the rich
+    // description so the export still carries a subtitle.
+    subtitle: opp.summary || plainText(opp.description).slice(0, 200),
     tags: compact([opp.opportunityType, opp.sector]),
     slug: opp.slug,
     sourceUrl: `${origin}/opportunities/${opp.slug}`,

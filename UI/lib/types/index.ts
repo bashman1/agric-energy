@@ -228,6 +228,11 @@ export interface Opportunity {
    */
   documentUrl: string;
   /**
+   * Where applications or bids are sent when there is no portal to link
+   * out to. Offered on vacancies, tenders and procurement notices.
+   */
+  applicationEmail: string;
+  /**
    * The issuing or hiring body (tenders, procurement notices, vacancies).
    * Grants and investment name a `funder` instead — see ORGANIZATION_TYPES
    * and FUNDER_TYPES in components/admin/contentSchemas.

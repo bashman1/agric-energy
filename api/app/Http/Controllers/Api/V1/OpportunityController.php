@@ -17,7 +17,13 @@ class OpportunityController extends ContentController
      * Fields authored in CKEditor. Their HTML is rebuilt from an allow-list
      * on the way in — see App\Support\HtmlSanitizer.
      */
-    private const RICH_TEXT = ['summary', 'duties_responsibilities', 'competences'];
+    private const RICH_TEXT = [
+        'summary',
+        'duties_responsibilities',
+        'competences',
+        'minimum_education',
+        'experience',
+    ];
     protected array $filters = [
         'sector' => 'sector',
         'valueChain' => 'value_chain',
@@ -33,6 +39,9 @@ class OpportunityController extends ContentController
         $request->validate([
             'title' => ($updating ? 'sometimes' : 'required') . '|string|max:255',
             'deadline' => 'nullable|date',
+            // Published on the public page for people to write to, so a
+            // typo here is a vacancy nobody can apply to.
+            'applicationEmail' => 'nullable|email|max:255',
         ]);
 
         return $request->all();
@@ -57,6 +66,7 @@ class OpportunityController extends ContentController
             // The notice, call document or job description as an uploaded
             // file. Optional on every type.
             'documentUrl' => 'document_url',
+            'applicationEmail' => 'application_email',
             'featured' => 'featured',
             'published' => 'published',
             // The issuing or hiring body — tenders, procurement notices and

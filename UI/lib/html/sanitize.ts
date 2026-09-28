@@ -52,6 +52,42 @@ export function isPlainText(html: string): boolean {
 }
 
 /**
+ * Strip tags and entities down to readable text.
+ *
+ * Vacancies and tenders have no separate summary field — their forms drop
+ * it — so listing cards derive their teaser from the rich Job Summary /
+ * Details field through this. The API does the same for search snippets
+ * (SearchController::snippet), so both read alike.
+ */
+export function htmlToText(html: string | null | undefined): string {
+  if (!html) return "";
+  return html
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/(p|div|li|h[1-6]|blockquote)>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * The teaser line on a listing card: the plain summary when there is one,
+ * otherwise an excerpt of the rich field.
+ */
+export function teaserFor(
+  summary: string | null | undefined,
+  richText: string | null | undefined
+): string {
+  if (summary && summary.trim()) return summary;
+  return htmlToText(richText);
+}
+
+/**
  * True when the value carries something a reader would see, so callers can
  * skip an empty heading. CKEditor serialises a cleared field as "<p>&nbsp;</p>"
  * rather than "", which is not emptiness any `if (value)` would catch.

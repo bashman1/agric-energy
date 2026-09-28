@@ -120,4 +120,43 @@ class TenderDocumentTest extends TestCase
             $this->assertSame("/storage/media/{$type}.pdf", $opp->document_url, "document dropped for {$type}");
         }
     }
+
+    public function test_search_snippet_falls_back_to_the_rich_field(): void
+    {
+        // Tenders and vacancies no longer have a summary field, so without
+        // the fallback they would show in search as a bare title.
+        Opportunity::create([
+            'slug' => 'lira-pumps',
+            'title' => 'Supply of Solar Irrigation Pumps',
+            'opportunity_type' => 'tender',
+            'summary' => null,
+            'description' => '<p>Sealed bids for <strong>40 solar pump sets</strong> in Lira.</p>',
+            'published' => true,
+            'workflow_status' => 'published',
+        ]);
+
+        $data = $this->getJson('/api/v1/search?q=solar')->assertOk()->json('data');
+        $hit = collect($data)->firstWhere('slug', 'lira-pumps');
+
+        $this->assertNotNull($hit, 'tender missing from search results');
+        $this->assertSame('Sealed bids for 40 solar pump sets in Lira.', $hit['summary']);
+    }
+
+    public function test_search_snippet_prefers_a_real_summary(): void
+    {
+        Opportunity::create([
+            'slug' => 'solar-grant',
+            'title' => 'Solar Grant',
+            'opportunity_type' => 'funding',
+            'summary' => 'Grants for solar irrigation.',
+            'description' => '<p>Long body text that should not be used.</p>',
+            'published' => true,
+            'workflow_status' => 'published',
+        ]);
+
+        $data = $this->getJson('/api/v1/search?q=solar')->assertOk()->json('data');
+        $hit = collect($data)->firstWhere('slug', 'solar-grant');
+
+        $this->assertSame('Grants for solar irrigation.', $hit['summary']);
+    }
 }

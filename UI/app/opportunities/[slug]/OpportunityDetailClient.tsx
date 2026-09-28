@@ -156,16 +156,8 @@ export default function OpportunityDetailClient({ slug: routeSlug }: { slug: str
                   value={`${o.currency ? o.currency + " " : ""}${o.amount}`}
                 />
               )}
-              {isJob && o.minimumEducation && (
-                <InfoTile label="Minimum education" value={o.minimumEducation} />
-              )}
-              {isJob && o.experience && (
-                <InfoTile label="Experience" value={o.experience} />
-              )}
               {o.sector && <InfoTile label="Sector" value={o.sector} />}
-              {o.region && (
-                <InfoTile label={isJob ? "Duty station" : "Region"} value={o.region} />
-              )}
+              {o.region && <InfoTile label="Region" value={o.region} />}
             </div>
 
             {o.summary && <p className="text-lg text-gray-700 mb-6">{o.summary}</p>}
@@ -197,6 +189,28 @@ export default function OpportunityDetailClient({ slug: routeSlug }: { slug: str
               </div>
             )}
 
+            {isJob && hasHtmlContent(o.minimumEducation) && (
+              <div className="mb-6">
+                <h2 className="font-bold text-gray-900 text-sm mb-2">
+                  Minimum Education
+                </h2>
+                <RichText
+                  html={o.minimumEducation}
+                  className="prose prose-sm max-w-none text-gray-700"
+                />
+              </div>
+            )}
+
+            {isJob && hasHtmlContent(o.experience) && (
+              <div className="mb-6">
+                <h2 className="font-bold text-gray-900 text-sm mb-2">Experience</h2>
+                <RichText
+                  html={o.experience}
+                  className="prose prose-sm max-w-none text-gray-700"
+                />
+              </div>
+            )}
+
             {isJob && hasHtmlContent(o.competences) && (
               <div className="mb-6">
                 <h2 className="font-bold text-gray-900 text-sm mb-2">Competences</h2>
@@ -213,6 +227,22 @@ export default function OpportunityDetailClient({ slug: routeSlug }: { slug: str
                 <p className="text-sm text-gray-700 whitespace-pre-line">
                   {o.eligibility}
                 </p>
+              </div>
+            )}
+
+            {/* Where to apply when there is no portal to link to. A closed
+                posting hides it: writing to it would go unanswered. */}
+            {o.applicationEmail && !closed && (
+              <div className="bg-gray-50 rounded-xl border border-gray-100 p-5 mb-6">
+                <h2 className="font-bold text-gray-900 text-sm mb-1">
+                  {isJob ? "Submit applications to" : "Submit bids to"}
+                </h2>
+                <a
+                  href={`mailto:${o.applicationEmail}?subject=${encodeURIComponent(o.title)}`}
+                  className="text-sm text-primary-700 font-semibold hover:underline break-all"
+                >
+                  {o.applicationEmail}
+                </a>
               </div>
             )}
 

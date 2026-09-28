@@ -8,6 +8,7 @@ import PageHeader from "@/components/public/PageHeader";
 import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import Link from "next/link";
 import EmptyState from "@/components/shared/EmptyState";
+import { teaserFor } from "@/lib/html/sanitize";
 
 import type { Opportunity } from "@/lib/types";
 
@@ -159,8 +160,10 @@ export default function OpportunitiesBrowser({ all }: { all: Opportunity[] }) {
                           {o.organization ? o.organization : `by ${o.funder}`}
                         </p>
                       )}
+                      {/* Vacancies have no summary field — their teaser is
+                          an excerpt of the Job Summary instead. */}
                       <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                        {o.summary}
+                        {teaserFor(o.summary, o.description)}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {o.opportunityType && (

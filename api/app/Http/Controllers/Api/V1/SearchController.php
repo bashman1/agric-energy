@@ -58,7 +58,7 @@ class SearchController extends Controller
                 . "setweight(to_tsvector('english', coalesce({$descCol},'')), 'C')";
 
             $rows = DB::table($table)
-                ->selectRaw("slug, {$titleCol} as title, {$summaryCol} as summary"
+                ->selectRaw("slug, {$titleCol} as title, {$summaryCol} as summary, {$descCol} as description"
                     . ($badgeCol ? ", {$badgeCol} as badge" : ", null as badge")
                     . ", ts_rank(({$vector}), plainto_tsquery('english', ?)) as rank", [$q])
                 ->where('published', true)
@@ -71,7 +71,7 @@ class SearchController extends Controller
             // (handles partial words that tsquery misses, e.g. "sol").
             if ($rows->isEmpty()) {
                 $rows = DB::table($table)
-                    ->selectRaw("slug, {$titleCol} as title, {$summaryCol} as summary"
+                    ->selectRaw("slug, {$titleCol} as title, {$summaryCol} as summary, {$descCol} as description"
                         . ($badgeCol ? ", {$badgeCol} as badge" : ", null as badge")
                         . ", 0 as rank")
                     ->where('published', true)
@@ -92,7 +92,7 @@ class SearchController extends Controller
                     'type' => $type,
                     'slug' => $r->slug,
                     'title' => $r->title,
-                    'summary' => $r->summary,
+                    'summary' => self::snippet($r->summary, $r->description),
                     'badge' => $r->badge,
                     'href' => "{$prefix}/{$r->slug}",
                     'rank' => (float) $r->rank,
@@ -142,5 +142,25 @@ class SearchController extends Controller
             str_starts_with(Str::lower($b['title']), $lower) <=> str_starts_with(Str::lower($a['title']), $lower));
 
         return response()->json(['data' => array_slice($suggestions, 0, 8)]);
+    }
+
+    /**
+     * The line shown under a search hit.
+     *
+     * Vacancies and tenders no longer carry a separate summary — their form
+     * dropped it in favour of the rich Job Summary / Details field — so the
+     * snippet falls back to that, with its HTML stripped. Without this a
+     * tender would appear in results as a bare title.
+     */
+    private static function snippet(?string $summary, ?string $description): string
+    {
+        if (filled($summary)) {
+            return $summary;
+        }
+
+        $text = html_entity_decode(strip_tags($description ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = trim(preg_replace('/\s+/u', ' ', str_replace("\xC2\xA0", ' ', $text)));
+
+        return Str::limit($text, 160);
     }
 }

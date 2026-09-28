@@ -8,6 +8,7 @@ import PageHeader from "@/components/public/PageHeader";
 import StaggerGrid from "@/components/shared/motion/StaggerGrid";
 import Link from "next/link";
 import EmptyState from "@/components/shared/EmptyState";
+import { teaserFor } from "@/lib/html/sanitize";
 import type { Opportunity } from "@/lib/types";
 
 
@@ -161,7 +162,11 @@ function NoticeCard({ o }: { o: Opportunity }) {
       {(o.organization || o.funder) && (
         <p className="text-xs text-gray-500 mb-2">{o.organization || o.funder}</p>
       )}
-      <p className="text-sm text-gray-600 line-clamp-2 mb-3">{o.summary}</p>
+      {/* Tenders have no summary field — their teaser is an excerpt of
+          the Details field instead. */}
+      <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+        {teaserFor(o.summary, o.description)}
+      </p>
       <div className="flex flex-wrap gap-1.5">
         <Tag>{o.opportunityType === "procurement" ? "Procurement" : "Tender"}</Tag>
         <Tag>Deadline: {fmtDeadline(o.deadline)}</Tag>

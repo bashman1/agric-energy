@@ -82,25 +82,29 @@ export interface ContentModuleDef {
 }
 
 /**
- * Opportunity types that are a job advert, and those that are not.
+ * Opportunities split into two shapes, and the field gates follow that
+ * split rather than being listed type by type.
  *
- * "Job" and "vacancy" are one type, not two — see the merged select option
- * below. These drive `showWhen` on the job-only fields, so a grant or a
- * tender never shows a "Minimum Education" box.
+ * A grant or an investment call is a FUNDING opportunity: it has a funder,
+ * a money amount, a sector and value chain, a region and eligibility rules,
+ * and it links out to an application page.
+ *
+ * A vacancy, tender or procurement notice is issued by an ORGANIZATION. It
+ * carries none of that — the money, scope and requirements live in the
+ * posting itself or in the attached document, and applications go to an
+ * email address rather than a portal.
  */
+export const FUNDER_TYPES = ["funding", "investment"];
+export const ORGANIZATION_TYPES = ["job", "tender", "procurement"];
+
+/** Vacancy-only fields (duties, education, experience, competences). */
 export const JOB_TYPES = ["job"];
-export const NON_JOB_TYPES = ["funding", "investment", "tender", "procurement"];
 
 /**
- * Who issued the opportunity, split by what that word means.
- *
- * A tender, a procurement notice and a vacancy are put out by an
- * ORGANIZATION. A grant or an investment names a FUNDER — whoever pays,
- * which is not always whoever advertises. One field each, never both, so
- * an editor is never asked the same question twice.
+ * Types that link out to an application page. A tender points at its
+ * uploaded document and its application email instead.
  */
-export const ORGANIZATION_TYPES = ["job", "tender", "procurement"];
-export const FUNDER_TYPES = ["funding", "investment"];
+export const APPLICATION_LINK_TYPES = [...FUNDER_TYPES, "job"];
 
 export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
   posts: {
@@ -182,22 +186,28 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
       // ── Who issued it — one field or the other, never both ──
       { key: "organization", label: "Organization", type: "text", half: true, showWhen: { key: "opportunityType", equals: ORGANIZATION_TYPES }, placeholder: "e.g. Ministry of Energy and Mineral Development" },
       { key: "funder", label: "Funder", type: "text", half: true, showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
-      { key: "summary", label: "Summary", type: "textarea", required: true, rows: 2, placeholder: "One to two sentence summary", labelWhen: { key: "opportunityType", labels: { job: "Listing teaser" } }, help: "Plain text, shown on listing cards and search results." },
+      // Funding calls keep a short plain teaser. Vacancies and tenders drop
+      // it — listings and search fall back to an excerpt of the rich field
+      // below (see htmlToText in lib/html/sanitize.ts and SearchController).
+      { key: "summary", label: "Summary", type: "textarea", required: true, rows: 2, placeholder: "One to two sentence summary", showWhen: { key: "opportunityType", equals: FUNDER_TYPES }, help: "Plain text, shown on listing cards and search results." },
       { key: "description", label: "Details", type: "richtext", rows: 8, labelWhen: { key: "opportunityType", labels: { job: "Job Summary" } } },
+      // ── Vacancy only ──
       { key: "dutiesResponsibilities", label: "Duties And Responsibilities", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
-      { key: "minimumEducation", label: "Minimum Education", type: "text", half: true, showWhen: { key: "opportunityType", equals: JOB_TYPES }, placeholder: "e.g. Bachelor's degree in Agricultural Engineering" },
-      { key: "experience", label: "Experience", type: "text", half: true, showWhen: { key: "opportunityType", equals: JOB_TYPES }, placeholder: "e.g. 5 years in renewable energy projects" },
+      { key: "minimumEducation", label: "Minimum Education", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
+      { key: "experience", label: "Experience", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
       { key: "competences", label: "Competences", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
+      // ── Funding calls only ──
+      { key: "amount", label: "Amount", type: "text", half: true, placeholder: "e.g. 250,000", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+      { key: "currency", label: "Currency", type: "text", half: true, placeholder: "USD, UGX, EUR", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+      { key: "sector", label: "Sector", type: "text", half: true, showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+      { key: "valueChain", label: "Value chain", type: "text", half: true, placeholder: "e.g. Dairy, Rice", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+      { key: "region", label: "Region", type: "text", half: true, showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+      { key: "eligibility", label: "Eligibility", type: "textarea", rows: 4, placeholder: "Who can apply…", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
       // ── Shared ──
-      { key: "amount", label: "Amount", type: "text", half: true, placeholder: "e.g. 250,000", labelWhen: { key: "opportunityType", labels: { job: "Salary / remuneration" } } },
-      { key: "currency", label: "Currency", type: "text", half: true, placeholder: "USD, UGX, EUR" },
-      { key: "sector", label: "Sector", type: "text", half: true },
-      { key: "valueChain", label: "Value chain", type: "text", half: true, placeholder: "e.g. Dairy, Rice" },
-      { key: "region", label: "Region", type: "text", half: true, labelWhen: { key: "opportunityType", labels: { job: "Duty station" } } },
       { key: "deadline", label: "Deadline", type: "date", half: true, labelWhen: { key: "opportunityType", labels: { job: "Application deadline" } } },
-      // Superseded on a vacancy by the education/experience/competences trio.
-      { key: "eligibility", label: "Eligibility", type: "textarea", rows: 4, placeholder: "Who can apply…", showWhen: { key: "opportunityType", equals: NON_JOB_TYPES } },
-      { key: "externalUrl", label: "Application link", type: "url", placeholder: "https://…" },
+      // Where to send an application when there is no portal to link to.
+      { key: "applicationEmail", label: "Submit applications to", type: "text", half: true, showWhen: { key: "opportunityType", equals: ORGANIZATION_TYPES }, placeholder: "recruitment@example.go.ug", help: "Email address applications or bids are sent to." },
+      { key: "externalUrl", label: "Application link", type: "url", placeholder: "https://…", showWhen: { key: "opportunityType", equals: APPLICATION_LINK_TYPES } },
       // The notice, call document or job description itself. Optional on
       // every type — a tender is the case that needs it, but a grant has
       // guidelines and a vacancy a full JD.

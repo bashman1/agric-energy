@@ -7,9 +7,9 @@
 // filling in a different vacancy form from staff.
 import {
   JOB_TYPES,
-  NON_JOB_TYPES,
   ORGANIZATION_TYPES,
   FUNDER_TYPES,
+  APPLICATION_LINK_TYPES,
 } from "@/components/admin/contentSchemas";
 
 export type FieldType =
@@ -208,20 +208,24 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
     //    record. ──
     { key: "organization", label: "Organization", type: "text", showWhen: { key: "opportunityType", equals: ORGANIZATION_TYPES } },
     { key: "funder", label: "Funder", type: "text", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
-    { key: "summary", label: "Summary", type: "textarea", required: true, help: "Plain text, shown on listing cards.", labelWhen: { key: "opportunityType", labels: { job: "Listing teaser" } } },
+    { key: "summary", label: "Summary", type: "textarea", required: true, help: "Plain text, shown on listing cards.", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
     { key: "description", label: "Details", type: "richtext", labelWhen: { key: "opportunityType", labels: { job: "Job Summary" } } },
+    // ── Vacancy only ──
     { key: "dutiesResponsibilities", label: "Duties And Responsibilities", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
-    { key: "minimumEducation", label: "Minimum Education", type: "text", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
-    { key: "experience", label: "Experience", type: "text", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
+    { key: "minimumEducation", label: "Minimum Education", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
+    { key: "experience", label: "Experience", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
     { key: "competences", label: "Competences", type: "richtext", showWhen: { key: "opportunityType", equals: JOB_TYPES } },
-    { key: "amount", label: "Amount", type: "text", labelWhen: { key: "opportunityType", labels: { job: "Salary / remuneration" } } },
-    { key: "currency", label: "Currency", type: "text" },
-    { key: "sector", label: "Sector", type: "text" },
-    { key: "valueChain", label: "Value chain", type: "select", optionsFrom: "taxonomy:valueChains" },
-    { key: "region", label: "Region", type: "select", optionsFrom: "regions", labelWhen: { key: "opportunityType", labels: { job: "Duty station" } } },
+    // ── Funding calls only ──
+    { key: "amount", label: "Amount", type: "text", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+    { key: "currency", label: "Currency", type: "text", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+    { key: "sector", label: "Sector", type: "text", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+    { key: "valueChain", label: "Value chain", type: "select", optionsFrom: "taxonomy:valueChains", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+    { key: "region", label: "Region", type: "select", optionsFrom: "regions", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+    { key: "eligibility", label: "Eligibility", type: "textarea", showWhen: { key: "opportunityType", equals: FUNDER_TYPES } },
+    // ── Shared ──
     { key: "deadline", label: "Deadline", type: "date", labelWhen: { key: "opportunityType", labels: { job: "Application deadline" } } },
-    { key: "eligibility", label: "Eligibility", type: "textarea", showWhen: { key: "opportunityType", equals: NON_JOB_TYPES } },
-    { key: "externalUrl", label: "Application link", type: "text" },
+    { key: "applicationEmail", label: "Submit applications to", type: "text", showWhen: { key: "opportunityType", equals: ORGANIZATION_TYPES }, help: "Email address applications or bids are sent to." },
+    { key: "externalUrl", label: "Application link", type: "text", showWhen: { key: "opportunityType", equals: APPLICATION_LINK_TYPES } },
     { key: "documentUrl", label: "Upload File", type: "upload-document", help: "The tender notice, call document or job description.", labelWhen: { key: "opportunityType", labels: { tender: "Tender document", procurement: "Procurement notice", job: "Job description" } } },
   ],
 };
