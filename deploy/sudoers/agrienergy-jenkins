@@ -1,0 +1,15 @@
+# ============================================================
+# Agri-Energy Desk — PRODUCTION sudo rules
+# Install: /etc/sudoers.d/agrienergy-jenkins  (root:root 0440)
+#          visudo -cf /etc/sudoers.d/agrienergy-jenkins
+#
+# Only two rules, and nothing else:
+#  - Jenkins may run the ROOT-OWNED release script as agrienergy. It is never
+#    the copy in the Jenkins workspace — that copy is writable by whoever can
+#    push to `production`.
+#  - The release script (as agrienergy) may gracefully reload php-fpm, which
+#    clears OPcache after the `current` symlink moves.
+# ============================================================
+
+jenkins     ALL=(agrienergy) NOPASSWD: /opt/agrienergy/bin/release-prod.sh
+agrienergy  ALL=(root)       NOPASSWD: /usr/bin/systemctl reload php8.3-fpm
