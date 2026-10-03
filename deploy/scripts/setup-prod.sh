@@ -282,7 +282,7 @@ NETRC="$(mktemp)"; JAR="$(mktemp)"
 trap 'rm -f "$NETRC" "$JAR"' EXIT
 chmod 600 "$NETRC"
 printf 'machine 127.0.0.1 login %s password %s\n' "$JENKINS_ADMIN_USER" "$JENKINS_ADMIN_PASSWORD" > "$NETRC"
-api() { curl -sS --netrc-file "$NETRC" -b "$JAR" -c "$JAR" "$@"; }
+api() { curl -gsS --netrc-file "$NETRC" -b "$JAR" -c "$JAR" "$@"; }
 
 api -o /dev/null -w '%{http_code}' "$J/api/json" | grep -q 200 \
   || die "cannot log in to Jenkins as ${JENKINS_ADMIN_USER} — wrong password?"
