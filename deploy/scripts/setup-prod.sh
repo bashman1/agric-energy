@@ -5,7 +5,7 @@
 #
 #   1. nginx vhost + Let's Encrypt certificate (auto-renewing)
 #   2. Jenkins without the browser wizard: plugins, admin user, GitHub
-#      deploy key, credential, pipeline job
+#      access-token credential, pipeline job
 #   3. first build, waited on until it passes its smoke tests
 #   4. first platform admin (only while the users table is empty)
 #   5. nightly database backup
@@ -18,8 +18,16 @@
 #
 # It asks for what it needs. To run unattended, set any of these instead:
 #   CERTBOT_EMAIL  JENKINS_ADMIN_USER  JENKINS_ADMIN_PASSWORD
-#   APP_ADMIN_EMAIL  APP_ADMIN_PASSWORD
-# The one pause that cannot be skipped: adding the deploy key on GitHub.
+#   GITHUB_USER  GITHUB_TOKEN  APP_ADMIN_EMAIL  APP_ADMIN_PASSWORD
+#
+# GitHub access: the NREP organisation disables deploy keys, so Jenkins reads
+# the repo over HTTPS with a FINE-GRAINED personal access token —
+#   github.com → Settings → Developer settings → Fine-grained tokens → Generate
+#   Resource owner: National-Renewable-Energy-Platform
+#   Repository access: Only select repositories → NREP-Energy-Desk
+#   Permissions: Contents = Read-only (Metadata = Read-only is added for you)
+# The org may have to approve it before it works. When it expires, polling
+# stops: paste a new one in Jenkins → Credentials → nrep-github-token.
 #
 # Before running:
 #   - provision-prod.sh has run, and shared/.env has no CHANGE_ME left
@@ -32,7 +40,8 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DOMAIN="${DOMAIN:-agrienergy.nrep.ug}"
 PUBLIC_IP="${PUBLIC_IP:-45.136.71.160}"
 APP="${APP:-/var/www/agrienergy-prod}"
-REPO_URL="${REPO_URL:-git@github.com:National-Renewable-Energy-Platform/NREP-Energy-Desk.git}"
+REPO_URL="${REPO_URL:-https://github.com/National-Renewable-Energy-Platform/NREP-Energy-Desk.git}"
+CREDENTIAL_ID=nrep-github-token
 JENKINS_PORT="${JENKINS_PORT:-8081}"
 JENKINS_HOME=/var/lib/jenkins
 JOB=agrienergy-production
@@ -67,6 +76,12 @@ ask_secret() { # ask_secret VAR "prompt" — min 12 chars, typed twice
     break
   done
 }
+ask_token() {  # ask_token VAR "prompt" — hidden, typed once (it is pasted)
+  local var=$1 prompt=$2
+  [[ -n "${!var:-}" ]] && return
+  read -rsp "$prompt: " "$var"; echo
+  [[ -n "${!var}" ]] || die "$var is required"
+}
 env_value() {
   grep -E "^$1=" "$APP/shared/.env" | tail -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/'
 }
@@ -95,6 +110,10 @@ log "A few answers first"
   || ask CERTBOT_EMAIL "Email for Let's Encrypt expiry notices"
 ask JENKINS_ADMIN_USER "Jenkins admin username" "admin"
 ask_secret JENKINS_ADMIN_PASSWORD "Jenkins admin password"
+if [[ ! -f "$JENKINS_HOME/jobs/${JOB}/config.xml" ]]; then
+  ask GITHUB_USER "GitHub username that owns the access token"
+  ask_token GITHUB_TOKEN "GitHub fine-grained token (read-only, NREP-Energy-Desk)"
+fi
 if [[ "$(user_count)" =~ ^[1-9] ]]; then
   log "Platform users already exist — the admin seed will be skipped"
   SKIP_SEED=1
@@ -189,35 +208,30 @@ wait_for_jenkins() {
 if [[ -f "$JENKINS_HOME/jobs/${JOB}/config.xml" ]]; then
   log "Job ${JOB} already exists — Jenkins bootstrap skipped"
 else
-  # ── GitHub deploy key ───────────────────────────────────────────
-  KEY="$JENKINS_HOME/.ssh/nrep-deploy"
-  sudo -u jenkins -H bash -c "
-    set -e
-    mkdir -p ~/.ssh && chmod 700 ~/.ssh
-    [ -f '$KEY' ] || ssh-keygen -q -t ed25519 -N '' -C 'jenkins@agrienergy-prod' -f '$KEY'
-    grep -q '^github.com ' ~/.ssh/known_hosts 2>/dev/null || ssh-keyscan -t ed25519,rsa github.com >> ~/.ssh/known_hosts 2>/dev/null
-  "
+  # ── GitHub access token ─────────────────────────────────────────
+  # Checked BEFORE Jenkins is touched: a token that cannot read the
+  # production branch would only surface as a failed first build.
+  # GIT_ASKPASS keeps the token out of the process list and the URL.
+  askpass="$(mktemp)"; chmod 700 "$askpass"
+  printf '#!/bin/sh\ncase "$1" in Username*) printf %%s "$GH_U";; *) printf %%s "$GH_T";; esac\n' > "$askpass"
   repo_reachable() {
-    sudo -u jenkins -H env GIT_SSH_COMMAND="ssh -i $KEY -o IdentitiesOnly=yes" \
-      git ls-remote "$REPO_URL" refs/heads/production 2>/dev/null | grep -q production
+    GH_U="$GITHUB_USER" GH_T="$GITHUB_TOKEN" GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 \
+      git -c credential.helper= ls-remote "$REPO_URL" refs/heads/production 2>/dev/null | grep -q production
   }
-  if ! repo_reachable; then
-    cat <<EOF
-
-  ┌─ Add this deploy key on GitHub ──────────────────────────────────
-  │ NREP-Energy-Desk → Settings → Deploy keys → Add deploy key
-  │ Title: jenkins@agrienergy-prod      "Allow write access": OFF
-  │
-  │ $(cat "${KEY}.pub")
-  └──────────────────────────────────────────────────────────────────
-EOF
-    until repo_reachable; do
-      read -rp "  Press Enter once it is added (Ctrl-C to stop)… " _
-      repo_reachable && break
-      warn "still cannot read refs/heads/production — key not added yet, or the 'production' branch does not exist"
-    done
-  fi
-  echo "  deploy key works; production branch found"
+  until repo_reachable; do
+    warn "the token cannot read refs/heads/production. Usually one of:
+       - the org has not approved the token yet (it shows as 'pending' on the token page)
+       - Resource owner is not National-Renewable-Energy-Platform, or NREP-Energy-Desk not selected
+       - Contents permission is not Read-only
+       - the 'production' branch does not exist yet:  git push origin1 main:production
+       - a typo in the username or token"
+    GITHUB_TOKEN=""
+    ask_token GITHUB_TOKEN "Paste the token again (Ctrl-C to stop)"
+  done
+  rm -f "$askpass"
+  # Leftover from the deploy-key attempt (deploy keys are disabled by the org).
+  rm -f "$JENKINS_HOME/.ssh/nrep-deploy" "$JENKINS_HOME/.ssh/nrep-deploy.pub"
+  echo "  token works; production branch found"
 
   # ── Plugins (offline install into JENKINS_HOME, before start) ─────
   PM=/opt/agrienergy/jenkins-plugin-manager.jar
@@ -243,7 +257,9 @@ adminUser=$(esc "$JENKINS_ADMIN_USER")
 adminPassword=$(esc "$JENKINS_ADMIN_PASSWORD")
 jenkinsUrl=http://${PUBLIC_IP}:${JENKINS_PORT}/
 repoUrl=${REPO_URL}
-keyFile=${KEY}
+credentialId=${CREDENTIAL_ID}
+githubUser=$(esc "$GITHUB_USER")
+githubToken=$(esc "$GITHUB_TOKEN")
 EOF
   install -d -o jenkins -g jenkins -m 755 "$JENKINS_HOME/init.groovy.d"
   install -o jenkins -g jenkins -m 644 "$REPO_DIR/deploy/jenkins/agrienergy-bootstrap.groovy" \
@@ -253,8 +269,7 @@ EOF
   wait_for_jenkins
   for _ in $(seq 1 60); do [[ -f "$props" ]] || break; sleep 2; done
   [[ ! -f "$props" ]] || die "Jenkins bootstrap did not finish — journalctl -u jenkins -n 120 | grep -i -A5 bootstrap"
-  rm -f "${KEY}.pub"
-  echo "  admin '${JENKINS_ADMIN_USER}', credential nrep-deploy-key and job ${JOB} created"
+  echo "  admin '${JENKINS_ADMIN_USER}', credential ${CREDENTIAL_ID} and job ${JOB} created"
 fi
 systemctl is-active --quiet jenkins || { systemctl start jenkins; wait_for_jenkins; }
 

@@ -33,9 +33,10 @@ JENKINS_PORT="${JENKINS_PORT:-8081}"
 # private (then reach it through: ssh -L 8081:localhost:8081 …).
 JENKINS_LISTEN="${JENKINS_LISTEN:-0.0.0.0}"
 NVM_VERSION="${NVM_VERSION:-v0.40.3}"
-# Jenkins rotates its apt signing key; confirm the current file name at
-# https://pkg.jenkins.io/debian-stable/ if apt rejects the repository.
-JENKINS_KEY_URL="${JENKINS_KEY_URL:-https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key}"
+# Jenkins rotates its apt signing key (2023 → 2026, fingerprint
+# …7198F4B714ABFC68). If apt says NO_PUBKEY, take the current file name from
+# https://pkg.jenkins.io/debian-stable/ and pass JENKINS_KEY_URL=….
+JENKINS_KEY_URL="${JENKINS_KEY_URL:-https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key}"
 
 log() { printf '\n\033[1;32m==>\033[0m %s\n' "$*"; }
 die() { printf '\n\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -60,6 +61,14 @@ fi
 # ── Packages ─────────────────────────────────────────────────────────
 log "Installing PostgreSQL 16, PHP extensions, tools, Java 21"
 export DEBIAN_FRONTEND=noninteractive
+
+# The Jenkins repo is (re)written BEFORE the first apt-get update, every run.
+# Otherwise a stale key — e.g. left by an earlier run, after Jenkins rotated
+# its key — makes that first update fail and the script stops right here.
+curl -fsSL "$JENKINS_KEY_URL" -o /usr/share/keyrings/jenkins-keyring.asc
+echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" \
+  > /etc/apt/sources.list.d/jenkins.list
+
 apt-get update -qq
 apt-get install -y -qq \
   postgresql postgresql-contrib \
@@ -83,10 +92,6 @@ EOF
 systemctl daemon-reload
 
 if ! command -v jenkins >/dev/null && [[ ! -f /usr/share/java/jenkins.war ]]; then
-  curl -fsSL "$JENKINS_KEY_URL" -o /usr/share/keyrings/jenkins-keyring.asc
-  echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" \
-    > /etc/apt/sources.list.d/jenkins.list
-  apt-get update -qq
   apt-get install -y -qq jenkins
 else
   log "Jenkins already installed"
@@ -196,7 +201,8 @@ sudo -l -U jenkins | sed -n '/may run/,$p'
 cat <<EOF
 
 Next:
-  1. Fill in $APP/shared/.env (APP_KEY: php artisan key:generate --show)
+  1. Fill in every CHANGE_ME:  nano $APP/shared/.env
+     For APP_KEY, generate a value with:  echo "base64:\$(openssl rand -base64 32)"
   2. Run the second script — nginx + TLS, Jenkins job, first build, admin, backups:
        bash deploy/scripts/setup-prod.sh
 
