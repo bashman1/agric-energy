@@ -83,13 +83,33 @@ apt-get install -y -qq \
 # disabled: setup-prod.sh configures Jenkins from code instead.
 log "Installing Jenkins on ${JENKINS_LISTEN}:${JENKINS_PORT}"
 mkdir -p /etc/systemd/system/jenkins.service.d
-cat > /etc/systemd/system/jenkins.service.d/override.conf <<EOF
+OVERRIDE=/etc/systemd/system/jenkins.service.d/override.conf
+new_override="$(mktemp)"
+cat > "$new_override" <<EOF
 [Service]
 Environment="JENKINS_LISTEN_ADDRESS=${JENKINS_LISTEN}"
 Environment="JENKINS_PORT=${JENKINS_PORT}"
 Environment="JAVA_OPTS=-Djava.awt.headless=true -Xmx768m -Djenkins.install.runSetupWizard=false"
 EOF
-systemctl daemon-reload
+# Restarting Jenkins kills any build in progress (systemd stops the whole
+# service, the build's processes included). So restart only when the
+# settings actually changed, never just because this script was re-run.
+JENKINS_RESTART=0
+if ! cmp -s "$new_override" "$OVERRIDE"; then
+  install -m 644 "$new_override" "$OVERRIDE"
+  systemctl daemon-reload
+  JENKINS_RESTART=1
+fi
+rm -f "$new_override"
+
+# needrestart (Ubuntu) restarts services after apt upgrades — a Java
+# security update would restart Jenkins mid-build. Never auto-restart it;
+# it picks up the new Java on its next planned restart.
+mkdir -p /etc/needrestart/conf.d
+cat > /etc/needrestart/conf.d/50-agrienergy-jenkins.conf <<'EOF'
+# Agri-Energy Desk: an automatic restart would kill a running deploy.
+$nrconf{override_rc}{qr(^jenkins)} = 0;
+EOF
 
 if ! command -v jenkins >/dev/null && [[ ! -f /usr/share/java/jenkins.war ]]; then
   apt-get install -y -qq jenkins
@@ -97,7 +117,13 @@ else
   log "Jenkins already installed"
 fi
 systemctl enable --now jenkins
-systemctl restart jenkins   # pick up the override on re-runs
+if [[ $JENKINS_RESTART -eq 1 ]] && systemctl is-active --quiet jenkins; then
+  if pgrep -u jenkins -f 'durable-' >/dev/null; then
+    printf '\n\033[1;33mWARN:\033[0m Jenkins settings changed but a build is running — NOT restarting.\n      Restart it once the build is done:  systemctl restart jenkins\n'
+  else
+    systemctl restart jenkins
+  fi
+fi
 
 # Jenkins home holds credentials; nobody but jenkins (and the release user,
 # which must read the workspace) needs into it.
@@ -206,6 +232,7 @@ Next:
   2. Run the second script — nginx + TLS, Jenkins job, first build, admin, backups:
        bash deploy/scripts/setup-prod.sh
 
-After changing release-prod.sh in the repo, reinstall it:
+After changing release-prod.sh in the repo, reinstall just that file (no
+need to re-run this script; doing so is safe and won't restart Jenkins):
   install -o root -g root -m 755 deploy/scripts/release-prod.sh /opt/agrienergy/bin/
 EOF
