@@ -83,13 +83,6 @@ export default function AdminLoginPage() {
               {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
-          <div className="mt-5 p-3 bg-shade-800 rounded-lg">
-            <p className="text-xs text-shade-500 text-center">
-              Default credentials:<br />
-              <span className="text-shade-400">email: <code className="text-primary-400">admin@agrienergy.go.ug</code></span><br />
-              <span className="text-shade-400">password: <code className="text-primary-400">agrienergy2026</code></span>
-            </p>
-          </div>
         </div>
 
         <p className="text-center text-shade-400 text-xs mt-6">
