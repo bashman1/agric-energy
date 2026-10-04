@@ -57,7 +57,7 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="block w-full px-3 py-2.5 bg-shade-800 border border-shade-700 rounded-lg text-white text-sm placeholder-shade-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30"
-                placeholder="admin@agrienergy.go.ug"
+                placeholder="email@example.com"
                 required
                 autoComplete="username"
               />
