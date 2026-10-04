@@ -90,11 +90,18 @@ class StaticSiteController extends Controller
 
         // SPA fallback. 404.html is Next's exported not-found page and also
         // boots the client router, so an un-prerendered route still renders.
+        //
+        // Sent as a plain response, NOT response()->file(): Symfony's
+        // BinaryFileResponse skips the body for any non-2xx status but still
+        // sends the file's Content-Length, so the browser was promised ~14 KB
+        // and received nothing. Over HTTP/2 that surfaced as a reset stream
+        // (curl: INTERNAL_ERROR), over HTTP/1.1 as a truncated response.
         $fallback = $base . '/404.html';
         if (is_file($fallback)) {
-            return response()->file($fallback, [
+            return response(file_get_contents($fallback), 404, [
+                'Content-Type' => 'text/html; charset=utf-8',
                 'Cache-Control' => 'no-cache, must-revalidate',
-            ])->setStatusCode(404);
+            ]);
         }
 
         abort(404);
