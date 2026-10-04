@@ -90,10 +90,13 @@ cat > "$new_override" <<EOF
 Environment="JENKINS_LISTEN_ADDRESS=${JENKINS_LISTEN}"
 Environment="JENKINS_PORT=${JENKINS_PORT}"
 Environment="JAVA_OPTS=-Djava.awt.headless=true -Xmx768m -Djenkins.install.runSetupWizard=false"
+# On stop/restart, signal only the Jenkins JVM — not the build processes it
+# started. Pipeline `sh` steps then keep running and the build reattaches
+# after Jenkins comes back (e.g. "restart after installing plugins").
+KillMode=process
 EOF
-# Restarting Jenkins kills any build in progress (systemd stops the whole
-# service, the build's processes included). So restart only when the
-# settings actually changed, never just because this script was re-run.
+# Even so, restart only when the settings actually changed, never just
+# because this script was re-run.
 JENKINS_RESTART=0
 if ! cmp -s "$new_override" "$OVERRIDE"; then
   install -m 644 "$new_override" "$OVERRIDE"
