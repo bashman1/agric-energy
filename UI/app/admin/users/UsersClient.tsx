@@ -74,12 +74,9 @@ export default function UsersClient({
   const suspend = (u: AdminUser) =>
     call(u.id, () => apiSend("POST", `users/${u.id}/suspend`));
 
-  const toggleRole = (u: AdminUser, role: string) => {
-    const roles = u.roles.includes(role)
-      ? u.roles.filter((r) => r !== role)
-      : [...u.roles, role];
-    call(u.id, () => apiSend("PUT", `users/${u.id}/roles`, { roles }));
-  };
+  /** One role per account: picking a new one replaces whatever it held. */
+  const changeRole = (u: AdminUser, role: string) =>
+    call(u.id, () => apiSend("PUT", `users/${u.id}/roles`, { roles: [role] }));
 
   /** Link an existing partner account to its organisation, keeping its roles. */
   const linkPartner = (u: AdminUser, partner: string) =>
@@ -210,7 +207,7 @@ export default function UsersClient({
             partners={category === "partner" ? partners : null}
             approve={approve}
             suspend={suspend}
-            toggleRole={toggleRole}
+            changeRole={changeRole}
             linkPartner={linkPartner}
           />
         )}
@@ -232,7 +229,7 @@ function UsersTable({
   partners,
   approve,
   suspend,
-  toggleRole,
+  changeRole,
   linkPartner,
 }: {
   rows: AdminUser[];
@@ -243,7 +240,7 @@ function UsersTable({
   partners: PartnerOption[] | null;
   approve: (u: AdminUser) => void;
   suspend: (u: AdminUser) => void;
-  toggleRole: (u: AdminUser, role: string) => void;
+  changeRole: (u: AdminUser, role: string) => void;
   linkPartner: (u: AdminUser, partner: string) => void;
 }) {
   const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage, totalItems, paginatedItems } =
@@ -257,7 +254,7 @@ function UsersTable({
             <tr>
               <th className="text-left font-semibold px-4 py-3">User</th>
               <th className="text-left font-semibold px-4 py-3">Status</th>
-              <th className="text-left font-semibold px-4 py-3">Roles</th>
+              <th className="text-left font-semibold px-4 py-3">Role</th>
               <th className="text-right font-semibold px-4 py-3">Actions</th>
             </tr>
           </thead>
@@ -288,34 +285,7 @@ function UsersTable({
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1.5">
-                    {/* The tab's own roles, plus any stray one the account
-                        holds from the other population, so nothing is hidden. */}
-                    {[...roles, ...u.roles.filter((r) => !roles.includes(r))]
-                      // Super-admin is never assignable here; show it only as
-                      // a badge on the accounts that already hold it.
-                      .filter((role) => role !== ROLE.SUPER_ADMIN || u.roles.includes(role))
-                      .map((role) => {
-                      const on = u.roles.includes(role);
-                      const lockReason = roleLockReason(role, isSuperAdmin);
-                      const locked = lockReason !== null;
-                      return (
-                        <button
-                          key={role}
-                          onClick={() => toggleRole(u, role)}
-                          disabled={busy === u.id || locked}
-                          title={lockReason ?? undefined}
-                          className={`text-[11px] font-medium px-2 py-0.5 rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                            on
-                              ? "bg-primary-600 text-white border-primary-600"
-                              : "bg-white text-ink-500 border-ink-200 hover:border-primary-300"
-                          }`}
-                        >
-                          {ROLE_LABELS[role] ?? role}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <RoleCell u={u} roles={roles} busy={busy === u.id} isSuperAdmin={isSuperAdmin} changeRole={changeRole} />
                   {partners && !u.partnerId && (
                     <select
                       className="form-input mt-2 text-xs py-1"
@@ -377,6 +347,68 @@ function UsersTable({
             setCurrentPage(1);
           }}
         />
+      )}
+    </div>
+  );
+}
+
+/**
+ * The role(s) an account actually holds, as badges, with a dropdown to
+ * replace it. The dropdown offers only roles the viewer may grant, and is
+ * withheld entirely when the account holds a role the viewer may not take
+ * away (a super-admin, or a platform admin seen by a platform admin).
+ */
+function RoleCell({
+  u,
+  roles,
+  busy,
+  isSuperAdmin,
+  changeRole,
+}: {
+  u: AdminUser;
+  roles: readonly string[];
+  busy: boolean;
+  isSuperAdmin: boolean;
+  changeRole: (u: AdminUser, role: string) => void;
+}) {
+  const lockReason = u.roles.includes(ROLE.SUPER_ADMIN)
+    ? "Super administrator — managed on the server"
+    : u.roles.map((r) => roleLockReason(r, isSuperAdmin)).find(Boolean) ?? null;
+  const options = roles.filter((r) => roleLockReason(r, isSuperAdmin) === null);
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-1.5">
+        {u.roles.length === 0 ? (
+          <span className="text-xs text-ink-400">No role</span>
+        ) : (
+          u.roles.map((r) => (
+            <span
+              key={r}
+              className="text-[11px] font-medium px-2 py-0.5 rounded-full border bg-primary-50 text-primary-700 border-primary-200"
+            >
+              {ROLE_LABELS[r] ?? r}
+            </span>
+          ))
+        )}
+      </div>
+      {lockReason ? (
+        <p className="mt-1.5 text-[11px] text-ink-400">{lockReason}</p>
+      ) : (
+        <select
+          className="form-input mt-2 text-xs py-1"
+          value=""
+          disabled={busy}
+          onChange={(e) => e.target.value && changeRole(u, e.target.value)}
+          aria-label={`Change role for ${u.name}`}
+        >
+          <option value="">Change role…</option>
+          {options
+            .filter((r) => !(u.roles.length === 1 && u.roles[0] === r))
+            .map((r) => (
+              <option key={r} value={r}>{ROLE_LABELS[r] ?? r}</option>
+            ))}
+        </select>
       )}
     </div>
   );

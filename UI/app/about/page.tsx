@@ -72,7 +72,7 @@ export default function AboutPage() {
               <div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">What is Agri-Energy?</h2>
                 <div className="space-y-4 text-gray-600 leading-relaxed">
-                  <p>Agri-energy refers to the application of energy — particularly renewable energy — to agricultural production, processing, storage, and value addition. It encompasses technologies and practices that use solar, biogas, and other clean energy sources to power irrigation systems, food processing equipment, cold chain infrastructure, and farm machinery.</p>
+                  <p>Agri-energy refers to the application of energy particularly renewable energy to agricultural production, processing, storage, and value addition. It encompasses technologies and practices that use solar, biogas, and other clean energy sources to power irrigation systems, food processing equipment, cold chain infrastructure, and farm machinery.</p>
                   <p>In Uganda, agri-energy plays a critical role in transforming subsistence agriculture into productive commercial activity. By replacing diesel fuel and removing dependence on rain-fed production, agri-energy technologies help farmers achieve higher yields, reduce losses, extend marketing windows, and ultimately increase their incomes.</p>
                   <p>The Agri-Energy Desk documents, organises, and makes accessible the full landscape of agri-energy technologies, projects, and knowledge resources from across Uganda.</p>
                 </div>

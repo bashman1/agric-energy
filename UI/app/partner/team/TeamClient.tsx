@@ -50,7 +50,7 @@ export default function TeamClient() {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState(EMPTY);
-  const [roles, setRoles] = useState<string[]>([ROLE.PARTNER_CONTENT_CONTRIBUTOR]);
+  const [role, setRole] = useState<string>(ROLE.PARTNER_CONTENT_CONTRIBUTOR);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
@@ -87,12 +87,9 @@ export default function TeamClient() {
   const set = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((s) => ({ ...s, [k]: e.target.value }));
 
-  const toggleRole = (role: string) =>
-    setRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
-
   const reset = () => {
     setForm(EMPTY);
-    setRoles([ROLE.PARTNER_CONTENT_CONTRIBUTOR]);
+    setRole(ROLE.PARTNER_CONTENT_CONTRIBUTOR);
     setErrors({});
     setMessage("");
   };
@@ -116,14 +113,14 @@ export default function TeamClient() {
       setErrors({ password_confirmation: "Passwords do not match." });
       return;
     }
-    if (roles.length === 0) {
-      setErrors({ roles: "Choose at least one role." });
+    if (!role) {
+      setErrors({ roles: "Choose a role." });
       return;
     }
 
     setSaving(true);
     try {
-      await createTeamMember({ ...form, roles });
+      await createTeamMember({ ...form, roles: [role] });
       reset();
       setAdding(false);
       await load();
@@ -206,35 +203,20 @@ export default function TeamClient() {
             </Field>
           </div>
 
-          <fieldset className="mt-4">
-            <legend className="block text-xs font-semibold text-gray-600 mb-1.5">Role in your organisation</legend>
-            <div className="flex flex-wrap gap-1.5">
-              {PARTNER_TEAM_ROLES.map((role) => {
-                const on = roles.includes(role);
-                return (
-                  <button
-                    key={role}
-                    type="button"
-                    onClick={() => toggleRole(role)}
-                    aria-pressed={on}
-                    className={`text-[11px] font-medium px-2 py-1 rounded-full border transition-colors ${
-                      on
-                        ? "bg-primary-600 text-white border-primary-600"
-                        : "bg-white text-gray-500 border-gray-200 hover:border-primary-300"
-                    }`}
-                  >
-                    {ROLE_LABELS[role] ?? role}
-                  </button>
-                );
-              })}
-            </div>
-            {errors.roles && <p className="text-xs text-red-600 mt-1">{errors.roles}</p>}
-            <p className="text-[11px] text-gray-400 mt-1.5">
-              An Organisation Admin can add and manage people here, like you.
-              Content submitted by any of these roles still goes to the platform
-              review queue before it appears publicly.
-            </p>
-          </fieldset>
+          <div className="mt-4 sm:max-w-xs">
+            <Field label="Role in your organisation" error={errors.roles}>
+              <select className="form-input" value={role} onChange={(e) => setRole(e.target.value)} required>
+                {PARTNER_TEAM_ROLES.map((r) => (
+                  <option key={r} value={r}>{ROLE_LABELS[r] ?? r}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <p className="text-[11px] text-gray-400 mt-1.5">
+            An Organisation Admin can add and manage people here, like you.
+            Content submitted by any of these roles still goes to the platform
+            review queue before it appears publicly.
+          </p>
 
           <div className="mt-4">
             <button type="submit" disabled={saving} className="btn btn-primary disabled:opacity-50">

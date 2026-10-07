@@ -68,7 +68,7 @@ export default function NewUserForm({
   const [form, setForm] = useState(EMPTY);
   const [category, setCategory] = useState<Category>(initialCategory);
   const [partner, setPartner] = useState("");
-  const [roles, setRoles] = useState<string[]>([DEFAULT_ROLE[initialCategory]]);
+  const [role, setRole] = useState<string>(DEFAULT_ROLE[initialCategory]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
@@ -79,21 +79,18 @@ export default function NewUserForm({
 
   const switchCategory = (next: Category) => {
     setCategory(next);
-    setRoles([DEFAULT_ROLE[next]]);
+    setRole(DEFAULT_ROLE[next]);
     setPartner("");
     setErrors({});
   };
 
   const reset = () => {
     setForm(EMPTY);
-    setRoles([DEFAULT_ROLE[category]]);
+    setRole(DEFAULT_ROLE[category]);
     setPartner("");
     setErrors({});
     setMessage("");
   };
-
-  const toggleRole = (role: string) =>
-    setRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,13 +115,13 @@ export default function NewUserForm({
       setErrors({ password_confirmation: "Passwords do not match." });
       return;
     }
-    if (roles.length === 0) {
-      setErrors({ roles: "Choose at least one role." });
+    if (!role) {
+      setErrors({ roles: "Choose a role." });
       return;
     }
     // Organisation roles act on a team; without a linked organisation the
     // account would sign in to a portal with no Team page.
-    if (!partner && roles.some((r) => (PARTNER_TEAM_ROLES as readonly string[]).includes(r))) {
+    if (!partner && (PARTNER_TEAM_ROLES as readonly string[]).includes(role)) {
       setErrors({ partner: "Choose the organisation this account belongs to." });
       return;
     }
@@ -133,8 +130,8 @@ export default function NewUserForm({
     try {
       await createUser(
         category === "partner"
-          ? { ...form, organisation: "", roles, partner: partner || undefined }
-          : { ...form, roles }
+          ? { ...form, organisation: "", roles: [role], partner: partner || undefined }
+          : { ...form, roles: [role] }
       );
       reset();
       onCreated();
@@ -223,39 +220,24 @@ export default function NewUserForm({
         </Field>
       </div>
 
-      <fieldset className="mt-4">
-        <legend className="block text-xs font-semibold text-ink-600 mb-1.5">Roles</legend>
-        <div className="flex flex-wrap gap-1.5">
-          {ASSIGNABLE[category]
-            // Not offered at all rather than shown disabled: nobody creates a
-            // super-admin here, and only a super-admin a platform admin.
-            .filter((role) => roleLockReason(role, isSuperAdmin) === null)
-            .map((role) => {
-            const on = roles.includes(role);
-            return (
-              <button
-                key={role}
-                type="button"
-                onClick={() => toggleRole(role)}
-                aria-pressed={on}
-                className={`text-[11px] font-medium px-2 py-1 rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  on
-                    ? "bg-primary-600 text-white border-primary-600"
-                    : "bg-white text-ink-500 border-ink-200 hover:border-primary-300"
-                }`}
-              >
-                {ROLE_LABELS[role] ?? role}
-              </button>
-            );
-          })}
-        </div>
-        {errors.roles && <p className="text-xs text-red-600 mt-1">{errors.roles}</p>}
-        <p className="text-[11px] text-ink-400 mt-1.5">
-          {category === "nrep"
-            ? "NREP staff sign in to this admin panel."
-            : "Partner accounts use the /partner portal. The Organisation Admin gets the Team menu there to add colleagues."}
-        </p>
-      </fieldset>
+      <div className="mt-4 sm:max-w-xs">
+        <Field label="Role" error={errors.roles}>
+          <select className="form-input" value={role} onChange={(e) => setRole(e.target.value)} required>
+            {ASSIGNABLE[category]
+              // Not offered at all: nobody creates a super-admin here, and
+              // only a super-admin creates a platform admin.
+              .filter((r) => roleLockReason(r, isSuperAdmin) === null)
+              .map((r) => (
+                <option key={r} value={r}>{ROLE_LABELS[r] ?? r}</option>
+              ))}
+          </select>
+        </Field>
+      </div>
+      <p className="text-[11px] text-ink-400 mt-1.5">
+        {category === "nrep"
+          ? "NREP staff sign in to this admin panel."
+          : "Partner accounts use the /partner portal. The Organisation Admin gets the Team menu there to add colleagues."}
+      </p>
 
       <div className="mt-4 flex items-center gap-2">
         <button type="submit" disabled={saving} className="btn btn-primary disabled:opacity-50">
