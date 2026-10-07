@@ -48,6 +48,36 @@ export const PARTNER_TEAM_ROLES = [
   ROLE.PARTNER_CONTENT_CONTRIBUTOR,
 ] as const;
 
+/**
+ * Every role held by a partner (external organisation) account. Mirrors
+ * Roles::PARTNER_ROLES. Anything else is an NREP staff role, and the API
+ * refuses an account that holds both.
+ */
+export const PARTNER_ACCOUNT_ROLES = [ROLE.PARTNER, ...PARTNER_TEAM_ROLES] as const;
+
+/** NREP staff roles, in tier order — the complement of PARTNER_ACCOUNT_ROLES. */
+export const NREP_ROLES = [
+  ROLE.SUPER_ADMIN,
+  ROLE.PLATFORM_ADMIN,
+  ROLE.KNOWLEDGE_MANAGER,
+  ROLE.CONTENT_CONTRIBUTOR,
+  ROLE.REVIEWER,
+] as const;
+
+/**
+ * Why the current admin may not grant or remove `role`, or null if they may.
+ * Mirrors UserController::assertMayGrant(): super-admin is never assigned
+ * from the UI (it is made on the server), and platform-admin is a
+ * super-admin's call alone.
+ */
+export function roleLockReason(role: string, actorIsSuperAdmin: boolean): string | null {
+  if (role === ROLE.SUPER_ADMIN) return "Super administrators are created on the server, not here";
+  if (role === ROLE.PLATFORM_ADMIN && !actorIsSuperAdmin) {
+    return "Only super-administrators can grant or remove this role";
+  }
+  return null;
+}
+
 /** Roles that manage content: publish, review queue, taxonomy, analytics. */
 export const CONTENT_MANAGER_ROLES = [
   ROLE.SUPER_ADMIN,

@@ -5,19 +5,27 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Rules\PhoneNumber;
 use App\Http\Resources\UserResource;
+use App\Models\Partner;
 use App\Models\User;
 use App\Support\Roles;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Administrator account management: list users, approve pending registrations,
  * assign roles, and suspend/reactivate accounts. Restricted to user managers
- * (platform-admins and super-admins) via the `manage-users` gate. The
- * super-admin role itself — granting it, or acting on an account that holds it
- * — is reserved for super-admins (see assertMayManageSuperAdmins()).
+ * (platform-admins and super-admins) via the `manage-users` gate.
+ *
+ * The two administrator tiers are guarded separately (assertMayGrant()):
+ *  - super-admin is never granted or revoked through the API — a new one is
+ *    made on the server (seeder / artisan), so no UI session can mint one;
+ *  - platform-admin is granted or revoked by a super-admin only, so a
+ *    platform admin cannot multiply itself.
+ * Platform admins also never see super-admin accounts: they are left out of
+ * the listing and 404 on every per-user action (assertMayManageSuperAdmins()).
  */
 class UserController extends Controller
 {
@@ -28,6 +36,10 @@ class UserController extends Controller
         $this->authorize('manage-users');
 
         $query = User::query()->with('partner')->orderByDesc('created_at');
+
+        if (! $request->user()->hasRole(Roles::SUPER_ADMIN)) {
+            $query->whereDoesntHave('roles', fn ($q) => $q->where('name', Roles::SUPER_ADMIN));
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->query('status'));
@@ -65,16 +77,21 @@ class UserController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'phone' => ['nullable', 'string', 'max:50', new PhoneNumber],
             'organisation' => 'nullable|string|max:255',
+            // Slug of the organisation a partner account belongs to. Without
+            // it an organisation role has no team to act on — see
+            // assertCoherentRoles().
+            'partner' => 'nullable|string|exists:partners,slug',
             'roles' => 'required|array|min:1',
             'roles.*' => 'in:' . implode(',', self::ASSIGNABLE_ROLES),
         ]);
 
-        // Same escalation guard as setRoles(): a platform-admin must not be
-        // able to mint a super-admin and inherit full control that way.
-        if (in_array(Roles::SUPER_ADMIN, $data['roles'], true)
-            && ! $request->user()->hasRole(Roles::SUPER_ADMIN)) {
-            throw new AuthorizationException('Only super-administrators can grant the super-administrator role.');
-        }
+        $partner = ! empty($data['partner'])
+            ? Partner::where('slug', $data['partner'])->first()
+            : null;
+        $this->assertCoherentRoles($data['roles'], $partner?->id);
+
+        // Same escalation guard as setRoles().
+        $this->assertMayGrant($request, $data['roles'], []);
 
         $user = User::create([
             'name' => $data['name'],
@@ -83,10 +100,11 @@ class UserController extends Controller
             // idempotent — do not Hash::make() here as well.
             'password' => $data['password'],
             'phone' => $data['phone'] ?? null,
-            'organisation' => $data['organisation'] ?? null,
+            'organisation' => $data['organisation'] ?? $partner?->name,
             'status' => User::STATUS_APPROVED,
             'approved_at' => Carbon::now(),
-            'account_type' => 'individual',
+            'account_type' => $partner ? 'organization' : 'individual',
+            'partner_id' => $partner?->id,
         ]);
 
         $user->forceFill(['email_verified_at' => Carbon::now()])->save();
@@ -131,31 +149,85 @@ class UserController extends Controller
         $data = $request->validate([
             'roles' => 'required|array',
             'roles.*' => 'in:' . implode(',', self::ASSIGNABLE_ROLES),
+            // Lets an existing partner account be linked to its organisation
+            // in the same step as being made its administrator.
+            'partner' => 'nullable|string|exists:partners,slug',
         ]);
 
-        // Granting super-admin, or changing the roles of an existing
-        // super-admin, is reserved for super-admins — a platform-admin must
-        // not be able to escalate itself or others to full control.
-        $this->assertMayManageSuperAdmins($request, $user);
-        if (in_array(Roles::SUPER_ADMIN, $data['roles'], true)
-            && ! $request->user()->hasRole(Roles::SUPER_ADMIN)) {
-            throw new AuthorizationException('Only super-administrators can grant the super-administrator role.');
+        if (! empty($data['partner'])) {
+            $partner = Partner::where('slug', $data['partner'])->firstOrFail();
+            $user->forceFill([
+                'partner_id' => $partner->id,
+                'account_type' => 'organization',
+                'organisation' => $user->organisation ?: $partner->name,
+            ]);
         }
 
+        // Checked before the partner link below is saved.
+        $this->assertMayManageSuperAdmins($request, $user);
+        $this->assertMayGrant($request, $data['roles'], $user->getRoleNames()->all());
+        $this->assertCoherentRoles($data['roles'], $user->partner_id);
+
+        $user->save();
         $user->syncRoles($data['roles']);
 
         return response()->json(['data' => new UserResource($user->fresh('partner'))]);
     }
 
     /**
+     * An account is either NREP staff or a partner, never both: a partner
+     * account holding a staff role would carry platform-wide powers out of
+     * an external organisation. And the organisation roles mean nothing
+     * without an organisation — a partner-admin with no partner_id fails the
+     * `manage-partner-team` gate, so the portal's Team page would 403.
+     */
+    private function assertCoherentRoles(array $roles, ?int $partnerId): void
+    {
+        $staff = array_diff($roles, Roles::PARTNER_ROLES);
+        $partner = array_intersect($roles, Roles::PARTNER_ROLES);
+
+        if ($staff && $partner) {
+            throw ValidationException::withMessages([
+                'roles' => 'An account cannot hold both NREP staff and partner roles.',
+            ]);
+        }
+        if (array_intersect($roles, Roles::PARTNER_TEAM_ROLES) && $partnerId === null) {
+            throw ValidationException::withMessages([
+                'roles' => 'Organisation roles need the account to be linked to a partner organisation.',
+            ]);
+        }
+    }
+
+    /**
+     * Refuse any change to who holds an administrator role, comparing the
+     * requested roles with the ones the account has now ($current is empty
+     * for a new account):
+     *  - super-admin membership never changes through the API, for anyone;
+     *  - platform-admin membership changes only at a super-admin's hand.
+     */
+    private function assertMayGrant(Request $request, array $requested, array $current): void
+    {
+        $changes = fn (string $role) =>
+            in_array($role, $requested, true) !== in_array($role, $current, true);
+
+        if ($changes(Roles::SUPER_ADMIN)) {
+            throw new AuthorizationException('Super-administrator accounts cannot be created or changed from the platform.');
+        }
+        if ($changes(Roles::PLATFORM_ADMIN) && ! $request->user()->hasRole(Roles::SUPER_ADMIN)) {
+            throw new AuthorizationException('Only super-administrators can grant or remove the platform administrator role.');
+        }
+    }
+
+    /**
      * A super-admin account may only be modified by another super-admin.
-     * Platform-admins manage everyone else but cannot touch the top tier.
+     * To a platform-admin it does not exist — 404, matching its absence
+     * from index() — rather than a 403 that would confirm it is there.
      */
     private function assertMayManageSuperAdmins(Request $request, User $target): void
     {
         if ($target->hasRole(Roles::SUPER_ADMIN)
             && ! $request->user()->hasRole(Roles::SUPER_ADMIN)) {
-            throw new AuthorizationException('Only super-administrators can manage super-administrator accounts.');
+            abort(404);
         }
     }
 }

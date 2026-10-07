@@ -587,3 +587,38 @@ footer :focus-visible,
   width: 1rem;
   height: 1rem;
 }
+
+/* ─── Homepage hero backdrop (components/public/HeroBackdrop.tsx) ───── */
+/* Slow zoom on the photo on screen; restarts each time a slide activates. */
+@keyframes hero-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+.hero-kenburns {
+  animation: hero-zoom 9s ease-out forwards;
+}
+/* Fills the active slide indicator over one rotation interval. */
+@keyframes hero-progress-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+.hero-progress {
+  animation: hero-progress-fill linear forwards;
+}
+/* Pointer drift; the variables are set from JS on the section. */
+.hero-parallax {
+  transform: translate3d(var(--hero-x, 0px), var(--hero-y, 0px), 0);
+  transition: transform 0.6s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-kenburns,
+  .hero-progress {
+    animation: none;
+  }
+  .hero-progress {
+    width: 100%;
+  }
+  .hero-parallax {
+    transition: none;
+  }
+}

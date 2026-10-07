@@ -14,6 +14,7 @@ import { getResourceBySlug } from "@/lib/data/resources";
 import Link from "next/link";
 import { useAsync } from "@/lib/hooks/useAsync";
 import { useRouteSlug } from "@/lib/routing/useRouteSlug";
+import { DetailHero } from "@/components/public/CoverMedia";
 
 export default function ThemeDetailClient({ slug: routeSlug }: { slug: string }) {
   // The exported HTML is one shell for the whole collection, so the
@@ -93,7 +94,7 @@ export default function ThemeDetailClient({ slug: routeSlug }: { slug: string })
         </div>
 
         {/* Header */}
-        <section className="bg-primary-800 text-white py-12">
+        <DetailHero image={t.featuredImage}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-start justify-between gap-6">
               <div>
@@ -104,7 +105,7 @@ export default function ThemeDetailClient({ slug: routeSlug }: { slug: string })
               <DownloadDetail type="themes" slug={t.slug} label="theme" className="shrink-0" />
             </div>
           </div>
-        </section>
+        </DetailHero>
 
         <section className="py-10 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Theme } from "@/lib/types";
 import { ArrowRightIcon } from "@/components/shared/icons";
 import { themeAccent } from "@/lib/design/cardAccents";
+import { CardCover } from "@/components/public/CoverMedia";
 
 export default function ThemeCard({ theme }: { theme: Theme }) {
   const accent = themeAccent(theme.slug, theme.icon);
@@ -12,7 +13,12 @@ export default function ThemeCard({ theme }: { theme: Theme }) {
       className="card card-hover group flex flex-col h-full overflow-hidden"
     >
       {/* Colour band — one hue per theme, so the hub reads as a set */}
-      <div className={`${accent.gradient} relative flex h-24 items-center justify-center`}>
+      <CardCover
+        image={theme.featuredImage}
+        accent={accent.gradient}
+        emptyHeight="h-24"
+        className={`flex ${theme.featuredImage ? "items-end justify-start p-4" : "items-center justify-center"}`}
+      >
         <span
           aria-hidden="true"
           className="text-4xl drop-shadow transition-transform duration-300 group-hover:scale-110"
@@ -24,7 +30,7 @@ export default function ThemeCard({ theme }: { theme: Theme }) {
             Featured
           </span>
         )}
-      </div>
+      </CardCover>
 
       {/* Title + summary */}
       <div className="flex-1 px-5 pt-4">

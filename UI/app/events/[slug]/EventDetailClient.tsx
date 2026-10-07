@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useAsync } from "@/lib/hooks/useAsync";
 import { useRouteSlug } from "@/lib/routing/useRouteSlug";
 import { getEventBySlug } from "@/lib/data/events";
+import { DetailHero } from "@/components/public/CoverMedia";
 
 function fmt(date: string | null): string {
   if (!date) return "Date to be confirmed";
@@ -85,7 +86,7 @@ export default function EventDetailClient({ slug: routeSlug }: { slug: string })
     <>
       <Header />
       <main>
-        <section className="bg-primary-800 text-white py-12">
+        <DetailHero image={event.featuredImage}>
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <Link href="/events" className="text-primary-200 text-sm hover:text-white">
               ← All events
@@ -107,7 +108,7 @@ export default function EventDetailClient({ slug: routeSlug }: { slug: string })
               <DownloadDetail type="events" slug={event.slug} label="event" className="shrink-0" />
             </div>
           </div>
-        </section>
+        </DetailHero>
 
         <section className="bg-white py-10">
           <div className="max-w-3xl mx-auto px-4 sm:px-6">

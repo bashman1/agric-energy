@@ -169,6 +169,8 @@ export interface NewUserInput {
   roles: string[];
   phone?: string;
   organisation?: string;
+  /** Partner slug — links a partner account to its organisation. */
+  partner?: string;
 }
 
 /**

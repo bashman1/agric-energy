@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Resource } from "@/lib/types";
 import { DocumentIcon, DownloadIcon, ExternalLinkIcon } from "@/components/shared/icons";
+import { mediaUrl } from "@/lib/utils/mediaUrl";
 
 export default function ResourceCard({ resource }: { resource: Resource }) {
   const hasLink = !!(resource.fileUrl || resource.externalUrl);
@@ -11,8 +12,22 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
   return (
     <Link
       href={`/resources/${resource.slug}`}
-      className="card card-hover group flex flex-col h-full"
+      className="card card-hover group flex flex-col h-full overflow-hidden"
     >
+      {/* Cover photo, only when the resource has one — documents without
+          a picture keep the compact text-first card. */}
+      {resource.featuredImage && (
+        <div className="relative h-36 overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={mediaUrl(resource.featuredImage)}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
+      )}
+
       {/* Header: monochrome mark + type eyebrow, date secondary */}
       <div className="flex items-start gap-3 p-5 pb-4">
         <span

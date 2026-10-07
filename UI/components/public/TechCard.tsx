@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Technology } from "@/lib/types";
 import { techAccent } from "@/lib/design/cardAccents";
+import { CardCover } from "@/components/public/CoverMedia";
 
 export default function TechCard({ tech }: { tech: Technology }) {
   const accent = techAccent(tech.category);
@@ -11,7 +12,11 @@ export default function TechCard({ tech }: { tech: Technology }) {
       className="card card-hover group flex flex-col h-full overflow-hidden"
     >
       {/* Colour band — the category's identity, carried by hue and mark */}
-      <div className={`${accent.gradient} relative flex h-20 items-center gap-3 px-5`}>
+      <CardCover
+        image={tech.featuredImage}
+        accent={accent.gradient}
+        className={`flex gap-3 px-5 ${tech.featuredImage ? "items-end pb-4" : "items-center"}`}
+      >
         <span aria-hidden="true" className="text-3xl drop-shadow-sm">
           {accent.icon}
         </span>
@@ -27,7 +32,7 @@ export default function TechCard({ tech }: { tech: Technology }) {
             <span className="sr-only">Featured</span>
           </span>
         )}
-      </div>
+      </CardCover>
 
       {/* Body — the clamped summary must not be the flex item itself, or
           `flex-1` stretches it and the line clamp stops bounding it. */}

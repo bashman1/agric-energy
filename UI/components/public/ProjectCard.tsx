@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Project } from "@/lib/types";
 import { MapPinIcon, SproutIcon, CalendarIcon } from "@/components/shared/icons";
 import { projectAccent } from "@/lib/design/cardAccents";
+import { CardCover } from "@/components/public/CoverMedia";
 
 interface ProjectCardProps {
   project: Project;
@@ -34,7 +35,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       className="card card-hover group flex flex-col h-full overflow-hidden"
     >
       {/* Colour band — region identity, status, featured mark */}
-      <div className={`${accent.gradient} relative flex h-20 items-end justify-between gap-2 px-4 py-3`}>
+      <CardCover
+        image={project.featuredImage}
+        accent={accent.gradient}
+        className="flex items-end justify-between gap-2 px-4 py-3"
+      >
         <span className="flex min-w-0 items-center gap-2">
           <span aria-hidden="true" className="text-2xl drop-shadow-sm">
             {accent.icon}
@@ -55,7 +60,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             <span aria-hidden="true">★ </span>Featured
           </span>
         )}
-      </div>
+      </CardCover>
 
       {/* Title + summary */}
       <div className="flex-1 px-5 pt-4">

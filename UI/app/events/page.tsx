@@ -9,6 +9,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import { useAsync } from "@/lib/hooks/useAsync";
 import { getPublishedEvents } from "@/lib/data/events";
 import Link from "next/link";
+import { mediaUrl } from "@/lib/utils/mediaUrl";
 
 function fmt(date: string | null): string {
   if (!date) return "Date TBC";
@@ -142,28 +143,41 @@ function EventCard({
   return (
     <Link
       href={`/events/${e.slug}`}
-      className={`block bg-white rounded-xl border border-gray-100 p-5 hover:border-primary-200 hover:shadow-sm transition-all ${
+      className={`group block overflow-hidden bg-white rounded-xl border border-gray-100 hover:border-primary-200 hover:shadow-sm transition-all ${
         muted ? "opacity-75" : ""
       }`}
     >
-      <div className="flex items-center gap-2 mb-2">
-        {e.type && (
-          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-primary-50 text-primary-700 border border-primary-100">
-            {e.type}
-          </span>
-        )}
-        {e.isOnline && (
-          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100">
-            Online
-          </span>
-        )}
+      {e.featuredImage && (
+        <div className="h-40 overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={mediaUrl(e.featuredImage)}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
+      )}
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-2">
+          {e.type && (
+            <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-primary-50 text-primary-700 border border-primary-100">
+              {e.type}
+            </span>
+          )}
+          {e.isOnline && (
+            <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100">
+              Online
+            </span>
+          )}
+        </div>
+        <h3 className="font-bold text-gray-900 mb-1 leading-snug">{e.title}</h3>
+        <p className="text-xs text-gray-500 mb-2">
+          📅 {fmt(e.startsAt)}
+          {e.location ? ` · ${e.location}` : ""}
+        </p>
+        <p className="text-sm text-gray-600 line-clamp-2">{e.summary}</p>
       </div>
-      <h3 className="font-bold text-gray-900 mb-1 leading-snug">{e.title}</h3>
-      <p className="text-xs text-gray-500 mb-2">
-        📅 {fmt(e.startsAt)}
-        {e.location ? ` · ${e.location}` : ""}
-      </p>
-      <p className="text-sm text-gray-600 line-clamp-2">{e.summary}</p>
     </Link>
   );
 }
