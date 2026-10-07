@@ -120,10 +120,26 @@ cd /root/agrienergy-src
 bash deploy/scripts/setup-prod.sh
 ```
 It asks everything up front: the certbot email, the Jenkins admin user and
-password, and the first platform admin's email and password. Then it runs
-unattended, except for one pause where it prints a **deploy key to add on GitHub**
-(*NREP-Energy-Desk → Settings → Deploy keys*, write access off). It carries on
-once it can read the `production` branch with that key.
+password, a **GitHub token**, and the first platform admin's email and password.
+Then it runs unattended.
+
+**GitHub token.** The NREP organisation disables deploy keys, so Jenkins reads
+the repo over HTTPS with a fine-grained personal access token. Create it at
+*github.com → Settings → Developer settings → Fine-grained tokens → Generate new
+token*:
+
+| Field | Value |
+|---|---|
+| Resource owner | `National-Renewable-Energy-Platform` |
+| Expiration | the longest the org allows (put a reminder in your calendar) |
+| Repository access | *Only select repositories* → `NREP-Energy-Desk` |
+| Permissions | **Contents: Read-only** (Metadata: Read-only is added automatically) |
+
+If the org requires approval, the token shows as *pending* until an owner
+approves it. The script checks the token before going further and asks again
+if it can't read the `production` branch. When the token expires, polling
+stops: generate a new one and paste it into *Jenkins → Manage Jenkins →
+Credentials → `nrep-github-token` → Update*.
 
 1. **nginx + TLS.** Refuses if DNS is wrong, if another config already claims the
    domain, or if `nginx -t` already fails. Issues the certificate through a
@@ -135,8 +151,8 @@ once it can read the `production` branch with that key.
    Credentials, Credentials Binding, Timestamper, Workspace Cleanup). Then
    [agrienergy-bootstrap.groovy](jenkins/agrienergy-bootstrap.groovy) runs once at
    startup and creates the admin (login required, no anonymous access, no agent
-   port), the `nrep-deploy-key` credential and the `agrienergy-production` job. It
-   then deletes its plain-text inputs: the password file and the private key file.
+   port), the `nrep-github-token` credential and the `agrienergy-production` job. It
+   then deletes its plain-text input file. Jenkins keeps the token encrypted.
 3. **First build.** Triggers it and waits. If it fails, prints the end of the log.
 4. **First platform admin.** Runs `RolesAndAdminSeeder` with the credentials passed
    inline, and only if the users table is empty. Inline matters because config is
@@ -204,7 +220,7 @@ cd /var/www/agrienergy-prod/current && sudo -u agrienergy php artisan config:cac
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Build fails at checkout | deploy key removed on GitHub | re-add `nrep-deploy-key`'s public key, or rotate it in Jenkins → Credentials |
+| Build fails at checkout / polling stops | GitHub token expired or revoked | new fine-grained token → Jenkins → Credentials → `nrep-github-token` → Update |
 | `sudo: a password is required` | sudoers not installed | `visudo -cf /etc/sudoers.d/agrienergy-jenkins`; re-run provision |
 | `nvm not found` | nvm missing for jenkins | re-run provision |
 | `next build` killed | memory | `swapon --show` lists `/swapfile` |

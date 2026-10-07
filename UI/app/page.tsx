@@ -9,7 +9,7 @@ import TechCard from "@/components/public/TechCard";
 import ThemeCard from "@/components/public/ThemeCard";
 import PartnersSlider from "@/components/public/PartnersSlider";
 import ResourceCard from "@/components/public/ResourceCard";
-import HeroPhotoDeck from "@/components/public/HeroPhotoDeck";
+import HeroBackdrop, { type HeroSlide } from "@/components/public/HeroBackdrop";
 import { ArrowRightIcon, SearchIcon, MapPinIcon } from "@/components/shared/icons";
 import Reveal from "@/components/shared/motion/Reveal";
 import StaggerGrid from "@/components/shared/motion/StaggerGrid";
@@ -25,7 +25,6 @@ import { getPublishedPartners } from "@/lib/data/partners";
 import { getLatestResources } from "@/lib/data/resources";
 import { getRegionStats } from "@/lib/data/open-data";
 import { fmtNumber, fmtBudget } from "@/lib/utils/format";
-import type { Project } from "@/lib/types";
 
 export default function HomePage() {
   // Six requests, not eight. `getSiteConfig()` used to be awaited and then
@@ -58,7 +57,7 @@ export default function HomePage() {
       <>
         <Header />
         <main id="main-content" className="overflow-x-hidden">
-          <Hero featuredProjects={[]} />
+          <Hero slides={[]} />
           {/* `loading` first: `data` is undefined for the whole of the load,
               so testing !data ahead of it flashes the failure message on
               every slow connection. */}
@@ -86,6 +85,14 @@ export default function HomePage() {
   const featuredTechs = technologies.filter((t) => t.featured).slice(0, 4);
   const featuredThemes = themes.filter((t) => t.featured).slice(0, 6);
   const featuredProjects = projects.slice(0, 3);
+
+  // Hero backdrop: up to three project photos, featured projects first. A
+  // project without its own photo is skipped rather than given a default
+  // cover — the brand gradient already covers the no-photo case.
+  const heroSlides: HeroSlide[] = [...projects, ...allProjects.filter((p) => !p.featured)]
+    .filter((p) => p.featuredImage && p.featuredImage.trim())
+    .slice(0, 3)
+    .map((p) => ({ slug: p.slug, title: p.title, image: p.featuredImage }));
 
   // A deliberate four, in this order — the platform's core collaborators,
   // not everyone in the directory. `nrep` used to be missing from this list's
@@ -129,7 +136,7 @@ export default function HomePage() {
     <>
       <Header />
       <main id="main-content" className="overflow-x-hidden">
-        <Hero featuredProjects={featuredProjects} />
+        <Hero slides={heroSlides} />
 
         {/* ─── IMPACT AT A GLANCE ────────────────────────────────── */}
         <section className="bg-white border-b border-ink-200">
@@ -359,98 +366,71 @@ export default function HomePage() {
 
 // ─── Hero ─────────────────────────────────────────────────────
 // Rendered in every state, including while the data loads, so the search
-// box and headline are usable immediately. `featuredProjects` is empty
-// until the projects arrive; the photo deck simply sits it out.
+// box and headline are usable immediately. `slides` is empty until the
+// projects arrive; the backdrop shows the plain brand gradient meanwhile.
 
-function Hero({ featuredProjects }: { featuredProjects: Project[] }) {
+function Hero({ slides }: { slides: HeroSlide[] }) {
   return (
-    <section className="hero-band relative bg-primary-900 text-white overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-60"
-        style={{
-          backgroundImage:
-            "radial-gradient(60% 80% at 15% 0%, #166534 0%, transparent 60%), radial-gradient(50% 70% at 100% 20%, #0f766e 0%, transparent 55%)",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-[0.12]"
-        style={{
-          backgroundImage:
-            "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)",
-          backgroundSize: "22px 22px",
-        }}
-      />
-      <div className="container-page relative py-20 lg:py-28 grid gap-10 lg:grid-cols-2 lg:gap-16 lg:items-center">
-        <Reveal className="max-w-3xl">
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.08] tracking-tight">
-            Uganda&apos;s national<br />
-            <span className="text-primary-300">agri-energy platform</span>
-          </h1>
+    <HeroBackdrop slides={slides}>
+      <Reveal className="max-w-3xl">
+        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.08] tracking-tight">
+          Uganda&apos;s national<br />
+          <span className="text-primary-300">agri-energy platform</span>
+        </h1>
 
-          <p className="mt-6 text-lg text-primary-50/90 leading-relaxed max-w-2xl">
-            One place to map projects, compare technologies, and reach the
-            knowledge accelerating clean-energy adoption across Ugandan
-            agriculture.
-          </p>
+        <p className="mt-6 text-lg text-primary-50/90 leading-relaxed max-w-2xl">
+          One place to map projects, compare technologies, and reach the
+          knowledge accelerating clean-energy adoption across Ugandan
+          agriculture.
+        </p>
 
-          {/* Search */}
-          <form
-            action="/search"
-            method="GET"
-            role="search"
-            className="mt-9 max-w-xl"
-          >
-            <label htmlFor="hero-search" className="sr-only">
-              Search the Agri-Energy Desk
-            </label>
-            <div className="flex items-center gap-2 bg-white rounded-xl p-2 shadow-raise">
-              <span className="pl-2 text-ink-400 text-xl" aria-hidden="true">
-                <SearchIcon />
-              </span>
-              <input
-                id="hero-search"
-                name="q"
-                type="search"
-                placeholder="Search projects, technologies, resources…"
-                className="flex-1 bg-transparent text-ink-900 placeholder-ink-400 px-1 py-2 text-base focus:outline-none min-w-0"
-              />
-              <button type="submit" className="btn btn-primary shrink-0">
-                Search
-              </button>
-            </div>
-          </form>
-
-          {/* Quick entry links */}
-          <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-primary-100">
-            <span className="text-primary-300/80">Jump to:</span>
-            {[
-              ["Project map", "/map"],
-              ["Technologies", "/technologies"],
-              ["Open data", "/data"],
-              ["Tenders", "/tenders"],
-            ].map(([label, href]) => (
-              <Link
-                key={href}
-                href={href}
-                className="font-medium hover:text-white underline-offset-4 hover:underline"
-              >
-                {label}
-              </Link>
-            ))}
+        {/* Search */}
+        <form
+          action="/search"
+          method="GET"
+          role="search"
+          className="mt-9 max-w-xl"
+        >
+          <label htmlFor="hero-search" className="sr-only">
+            Search the Agri-Energy Desk
+          </label>
+          <div className="flex items-center gap-2 bg-white rounded-xl p-2 shadow-raise">
+            <span className="pl-2 text-ink-400 text-xl" aria-hidden="true">
+              <SearchIcon />
+            </span>
+            <input
+              id="hero-search"
+              name="q"
+              type="search"
+              placeholder="Search projects, technologies, resources…"
+              className="flex-1 bg-transparent text-ink-900 placeholder-ink-400 px-1 py-2 text-base focus:outline-none min-w-0"
+            />
+            <button type="submit" className="btn btn-primary shrink-0">
+              Search
+            </button>
           </div>
-        </Reveal>
+        </form>
 
-        {/* Fanned photo deck — fills the right side on large screens */}
-        {featuredProjects.length > 0 && (
-          <Reveal className="hidden lg:block">
-            <HeroPhotoDeck projects={featuredProjects} />
-          </Reveal>
-        )}
-      </div>
-    </section>
-
+        {/* Quick entry links */}
+        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-primary-100">
+          <span className="text-primary-300/80">Jump to:</span>
+          {[
+            ["Project map", "/map"],
+            ["Technologies", "/technologies"],
+            ["Open data", "/data"],
+            ["Tenders", "/tenders"],
+          ].map(([label, href]) => (
+            <Link
+              key={href}
+              href={href}
+              className="font-medium hover:text-white underline-offset-4 hover:underline"
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+      </Reveal>
+    </HeroBackdrop>
   );
 }
 

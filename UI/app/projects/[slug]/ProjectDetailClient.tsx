@@ -11,6 +11,7 @@ import { useRouteSlug } from "@/lib/routing/useRouteSlug";
 import { getProjectBySlug } from "@/lib/data/projects";
 import { getTechnologyBySlug } from "@/lib/data/technologies";
 import { getPartnerBySlug } from "@/lib/data/partners";
+import { DetailHero } from "@/components/public/CoverMedia";
 
 function fmtBudget(value: number, currency?: string): string {
   const amount = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 }).format(value);
@@ -118,7 +119,7 @@ export default function ProjectDetailClient({ slug: routeSlug }: { slug: string 
         </div>
 
         {/* Page header */}
-        <section className="bg-primary-800 text-white py-12">
+        <DetailHero image={p.featuredImage}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-start justify-between gap-6">
               <div>
@@ -143,7 +144,7 @@ export default function ProjectDetailClient({ slug: routeSlug }: { slug: string 
               )}
             </div>
           </div>
-        </section>
+        </DetailHero>
 
         {/* Main content */}
         <section className="py-10 bg-gray-50">

@@ -57,7 +57,7 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="block w-full px-3 py-2.5 bg-shade-800 border border-shade-700 rounded-lg text-white text-sm placeholder-shade-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30"
-                placeholder="admin@agrienergy.go.ug"
+                placeholder="email@example.com"
                 required
                 autoComplete="username"
               />
@@ -83,13 +83,6 @@ export default function AdminLoginPage() {
               {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
-          <div className="mt-5 p-3 bg-shade-800 rounded-lg">
-            <p className="text-xs text-shade-500 text-center">
-              Default credentials:<br />
-              <span className="text-shade-400">email: <code className="text-primary-400">admin@agrienergy.go.ug</code></span><br />
-              <span className="text-shade-400">password: <code className="text-primary-400">agrienergy2026</code></span>
-            </p>
-          </div>
         </div>
 
         <p className="text-center text-shade-400 text-xs mt-6">

@@ -81,9 +81,15 @@ smoke_tests() {
   local fail=0
 
   check() {
-    local name=$1 path=$2 expect=${3:-200} code
-    code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "${resolve[@]}" "${base}${path}" || echo 000)
-    if [[ "$code" == "$expect" ]]; then
+    local name=$1 path=$2 expect=${3:-200} code rc=0
+    # curl prints the status even when the transfer then breaks, so judge
+    # its exit code separately — a right status with a truncated body is a
+    # broken page, not a pass.
+    code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "${resolve[@]}" "${base}${path}") || rc=$?
+    if [[ $rc -ne 0 ]]; then
+      printf '  \033[1;31mFAIL\033[0m %-30s %s, then the transfer broke (curl exit %s)\n' "$name" "${code:-no response}" "$rc"
+      fail=1
+    elif [[ "$code" == "$expect" ]]; then
       printf '  \033[1;32mok\033[0m   %-30s %s\n' "$name" "$code"
     else
       printf '  \033[1;31mFAIL\033[0m %-30s %s (expected %s)\n' "$name" "$code" "$expect"

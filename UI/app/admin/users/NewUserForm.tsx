@@ -13,18 +13,26 @@
 import { useState } from "react";
 import { createUser } from "@/lib/data/admin";
 import { ApiError } from "@/lib/api/client";
-import { ROLE, ROLE_LABELS } from "@/lib/auth/token";
+import { NREP_ROLES, PARTNER_ACCOUNT_ROLES, PARTNER_TEAM_ROLES, ROLE, ROLE_LABELS, roleLockReason } from "@/lib/auth/token";
 import { useSession } from "@/lib/auth/useSession";
 import { validateEmail, validatePhone } from "@/lib/validation/contact";
 
-const ASSIGNABLE = [
-  ROLE.SUPER_ADMIN,
-  ROLE.PLATFORM_ADMIN,
-  ROLE.KNOWLEDGE_MANAGER,
-  ROLE.CONTENT_CONTRIBUTOR,
-  ROLE.REVIEWER,
-  ROLE.PARTNER,
-];
+/** An organisation an account can be linked to (from GET /partners). */
+export type PartnerOption = { slug: string; name: string };
+
+type Category = "nrep" | "partner";
+
+// Staff and partner roles never mix on one account (the API refuses it), so
+// the form offers one set at a time.
+const ASSIGNABLE: Record<Category, readonly string[]> = {
+  nrep: NREP_ROLES,
+  partner: PARTNER_ACCOUNT_ROLES,
+};
+
+const DEFAULT_ROLE: Record<Category, string> = {
+  nrep: ROLE.CONTENT_CONTRIBUTOR,
+  partner: ROLE.PARTNER_ADMIN,
+};
 
 const EMPTY = {
   name: "",
@@ -47,14 +55,20 @@ function fieldErrors(e: unknown): Record<string, string> {
 }
 
 export default function NewUserForm({
+  partners,
+  initialCategory = "nrep",
   onCreated,
   onCancel,
 }: {
+  partners: PartnerOption[];
+  initialCategory?: Category;
   onCreated: () => void;
   onCancel: () => void;
 }) {
   const [form, setForm] = useState(EMPTY);
-  const [roles, setRoles] = useState<string[]>([ROLE.CONTENT_CONTRIBUTOR]);
+  const [category, setCategory] = useState<Category>(initialCategory);
+  const [partner, setPartner] = useState("");
+  const [roles, setRoles] = useState<string[]>([DEFAULT_ROLE[initialCategory]]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
@@ -63,9 +77,17 @@ export default function NewUserForm({
   const set = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((s) => ({ ...s, [k]: e.target.value }));
 
+  const switchCategory = (next: Category) => {
+    setCategory(next);
+    setRoles([DEFAULT_ROLE[next]]);
+    setPartner("");
+    setErrors({});
+  };
+
   const reset = () => {
     setForm(EMPTY);
-    setRoles([ROLE.CONTENT_CONTRIBUTOR]);
+    setRoles([DEFAULT_ROLE[category]]);
+    setPartner("");
     setErrors({});
     setMessage("");
   };
@@ -100,10 +122,20 @@ export default function NewUserForm({
       setErrors({ roles: "Choose at least one role." });
       return;
     }
+    // Organisation roles act on a team; without a linked organisation the
+    // account would sign in to a portal with no Team page.
+    if (!partner && roles.some((r) => (PARTNER_TEAM_ROLES as readonly string[]).includes(r))) {
+      setErrors({ partner: "Choose the organisation this account belongs to." });
+      return;
+    }
 
     setSaving(true);
     try {
-      await createUser({ ...form, roles });
+      await createUser(
+        category === "partner"
+          ? { ...form, organisation: "", roles, partner: partner || undefined }
+          : { ...form, roles }
+      );
       reset();
       onCreated();
     } catch (err) {
@@ -139,6 +171,26 @@ export default function NewUserForm({
         </div>
       )}
 
+      <div role="radiogroup" aria-label="Account type" className="mb-3 inline-flex rounded-lg border border-ink-200 p-0.5">
+        {([
+          ["nrep", "NREP staff"],
+          ["partner", "Platform partner"],
+        ] as const).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            role="radio"
+            aria-checked={category === key}
+            onClick={() => switchCategory(key)}
+            className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+              category === key ? "bg-primary-600 text-white" : "text-ink-500 hover:text-ink-800"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Full name" error={errors.name}>
           <input className="form-input" value={form.name} onChange={set("name")} required autoComplete="off" />
@@ -149,9 +201,20 @@ export default function NewUserForm({
         <Field label="Phone" hint="optional" error={errors.phone}>
           <input className="form-input" type="tel" value={form.phone} onChange={set("phone")} autoComplete="off" />
         </Field>
-        <Field label="Organisation" hint="optional" error={errors.organisation}>
-          <input className="form-input" value={form.organisation} onChange={set("organisation")} autoComplete="off" />
-        </Field>
+        {category === "nrep" ? (
+          <Field label="Organisation" hint="optional" error={errors.organisation}>
+            <input className="form-input" value={form.organisation} onChange={set("organisation")} autoComplete="off" />
+          </Field>
+        ) : (
+          <Field label="Partner organisation" hint="required for organisation roles" error={errors.partner}>
+            <select className="form-input" value={partner} onChange={(e) => setPartner(e.target.value)}>
+              <option value="">None — individual partner</option>
+              {partners.map((p) => (
+                <option key={p.slug} value={p.slug}>{p.name}</option>
+              ))}
+            </select>
+          </Field>
+        )}
         <Field label="Password" hint="at least 8 characters" error={errors.password}>
           <input className="form-input" type="password" value={form.password} onChange={set("password")} required autoComplete="new-password" />
         </Field>
@@ -163,18 +226,18 @@ export default function NewUserForm({
       <fieldset className="mt-4">
         <legend className="block text-xs font-semibold text-ink-600 mb-1.5">Roles</legend>
         <div className="flex flex-wrap gap-1.5">
-          {ASSIGNABLE.map((role) => {
+          {ASSIGNABLE[category]
+            // Not offered at all rather than shown disabled: nobody creates a
+            // super-admin here, and only a super-admin a platform admin.
+            .filter((role) => roleLockReason(role, isSuperAdmin) === null)
+            .map((role) => {
             const on = roles.includes(role);
-            // Mirrors the API guard: only a super-admin can mint another.
-            const locked = role === ROLE.SUPER_ADMIN && !isSuperAdmin;
             return (
               <button
                 key={role}
                 type="button"
                 onClick={() => toggleRole(role)}
-                disabled={locked}
                 aria-pressed={on}
-                title={locked ? "Only super-administrators can grant this role" : undefined}
                 className={`text-[11px] font-medium px-2 py-1 rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                   on
                     ? "bg-primary-600 text-white border-primary-600"
@@ -188,7 +251,9 @@ export default function NewUserForm({
         </div>
         {errors.roles && <p className="text-xs text-red-600 mt-1">{errors.roles}</p>}
         <p className="text-[11px] text-ink-400 mt-1.5">
-          Partner accounts use the /partner portal and cannot sign in to this admin panel.
+          {category === "nrep"
+            ? "NREP staff sign in to this admin panel."
+            : "Partner accounts use the /partner portal. The Organisation Admin gets the Team menu there to add colleagues."}
         </p>
       </fieldset>
 

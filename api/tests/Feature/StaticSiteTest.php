@@ -79,7 +79,10 @@ class StaticSiteTest extends TestCase
         $response = $this->get('/admin/projects/record-created-after-the-build')
             ->assertNotFound();
 
-        $this->assertSame('404.html', $this->servedFile($response));
+        // Asserting on the body, not on which file was picked: a file
+        // response under a 404 sends its Content-Length but no body, which
+        // is exactly the bug a filename check let through.
+        $this->assertSame('<html>notfound</html>', $response->getContent());
     }
 
     /**

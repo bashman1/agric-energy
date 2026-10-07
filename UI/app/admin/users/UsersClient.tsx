@@ -1,32 +1,32 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AdminUser } from "@/lib/data/admin";
-import { apiSend } from "@/lib/api/client";
-import { ROLE, ROLE_LABELS } from "@/lib/auth/token";
+import { apiGet, apiSend } from "@/lib/api/client";
+import { NREP_ROLES, PARTNER_ACCOUNT_ROLES, ROLE, ROLE_LABELS, roleLockReason } from "@/lib/auth/token";
 import { useSession } from "@/lib/auth/useSession";
-import NewUserForm from "./NewUserForm";
+import NewUserForm, { type PartnerOption } from "./NewUserForm";
 import AdminTableFilters, { type SelectFilter } from "@/components/admin/AdminTableFilters";
 import Pagination, { usePagination } from "@/components/admin/Pagination";
 
 /**
- * Roles shown as assignable pills, in tier order: platform-wide first, then
- * the organisation-scoped ones.
- *
- * The organisation roles have to be listed even though partner admins grant
- * them from their own portal — a pill list that omitted them would render an
- * account holding `partner-admin` with every pill switched off, which reads
- * as "no roles" rather than "a role this table cannot show".
+ * Users split into two populations that never share roles (the API refuses
+ * an account holding both): NREP staff, who work in this admin panel, and
+ * platform partners, who use the /partner portal on behalf of an organisation.
+ * Each tab only offers the pills for its own population.
  */
-const ALL_ROLES = [
-  ROLE.SUPER_ADMIN,
-  ROLE.PLATFORM_ADMIN,
-  ROLE.KNOWLEDGE_MANAGER,
-  ROLE.CONTENT_CONTRIBUTOR,
-  ROLE.PARTNER,
-  ROLE.PARTNER_ADMIN,
-  ROLE.PARTNER_KNOWLEDGE_MANAGER,
-  ROLE.PARTNER_CONTENT_CONTRIBUTOR,
-];
+type Category = "nrep" | "partner";
+
+const CATEGORY_ROLES: Record<Category, readonly string[]> = {
+  nrep: NREP_ROLES,
+  partner: PARTNER_ACCOUNT_ROLES,
+};
+
+/** A partner role, or a link to an organisation, makes it a partner account. */
+function categoryOf(u: AdminUser): Category {
+  return u.partnerId || u.roles.some((r) => (PARTNER_ACCOUNT_ROLES as readonly string[]).includes(r))
+    ? "partner"
+    : "nrep";
+}
 
 const STATUS_STYLE: Record<string, string> = {
   pending: "bg-secondary-50 text-secondary-700 border-secondary-200",
@@ -45,7 +45,15 @@ export default function UsersClient({
   const [busy, setBusy] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+  const [category, setCategory] = useState<Category>("nrep");
+  const [partners, setPartners] = useState<PartnerOption[]>([]);
   const { isSuperAdmin } = useSession();
+
+  useEffect(() => {
+    apiGet<PartnerOption[]>("partners", [], { params: { admin: true } }).then((list) =>
+      setPartners([...list].sort((a, b) => a.name.localeCompare(b.name)))
+    );
+  }, []);
 
   const call = async (id: number, run: () => Promise<unknown>) => {
     setBusy(id);
@@ -73,12 +81,20 @@ export default function UsersClient({
     call(u.id, () => apiSend("PUT", `users/${u.id}/roles`, { roles }));
   };
 
+  /** Link an existing partner account to its organisation, keeping its roles. */
+  const linkPartner = (u: AdminUser, partner: string) =>
+    call(u.id, () => apiSend("PUT", `users/${u.id}/roles`, { roles: u.roles, partner }));
+
+  const byCategory: Record<Category, AdminUser[]> = { nrep: [], partner: [] };
+  for (const u of users) byCategory[categoryOf(u)].push(u);
+  const shownUsers = byCategory[category];
+
   const pending = users.filter((u) => u.status === "pending");
 
   // Built from the data so the dropdowns never offer an empty result, and
   // so a new role or organisation shows up without touching this file.
-  const organisations = [...new Set(users.map((u) => u.organisation).filter(Boolean))].sort();
-  const presentRoles = [...new Set(users.flatMap((u) => u.roles))].sort();
+  const organisations = [...new Set(shownUsers.map((u) => u.organisation).filter(Boolean))].sort();
+  const presentRoles = [...new Set(shownUsers.flatMap((u) => u.roles))].sort();
 
   const filters: SelectFilter<AdminUser>[] = [
     {
@@ -99,7 +115,7 @@ export default function UsersClient({
           match: (u: AdminUser, v: string) => u.roles.includes(v),
         }]
       : []),
-    ...(organisations.length
+    ...(category === "partner" && organisations.length
       ? [{
           key: "organisation",
           label: "Partner / organisation",
@@ -132,6 +148,8 @@ export default function UsersClient({
 
       {creating && (
         <NewUserForm
+          partners={partners}
+          initialCategory={category}
           onCreated={() => { setCreating(false); onChanged(); }}
           onCancel={() => setCreating(false)}
         />
@@ -143,8 +161,41 @@ export default function UsersClient({
         </div>
       )}
 
+      <div role="tablist" aria-label="User category" className="mb-4 flex gap-1 border-b border-ink-200">
+        {([
+          ["nrep", "NREP staff"],
+          ["partner", "Platform partners"],
+        ] as const).map(([key, label]) => {
+          const active = category === key;
+          const waiting = byCategory[key].filter((u) => u.status === "pending").length;
+          return (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setCategory(key)}
+              className={`-mb-px px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
+                active
+                  ? "border-primary-600 text-primary-700"
+                  : "border-transparent text-ink-500 hover:text-ink-800"
+              }`}
+            >
+              {label}
+              <span className="ml-1.5 text-xs font-normal text-ink-400">{byCategory[key].length}</span>
+              {waiting > 0 && (
+                <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-secondary-50 text-secondary-700">
+                  {waiting} pending
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       <AdminTableFilters
-        items={users as (AdminUser & Record<string, unknown>)[]}
+        key={category}
+        items={shownUsers as (AdminUser & Record<string, unknown>)[]}
         searchFields={["name", "email", "organisation"]}
         placeholder="Search by name, email or organisation…"
         filters={filters as SelectFilter<AdminUser & Record<string, unknown>>[]}
@@ -155,9 +206,12 @@ export default function UsersClient({
             rows={shown}
             busy={busy}
             isSuperAdmin={isSuperAdmin}
+            roles={CATEGORY_ROLES[category]}
+            partners={category === "partner" ? partners : null}
             approve={approve}
             suspend={suspend}
             toggleRole={toggleRole}
+            linkPartner={linkPartner}
           />
         )}
       </AdminTableFilters>
@@ -174,16 +228,23 @@ function UsersTable({
   rows,
   busy,
   isSuperAdmin,
+  roles,
+  partners,
   approve,
   suspend,
   toggleRole,
+  linkPartner,
 }: {
   rows: AdminUser[];
   busy: number | null;
   isSuperAdmin: boolean;
+  roles: readonly string[];
+  /** Organisations to link to; null on the staff tab, which has none. */
+  partners: PartnerOption[] | null;
   approve: (u: AdminUser) => void;
   suspend: (u: AdminUser) => void;
   toggleRole: (u: AdminUser, role: string) => void;
+  linkPartner: (u: AdminUser, partner: string) => void;
 }) {
   const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage, totalItems, paginatedItems } =
     usePagination(rows, 1, 10);
@@ -228,20 +289,22 @@ function UsersTable({
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1.5">
-                    {ALL_ROLES.map((role) => {
+                    {/* The tab's own roles, plus any stray one the account
+                        holds from the other population, so nothing is hidden. */}
+                    {[...roles, ...u.roles.filter((r) => !roles.includes(r))]
+                      // Super-admin is never assignable here; show it only as
+                      // a badge on the accounts that already hold it.
+                      .filter((role) => role !== ROLE.SUPER_ADMIN || u.roles.includes(role))
+                      .map((role) => {
                       const on = u.roles.includes(role);
-                      // Only super-admins may grant the super-admin role or
-                      // change a super-admin's roles (mirrors the API guard).
-                      const locked =
-                        role === ROLE.SUPER_ADMIN && !isSuperAdmin
-                          ? true
-                          : u.roles.includes(ROLE.SUPER_ADMIN) && !isSuperAdmin;
+                      const lockReason = roleLockReason(role, isSuperAdmin);
+                      const locked = lockReason !== null;
                       return (
                         <button
                           key={role}
                           onClick={() => toggleRole(u, role)}
                           disabled={busy === u.id || locked}
-                          title={locked ? "Only super-administrators can change this" : undefined}
+                          title={lockReason ?? undefined}
                           className={`text-[11px] font-medium px-2 py-0.5 rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                             on
                               ? "bg-primary-600 text-white border-primary-600"
@@ -253,6 +316,20 @@ function UsersTable({
                       );
                     })}
                   </div>
+                  {partners && !u.partnerId && (
+                    <select
+                      className="form-input mt-2 text-xs py-1"
+                      value=""
+                      disabled={busy === u.id}
+                      onChange={(e) => e.target.value && linkPartner(u, e.target.value)}
+                      aria-label={`Link ${u.name} to an organisation`}
+                    >
+                      <option value="">Not linked — link to organisation…</option>
+                      {partners.map((p) => (
+                        <option key={p.slug} value={p.slug}>{p.name}</option>
+                      ))}
+                    </select>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   {u.status === "pending" && (
