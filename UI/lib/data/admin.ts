@@ -181,6 +181,23 @@ export async function createUser(input: NewUserInput, token?: string) {
   return apiSend("POST", "users", input, { token });
 }
 
+/** Fields the admin "Edit user" form may change; all optional. */
+export interface UpdateUserInput {
+  name?: string;
+  email?: string;
+  phone?: string;
+  organisation?: string;
+  /** Partner slug; null unlinks the organisation, omitted keeps it. */
+  partner?: string | null;
+  roles?: string[];
+  password?: string;
+  password_confirmation?: string;
+}
+
+export async function updateUser(id: number, input: UpdateUserInput, token?: string) {
+  return apiSend("PATCH", `users/${id}`, input, { token });
+}
+
 export async function approveUser(id: number, token?: string) {
   return apiSend("POST", `users/${id}/approve`, undefined, { token });
 }

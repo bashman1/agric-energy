@@ -165,4 +165,41 @@ class UserCategoryTest extends TestCase
         $this->putJson("/api/v1/users/{$super->id}/roles", ['roles' => [Roles::PLATFORM_ADMIN]])
             ->assertForbidden();
     }
+
+    public function test_admin_can_edit_a_user(): void
+    {
+        $km = $this->makeUser(Roles::KNOWLEDGE_MANAGER);
+        $km->createToken('t');
+
+        $this->patchJson("/api/v1/users/{$km->id}", [
+            'name' => 'Renamed',
+            'email' => 'renamed@example.test',
+            'password' => 'newsecret1',
+            'password_confirmation' => 'newsecret1',
+            'roles' => [Roles::REVIEWER],
+        ])->assertOk()
+            ->assertJsonPath('data.name', 'Renamed')
+            ->assertJsonPath('data.roles', [Roles::REVIEWER]);
+
+        $km->refresh();
+        $this->assertSame('renamed@example.test', $km->email);
+        $this->assertTrue(Hash::check('newsecret1', $km->password));
+        $this->assertSame(0, $km->tokens()->count());
+    }
+
+    public function test_edit_keeps_the_same_guards_as_role_changes(): void
+    {
+        $super = $this->makeUser(Roles::SUPER_ADMIN);
+        $this->patchJson("/api/v1/users/{$super->id}", ['name' => 'x'])->assertNotFound();
+
+        $km = $this->makeUser(Roles::KNOWLEDGE_MANAGER);
+        $this->patchJson("/api/v1/users/{$km->id}", ['roles' => [Roles::PLATFORM_ADMIN]])->assertForbidden();
+        $this->patchJson("/api/v1/users/{$km->id}", ['email' => 'admin@example.test'])->assertStatus(422);
+
+        // Unlinking an org admin from their organisation would strand the role.
+        $org = $this->org();
+        $pa = $this->makeUser(Roles::PARTNER_ADMIN);
+        $pa->update(['partner_id' => $org->id]);
+        $this->patchJson("/api/v1/users/{$pa->id}", ['partner' => null])->assertStatus(422);
+    }
 }

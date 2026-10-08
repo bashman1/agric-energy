@@ -44,6 +44,7 @@ export default function UsersClient({
 }) {
   const [busy, setBusy] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<AdminUser | null>(null);
   const [error, setError] = useState("");
   const [category, setCategory] = useState<Category>("nrep");
   const [partners, setPartners] = useState<PartnerOption[]>([]);
@@ -137,13 +138,23 @@ export default function UsersClient({
           </p>
         </div>
         {!creating && (
-          <button type="button" onClick={() => setCreating(true)} className="btn btn-primary shrink-0">
+          <button type="button" onClick={() => { setEditing(null); setCreating(true); }} className="btn btn-primary shrink-0">
             New user
           </button>
         )}
       </div>
 
-      {creating && (
+      {editing && (
+        <NewUserForm
+          key={editing.id}
+          partners={partners}
+          editing={editing}
+          onCreated={() => { setEditing(null); onChanged(); }}
+          onCancel={() => setEditing(null)}
+        />
+      )}
+
+      {creating && !editing && (
         <NewUserForm
           partners={partners}
           initialCategory={category}
@@ -208,6 +219,11 @@ export default function UsersClient({
             approve={approve}
             suspend={suspend}
             changeRole={changeRole}
+            edit={(u) => {
+              setCreating(false);
+              setEditing(u);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
             linkPartner={linkPartner}
           />
         )}
@@ -230,6 +246,7 @@ function UsersTable({
   approve,
   suspend,
   changeRole,
+  edit,
   linkPartner,
 }: {
   rows: AdminUser[];
@@ -241,6 +258,7 @@ function UsersTable({
   approve: (u: AdminUser) => void;
   suspend: (u: AdminUser) => void;
   changeRole: (u: AdminUser, role: string) => void;
+  edit: (u: AdminUser) => void;
   linkPartner: (u: AdminUser, partner: string) => void;
 }) {
   const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage, totalItems, paginatedItems } =
@@ -302,6 +320,17 @@ function UsersTable({
                   )}
                 </td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
+                  {/* Super-admin accounts are listed only to super-admins,
+                      and even then are edited on the server, not here. */}
+                  {!u.roles.includes(ROLE.SUPER_ADMIN) && (
+                    <button
+                      onClick={() => edit(u)}
+                      disabled={busy === u.id}
+                      className="mr-2 px-3 py-1.5 text-xs font-semibold rounded-lg border border-ink-200 text-ink-700 hover:bg-ink-50 disabled:opacity-50"
+                    >
+                      Edit
+                    </button>
+                  )}
                   {u.status === "pending" && (
                     <button
                       onClick={() => approve(u)}

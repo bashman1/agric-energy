@@ -123,6 +123,7 @@ Route::prefix('v1')->group(function () {
         // Admin account management (super-admin only, enforced in controller).
         Route::get('users', [UserController::class, 'index']);
         Route::post('users', [UserController::class, 'store']);
+        Route::patch('users/{user}', [UserController::class, 'update']);
         Route::post('users/{user}/approve', [UserController::class, 'approve']);
         Route::post('users/{user}/suspend', [UserController::class, 'suspend']);
         Route::put('users/{user}/roles', [UserController::class, 'setRoles']);

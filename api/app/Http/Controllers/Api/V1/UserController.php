@@ -116,6 +116,69 @@ class UserController extends Controller
         return response()->json(['data' => new UserResource($user->fresh('partner'))], 201);
     }
 
+    /**
+     * Edit an account: profile details, organisation link, role, and
+     * optionally a new password. Every field is optional — only what is sent
+     * changes. `partner: null` unlinks the organisation; leaving the key out
+     * keeps it.
+     *
+     * Runs the same guards as setRoles(): a platform admin cannot touch a
+     * super-admin (404), nobody changes super-admin membership, and only a
+     * super-admin changes platform-admin membership.
+     */
+    public function update(Request $request, User $user): JsonResponse
+    {
+        $this->authorize('manage-users');
+        $this->assertMayManageSuperAdmins($request, $user);
+
+        $data = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8|confirmed',
+            'phone' => ['nullable', 'string', 'max:50', new PhoneNumber],
+            'organisation' => 'nullable|string|max:255',
+            'partner' => 'nullable|string|exists:partners,slug',
+            'roles' => 'sometimes|array|min:1',
+            'roles.*' => 'in:' . implode(',', self::ASSIGNABLE_ROLES),
+        ]);
+
+        $partnerId = $user->partner_id;
+        if ($request->exists('partner')) {
+            $partnerId = ! empty($data['partner'])
+                ? Partner::where('slug', $data['partner'])->value('id')
+                : null;
+        }
+
+        $roles = $data['roles'] ?? $user->getRoleNames()->all();
+        $this->assertMayGrant($request, $roles, $user->getRoleNames()->all());
+        $this->assertCoherentRoles($roles, $partnerId);
+
+        $user->fill(collect($data)->only(['name', 'email', 'phone', 'organisation'])->all());
+        $user->partner_id = $partnerId;
+        if ($request->exists('partner')) {
+            $user->account_type = $partnerId ? 'organization' : 'individual';
+        }
+        if (! empty($data['password'])) {
+            // `password` is cast as `hashed`.
+            $user->password = $data['password'];
+        }
+        $user->save();
+
+        if (isset($data['roles'])) {
+            $user->syncRoles($roles);
+        }
+        // A reset password signs the person out everywhere — unless it is
+        // the admin's own, which would end the session doing the editing.
+        if (! empty($data['password']) && $user->id !== $request->user()->id) {
+            $user->tokens()->delete();
+        }
+
+        activity('users')->performedOn($user)->causedBy($request->user())
+            ->event('updated')->log('Edited account ' . $user->email);
+
+        return response()->json(['data' => new UserResource($user->fresh('partner'))]);
+    }
+
     /** Approve a pending registration so the user can log in. */
     public function approve(Request $request, User $user): JsonResponse
     {
