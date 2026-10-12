@@ -32,7 +32,9 @@ class UserCategoryTest extends TestCase
             'password' => Hash::make('secret123'),
             'status' => User::STATUS_APPROVED,
         ]);
-        $admin->assignRole(Roles::PLATFORM_ADMIN);
+        // The lowest administrator tier: everything below holds for it, and
+        // the tests that need more act as a platform or super admin instead.
+        $admin->assignRole(Roles::ORGANISATION_ADMIN);
         Sanctum::actingAs($admin);
     }
 
@@ -117,34 +119,94 @@ class UserCategoryTest extends TestCase
         return $user;
     }
 
-    public function test_platform_admin_does_not_see_super_admins(): void
+    public function test_an_administrator_does_not_see_the_tiers_above(): void
     {
         $super = $this->makeUser(Roles::SUPER_ADMIN);
+        $platform = $this->makeUser(Roles::PLATFORM_ADMIN);
 
+        // Organisation admin: neither senior tier exists.
         $emails = collect($this->getJson('/api/v1/users')->assertOk()->json('data'))->pluck('email');
         $this->assertNotContains($super->email, $emails);
+        $this->assertNotContains($platform->email, $emails);
         $this->assertContains('admin@example.test', $emails);
 
+        foreach ([$super, $platform] as $senior) {
+            $this->postJson("/api/v1/users/{$senior->id}/suspend")->assertNotFound();
+            $this->putJson("/api/v1/users/{$senior->id}/roles", ['roles' => [Roles::REVIEWER]])->assertNotFound();
+            // A password reset here would be a way to borrow the account.
+            $this->patchJson("/api/v1/users/{$senior->id}", [
+                'password' => 'newsecret1',
+                'password_confirmation' => 'newsecret1',
+            ])->assertNotFound();
+        }
+
+        // Platform admin: sees its own tier and below, never a super-admin.
+        Sanctum::actingAs($platform);
+        $emails = collect($this->getJson('/api/v1/users')->json('data'))->pluck('email');
+        $this->assertNotContains($super->email, $emails);
+        $this->assertContains($platform->email, $emails);
+        $this->assertContains('admin@example.test', $emails);
         $this->postJson("/api/v1/users/{$super->id}/suspend")->assertNotFound();
-        $this->putJson("/api/v1/users/{$super->id}/roles", ['roles' => [Roles::REVIEWER]])->assertNotFound();
 
         Sanctum::actingAs($super);
         $emails = collect($this->getJson('/api/v1/users')->json('data'))->pluck('email');
         $this->assertContains($super->email, $emails);
     }
 
-    public function test_platform_admin_cannot_create_or_promote_platform_admins(): void
+    public function test_organisation_admin_cannot_hand_out_administrator_roles(): void
     {
-        $this->postJson('/api/v1/users', $this->payload(['roles' => [Roles::PLATFORM_ADMIN]]))
-            ->assertForbidden();
-
         $km = $this->makeUser(Roles::KNOWLEDGE_MANAGER);
-        $this->putJson("/api/v1/users/{$km->id}/roles", ['roles' => [Roles::PLATFORM_ADMIN]])
+
+        foreach ([Roles::PLATFORM_ADMIN, Roles::ORGANISATION_ADMIN] as $role) {
+            $this->postJson('/api/v1/users', $this->payload(['roles' => [$role]]))
+                ->assertForbidden();
+            $this->putJson("/api/v1/users/{$km->id}/roles", ['roles' => [$role]])
+                ->assertForbidden();
+        }
+
+        // Nor take one away from a fellow organisation admin.
+        $peer = $this->makeUser(Roles::ORGANISATION_ADMIN);
+        $this->putJson("/api/v1/users/{$peer->id}/roles", ['roles' => [Roles::REVIEWER]])
             ->assertForbidden();
 
         // Other roles are still theirs to hand out.
         $this->postJson('/api/v1/users', $this->payload(['roles' => [Roles::REVIEWER]]))
             ->assertCreated();
+    }
+
+    public function test_platform_admin_has_super_admin_rights_except_system_configuration(): void
+    {
+        Sanctum::actingAs($this->makeUser(Roles::PLATFORM_ADMIN));
+
+        // Hands out both administrator roles below super-admin…
+        foreach ([Roles::PLATFORM_ADMIN, Roles::ORGANISATION_ADMIN] as $role) {
+            $this->postJson('/api/v1/users', $this->payload(['roles' => [$role]]))
+                ->assertCreated();
+        }
+        $this->postJson('/api/v1/users', $this->payload(['roles' => [Roles::SUPER_ADMIN]]))
+            ->assertForbidden();
+
+        // …and reads the audit trail, which an organisation admin cannot…
+        $this->getJson('/api/v1/audit')->assertOk();
+
+        // …but system configuration stays with the super-admin.
+        $this->putJson('/api/v1/site-config', [])->assertForbidden();
+    }
+
+    public function test_organisation_admin_has_no_audit_trail_or_system_configuration(): void
+    {
+        $this->getJson('/api/v1/audit')->assertForbidden();
+        $this->putJson('/api/v1/site-config', [])->assertForbidden();
+    }
+
+    public function test_migration_moves_existing_platform_admins_down_a_tier(): void
+    {
+        $legacy = $this->makeUser(Roles::PLATFORM_ADMIN);
+
+        $migration = require database_path('migrations/2026_10_12_000001_add_organisation_admin_role.php');
+        $migration->up();
+
+        $this->assertSame([Roles::ORGANISATION_ADMIN], $legacy->fresh()->getRoleNames()->all());
     }
 
     public function test_super_admin_creates_platform_admins_but_not_super_admins(): void
@@ -164,5 +226,42 @@ class UserCategoryTest extends TestCase
         // Nor can a super-admin strip their own role and lock everyone out.
         $this->putJson("/api/v1/users/{$super->id}/roles", ['roles' => [Roles::PLATFORM_ADMIN]])
             ->assertForbidden();
+    }
+
+    public function test_admin_can_edit_a_user(): void
+    {
+        $km = $this->makeUser(Roles::KNOWLEDGE_MANAGER);
+        $km->createToken('t');
+
+        $this->patchJson("/api/v1/users/{$km->id}", [
+            'name' => 'Renamed',
+            'email' => 'renamed@example.test',
+            'password' => 'newsecret1',
+            'password_confirmation' => 'newsecret1',
+            'roles' => [Roles::REVIEWER],
+        ])->assertOk()
+            ->assertJsonPath('data.name', 'Renamed')
+            ->assertJsonPath('data.roles', [Roles::REVIEWER]);
+
+        $km->refresh();
+        $this->assertSame('renamed@example.test', $km->email);
+        $this->assertTrue(Hash::check('newsecret1', $km->password));
+        $this->assertSame(0, $km->tokens()->count());
+    }
+
+    public function test_edit_keeps_the_same_guards_as_role_changes(): void
+    {
+        $super = $this->makeUser(Roles::SUPER_ADMIN);
+        $this->patchJson("/api/v1/users/{$super->id}", ['name' => 'x'])->assertNotFound();
+
+        $km = $this->makeUser(Roles::KNOWLEDGE_MANAGER);
+        $this->patchJson("/api/v1/users/{$km->id}", ['roles' => [Roles::PLATFORM_ADMIN]])->assertForbidden();
+        $this->patchJson("/api/v1/users/{$km->id}", ['email' => 'admin@example.test'])->assertStatus(422);
+
+        // Unlinking an org admin from their organisation would strand the role.
+        $org = $this->org();
+        $pa = $this->makeUser(Roles::PARTNER_ADMIN);
+        $pa->update(['partner_id' => $org->id]);
+        $this->patchJson("/api/v1/users/{$pa->id}", ['partner' => null])->assertStatus(422);
     }
 }

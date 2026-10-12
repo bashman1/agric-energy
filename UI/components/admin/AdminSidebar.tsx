@@ -26,8 +26,8 @@ import {
   LogOutIcon,
 } from "@/components/shared/icons";
 
-/** `cap` gates visibility: content managers, user managers, or super-admins. */
-type NavCap = "any" | "content" | "review" | "users" | "super";
+/** `cap` gates visibility: content managers, user managers, senior admins (super or platform), or super-admins. */
+type NavCap = "any" | "content" | "review" | "users" | "senior" | "super";
 type NavItem = { href: string; label: string; icon: ReactNode; exact?: boolean; cap: NavCap };
 
 const navItems: NavItem[] = [
@@ -47,7 +47,7 @@ const navItems: NavItem[] = [
   { href: "/admin/review", label: "Review Queue", icon: <CheckCircleIcon />, cap: "review" },
   { href: "/admin/users", label: "Users", icon: <UsersIcon />, cap: "users" },
   { href: "/admin/submissions", label: "Submissions", icon: <InboxIcon />, cap: "content" },
-  { href: "/admin/audit", label: "Audit Trail", icon: <HistoryIcon />, cap: "super" },
+  { href: "/admin/audit", label: "Audit Trail", icon: <HistoryIcon />, cap: "senior" },
   { href: "/admin/site-config", label: "Site Config", icon: <SettingsIcon />, cap: "super" },
 ];
 
@@ -116,7 +116,7 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { canManageContent, canReview, canManageUsers, isSuperAdmin } = useSession();
+  const { canManageContent, canReview, canManageUsers, isSeniorAdmin, isSuperAdmin } = useSession();
 
   // Show only the sections this role can actually use. Mirrors the API gates
   // and RouteGuard's per-path capability map.
@@ -128,6 +128,8 @@ export default function AdminSidebar() {
         return canReview;
       case "users":
         return canManageUsers;
+      case "senior":
+        return isSeniorAdmin;
       case "super":
         return isSuperAdmin;
       default:

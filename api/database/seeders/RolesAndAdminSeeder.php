@@ -11,7 +11,7 @@ use Spatie\Permission\Models\Role;
 
 /**
  * Establishes the RBAC role set and the initial super-admin account.
- * Roles: super-admin, platform-admin, knowledge-manager, content-contributor
+ * Roles: super-admin, platform-admin, organisation-admin, knowledge-manager, …
  * (see App\Support\Roles).
  */
 class RolesAndAdminSeeder extends Seeder

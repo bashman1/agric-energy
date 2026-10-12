@@ -26,6 +26,10 @@ export const USER_KEY = "agri_energy_user";
 export const ROLE = {
   SUPER_ADMIN: "super-admin",
   PLATFORM_ADMIN: "platform-admin",
+  // NREP staff tier below platform-admin: users and content, but no audit
+  // trail and no say over who is an administrator. Not `partner-admin`,
+  // which administers one external organisation from the partner portal.
+  ORGANISATION_ADMIN: "organisation-admin",
   KNOWLEDGE_MANAGER: "knowledge-manager",
   CONTENT_CONTRIBUTOR: "content-contributor",
   // Reviews without authoring. Kept out of every content group below on
@@ -59,6 +63,7 @@ export const PARTNER_ACCOUNT_ROLES = [ROLE.PARTNER, ...PARTNER_TEAM_ROLES] as co
 export const NREP_ROLES = [
   ROLE.SUPER_ADMIN,
   ROLE.PLATFORM_ADMIN,
+  ROLE.ORGANISATION_ADMIN,
   ROLE.KNOWLEDGE_MANAGER,
   ROLE.CONTENT_CONTRIBUTOR,
   ROLE.REVIEWER,
@@ -67,13 +72,13 @@ export const NREP_ROLES = [
 /**
  * Why the current admin may not grant or remove `role`, or null if they may.
  * Mirrors UserController::assertMayGrant(): super-admin is never assigned
- * from the UI (it is made on the server), and platform-admin is a
- * super-admin's call alone.
+ * from the UI (it is made on the server), and the two administrator roles
+ * below it are a super or platform admin's call alone.
  */
-export function roleLockReason(role: string, actorIsSuperAdmin: boolean): string | null {
+export function roleLockReason(role: string, actorIsSeniorAdmin: boolean): string | null {
   if (role === ROLE.SUPER_ADMIN) return "Super administrators are created on the server, not here";
-  if (role === ROLE.PLATFORM_ADMIN && !actorIsSuperAdmin) {
-    return "Only super-administrators can grant or remove this role";
+  if ((role === ROLE.PLATFORM_ADMIN || role === ROLE.ORGANISATION_ADMIN) && !actorIsSeniorAdmin) {
+    return "Only super or platform administrators can grant or remove this role";
   }
   return null;
 }
@@ -82,6 +87,7 @@ export function roleLockReason(role: string, actorIsSuperAdmin: boolean): string
 export const CONTENT_MANAGER_ROLES = [
   ROLE.SUPER_ADMIN,
   ROLE.PLATFORM_ADMIN,
+  ROLE.ORGANISATION_ADMIN,
   ROLE.KNOWLEDGE_MANAGER,
 ] as const;
 
@@ -92,12 +98,24 @@ export const CONTENT_MANAGER_ROLES = [
 export const REVIEWER_ROLES = [
   ROLE.SUPER_ADMIN,
   ROLE.PLATFORM_ADMIN,
+  ROLE.ORGANISATION_ADMIN,
   ROLE.KNOWLEDGE_MANAGER,
   ROLE.REVIEWER,
 ] as const;
 
 /** Roles that manage user accounts and role assignment. */
-export const USER_MANAGER_ROLES = [ROLE.SUPER_ADMIN, ROLE.PLATFORM_ADMIN] as const;
+export const USER_MANAGER_ROLES = [
+  ROLE.SUPER_ADMIN,
+  ROLE.PLATFORM_ADMIN,
+  ROLE.ORGANISATION_ADMIN,
+] as const;
+
+/**
+ * The top two administrator tiers. A platform admin does everything a
+ * super-admin does except system configuration, so everything short of that
+ * — the audit trail, granting administrator roles — is gated on this group.
+ */
+export const SENIOR_ADMIN_ROLES = [ROLE.SUPER_ADMIN, ROLE.PLATFORM_ADMIN] as const;
 
 /**
  * Roles that may enter /admin at all (content managers + contributors).
@@ -106,6 +124,7 @@ export const USER_MANAGER_ROLES = [ROLE.SUPER_ADMIN, ROLE.PLATFORM_ADMIN] as con
 export const STAFF_ROLES = [
   ROLE.SUPER_ADMIN,
   ROLE.PLATFORM_ADMIN,
+  ROLE.ORGANISATION_ADMIN,
   ROLE.KNOWLEDGE_MANAGER,
   ROLE.CONTENT_CONTRIBUTOR,
   ROLE.REVIEWER,
@@ -115,6 +134,7 @@ export const STAFF_ROLES = [
 export const ROLE_LABELS: Record<string, string> = {
   "super-admin": "Super Administrator",
   "platform-admin": "Platform Administrator",
+  "organisation-admin": "Organisation Administrator",
   "knowledge-manager": "Knowledge Manager",
   "content-contributor": "Content Contributor",
   reviewer: "Reviewer",
@@ -232,7 +252,12 @@ export function canApproveOrgContent(user: Pick<StoredUser, "roles"> | null): bo
   return hasAnyRole(user, ORG_REVIEWER_ROLES);
 }
 
-/** Super-admin only: system settings, audit trail, backups. */
+/** Super or platform admin: audit trail, granting administrator roles. */
+export function isSeniorAdmin(user: Pick<StoredUser, "roles"> | null): boolean {
+  return hasAnyRole(user, SENIOR_ADMIN_ROLES);
+}
+
+/** Super-admin only: system settings. */
 export function isSuperAdmin(user: Pick<StoredUser, "roles"> | null): boolean {
   return !!user?.roles?.includes(ROLE.SUPER_ADMIN);
 }

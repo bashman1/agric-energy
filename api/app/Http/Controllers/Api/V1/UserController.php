@@ -17,15 +17,19 @@ use Illuminate\Validation\ValidationException;
 /**
  * Administrator account management: list users, approve pending registrations,
  * assign roles, and suspend/reactivate accounts. Restricted to user managers
- * (platform-admins and super-admins) via the `manage-users` gate.
+ * (the three administrator tiers, Roles::ADMIN_TIERS) via the `manage-users`
+ * gate.
  *
- * The two administrator tiers are guarded separately (assertMayGrant()):
+ * Who may hand out an administrator role (assertMayGrant()):
  *  - super-admin is never granted or revoked through the API — a new one is
  *    made on the server (seeder / artisan), so no UI session can mint one;
- *  - platform-admin is granted or revoked by a super-admin only, so a
- *    platform admin cannot multiply itself.
- * Platform admins also never see super-admin accounts: they are left out of
- * the listing and 404 on every per-user action (assertMayManageSuperAdmins()).
+ *  - platform-admin and organisation-admin are granted or revoked by a
+ *    super-admin or platform admin only, so an organisation admin can
+ *    neither multiply itself nor promote anyone.
+ * An administrator also never sees an account in a tier above their own:
+ * those are left out of the listing and 404 on every per-user action
+ * (assertMayManage()). Without that, resetting a senior account's password
+ * would be a way to borrow its powers.
  */
 class UserController extends Controller
 {
@@ -37,8 +41,8 @@ class UserController extends Controller
 
         $query = User::query()->with('partner')->orderByDesc('created_at');
 
-        if (! $request->user()->hasRole(Roles::SUPER_ADMIN)) {
-            $query->whereDoesntHave('roles', fn ($q) => $q->where('name', Roles::SUPER_ADMIN));
+        if ($hidden = $this->outranking($request)) {
+            $query->whereDoesntHave('roles', fn ($q) => $q->whereIn('name', $hidden));
         }
 
         if ($request->filled('status')) {
@@ -116,11 +120,74 @@ class UserController extends Controller
         return response()->json(['data' => new UserResource($user->fresh('partner'))], 201);
     }
 
+    /**
+     * Edit an account: profile details, organisation link, role, and
+     * optionally a new password. Every field is optional — only what is sent
+     * changes. `partner: null` unlinks the organisation; leaving the key out
+     * keeps it.
+     *
+     * Runs the same guards as setRoles(): an administrator cannot touch an
+     * account above their tier (404), nobody changes super-admin membership,
+     * and an organisation admin changes no administrator membership at all.
+     */
+    public function update(Request $request, User $user): JsonResponse
+    {
+        $this->authorize('manage-users');
+        $this->assertMayManage($request, $user);
+
+        $data = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8|confirmed',
+            'phone' => ['nullable', 'string', 'max:50', new PhoneNumber],
+            'organisation' => 'nullable|string|max:255',
+            'partner' => 'nullable|string|exists:partners,slug',
+            'roles' => 'sometimes|array|min:1',
+            'roles.*' => 'in:' . implode(',', self::ASSIGNABLE_ROLES),
+        ]);
+
+        $partnerId = $user->partner_id;
+        if ($request->exists('partner')) {
+            $partnerId = ! empty($data['partner'])
+                ? Partner::where('slug', $data['partner'])->value('id')
+                : null;
+        }
+
+        $roles = $data['roles'] ?? $user->getRoleNames()->all();
+        $this->assertMayGrant($request, $roles, $user->getRoleNames()->all());
+        $this->assertCoherentRoles($roles, $partnerId);
+
+        $user->fill(collect($data)->only(['name', 'email', 'phone', 'organisation'])->all());
+        $user->partner_id = $partnerId;
+        if ($request->exists('partner')) {
+            $user->account_type = $partnerId ? 'organization' : 'individual';
+        }
+        if (! empty($data['password'])) {
+            // `password` is cast as `hashed`.
+            $user->password = $data['password'];
+        }
+        $user->save();
+
+        if (isset($data['roles'])) {
+            $user->syncRoles($roles);
+        }
+        // A reset password signs the person out everywhere — unless it is
+        // the admin's own, which would end the session doing the editing.
+        if (! empty($data['password']) && $user->id !== $request->user()->id) {
+            $user->tokens()->delete();
+        }
+
+        activity('users')->performedOn($user)->causedBy($request->user())
+            ->event('updated')->log('Edited account ' . $user->email);
+
+        return response()->json(['data' => new UserResource($user->fresh('partner'))]);
+    }
+
     /** Approve a pending registration so the user can log in. */
     public function approve(Request $request, User $user): JsonResponse
     {
         $this->authorize('manage-users');
-        $this->assertMayManageSuperAdmins($request, $user);
+        $this->assertMayManage($request, $user);
 
         $user->update([
             'status' => User::STATUS_APPROVED,
@@ -133,7 +200,7 @@ class UserController extends Controller
     public function suspend(Request $request, User $user): JsonResponse
     {
         $this->authorize('manage-users');
-        $this->assertMayManageSuperAdmins($request, $user);
+        $this->assertMayManage($request, $user);
 
         $user->update(['status' => User::STATUS_SUSPENDED]);
         $user->tokens()->delete(); // force logout everywhere
@@ -164,7 +231,7 @@ class UserController extends Controller
         }
 
         // Checked before the partner link below is saved.
-        $this->assertMayManageSuperAdmins($request, $user);
+        $this->assertMayManage($request, $user);
         $this->assertMayGrant($request, $data['roles'], $user->getRoleNames()->all());
         $this->assertCoherentRoles($data['roles'], $user->partner_id);
 
@@ -203,7 +270,8 @@ class UserController extends Controller
      * requested roles with the ones the account has now ($current is empty
      * for a new account):
      *  - super-admin membership never changes through the API, for anyone;
-     *  - platform-admin membership changes only at a super-admin's hand.
+     *  - platform-admin and organisation-admin membership changes only at the
+     *    hand of a super-admin or platform admin.
      */
     private function assertMayGrant(Request $request, array $requested, array $current): void
     {
@@ -213,21 +281,27 @@ class UserController extends Controller
         if ($changes(Roles::SUPER_ADMIN)) {
             throw new AuthorizationException('Super-administrator accounts cannot be created or changed from the platform.');
         }
-        if ($changes(Roles::PLATFORM_ADMIN) && ! $request->user()->hasRole(Roles::SUPER_ADMIN)) {
-            throw new AuthorizationException('Only super-administrators can grant or remove the platform administrator role.');
+        if (($changes(Roles::PLATFORM_ADMIN) || $changes(Roles::ORGANISATION_ADMIN))
+            && ! $request->user()->hasAnyRole([Roles::SUPER_ADMIN, Roles::PLATFORM_ADMIN])) {
+            throw new AuthorizationException('Only super or platform administrators can grant or remove an administrator role.');
         }
     }
 
     /**
-     * A super-admin account may only be modified by another super-admin.
-     * To a platform-admin it does not exist — 404, matching its absence
+     * An account in an administrator tier above the caller's may not be
+     * modified. To the caller it does not exist — 404, matching its absence
      * from index() — rather than a 403 that would confirm it is there.
      */
-    private function assertMayManageSuperAdmins(Request $request, User $target): void
+    private function assertMayManage(Request $request, User $target): void
     {
-        if ($target->hasRole(Roles::SUPER_ADMIN)
-            && ! $request->user()->hasRole(Roles::SUPER_ADMIN)) {
+        if ($target->hasAnyRole($this->outranking($request))) {
             abort(404);
         }
+    }
+
+    /** The administrator roles above the caller's own tier. */
+    private function outranking(Request $request): array
+    {
+        return Roles::outranking($request->user()->getRoleNames()->all());
     }
 }

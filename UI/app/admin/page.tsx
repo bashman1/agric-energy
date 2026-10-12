@@ -110,13 +110,13 @@ export default function AdminDashboard() {
           </div>
 
           {/* Platform note */}
-          <div className="bg-secondary-50 border border-secondary-200 rounded-xl p-4">
+          {/* <div className="bg-secondary-50 border border-secondary-200 rounded-xl p-4">
             <p className="text-sm text-secondary-800 font-semibold mb-1">Platform note</p>
             <p className="text-xs text-secondary-700 leading-relaxed">
               Content is stored in PostgreSQL via the Laravel REST API. Figures are illustrative and
               not official statistics. Partner-submitted content stays pending until an administrator approves it.
             </p>
-          </div>
+          </div> */}
         </div>
       );
       }}

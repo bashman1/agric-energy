@@ -18,6 +18,7 @@ import {
   canManageUsers,
   getUser,
   isStaff,
+  isSeniorAdmin,
   isSuperAdmin,
   subscribe,
 } from "./token";
@@ -70,6 +71,7 @@ export function useSession() {
     canManageUsers: canManageUsers(user),
     canManagePartnerTeam: canManagePartnerTeam(user),
     canApproveOrgContent: canApproveOrgContent(user),
+    isSeniorAdmin: isSeniorAdmin(user),
     isSuperAdmin: isSuperAdmin(user),
   };
 }
