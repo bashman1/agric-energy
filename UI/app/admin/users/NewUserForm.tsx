@@ -95,13 +95,13 @@ export default function NewUserForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
-  const { isSuperAdmin } = useSession();
+  const { isSeniorAdmin } = useSession();
 
-  // An account holding a role this admin may not take away (a platform
-  // admin, seen by a platform admin) keeps it: details stay editable, the
+  // An account holding a role this admin may not take away (an organisation
+  // admin, seen by another organisation admin) keeps it: details stay editable, the
   // role does not.
   const roleLock = editing
-    ? editing.roles.map((r) => roleLockReason(r, isSuperAdmin)).find(Boolean) ?? null
+    ? editing.roles.map((r) => roleLockReason(r, isSeniorAdmin)).find(Boolean) ?? null
     : null;
 
   const set = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -282,8 +282,8 @@ export default function NewUserForm({
             {roleLock && <option value={role}>{ROLE_LABELS[role] ?? role}</option>}
             {ASSIGNABLE[category]
               // Not offered at all: nobody creates a super-admin here, and
-              // only a super-admin creates a platform admin.
-              .filter((r) => roleLockReason(r, isSuperAdmin) === null)
+              // an organisation admin creates no administrator of any tier.
+              .filter((r) => roleLockReason(r, isSeniorAdmin) === null)
               .map((r) => (
                 <option key={r} value={r}>{ROLE_LABELS[r] ?? r}</option>
               ))}

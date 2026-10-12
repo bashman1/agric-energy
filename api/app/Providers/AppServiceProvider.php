@@ -30,9 +30,19 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Super-admins bypass every ability check.
+        // Super-admins bypass every ability check. Platform admins bypass
+        // every one but system configuration, which falls through to its
+        // gate below and is refused there.
         Gate::before(function (User $user, string $ability) {
-            return $user->hasRole(Roles::SUPER_ADMIN) ? true : null;
+            if ($user->hasRole(Roles::SUPER_ADMIN)) {
+                return true;
+            }
+            if ($user->hasRole(Roles::PLATFORM_ADMIN)
+                && ! in_array($ability, Roles::SYSTEM_ABILITIES, true)) {
+                return true;
+            }
+
+            return null;
         });
 
         foreach (self::CONTENT_MODELS as $model) {
@@ -60,8 +70,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('upload-media', fn (User $user) => $user->isApproved()
             && $user->hasAnyRole(Roles::CONTENT_AUTHORS));
 
-        // User & role management: platform admins (super-admins via before()).
-        Gate::define('manage-users', fn (User $user) => $user->hasRole(Roles::PLATFORM_ADMIN));
+        // User & role management: the three administrator tiers.
+        Gate::define('manage-users', fn (User $user) => $user->hasAnyRole(Roles::USER_MANAGERS));
 
         // An organisation's own team, in the partner portal. Deliberately a
         // SEPARATE gate from manage-users: that one is platform-wide, this
@@ -83,9 +93,10 @@ class AppServiceProvider extends ServiceProvider
             && $user->hasAnyRole(Roles::ORG_REVIEWERS)
             && $user->partner_id !== null);
 
-        // Core system settings and the audit trail are super-admin-only: the
-        // closures deny everyone, so only Gate::before() lets a super-admin
-        // through. Keeps them off-limits even to platform administrators.
+        // The closures deny everyone, so only Gate::before() lets anyone
+        // through: a super-admin for core system settings (platform admins
+        // are held back by Roles::SYSTEM_ABILITIES), and a super-admin or
+        // platform admin for the audit trail.
         Gate::define('manage-settings', fn (User $user) => false);
         Gate::define('view-audit', fn (User $user) => false);
     }

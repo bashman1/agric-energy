@@ -5,15 +5,23 @@ namespace App\Support;
 /**
  * Canonical RBAC roles and the capability groups derived from them.
  *
- * The platform has four roles (spatie/laravel-permission, guard `web`):
+ * The platform-level roles (spatie/laravel-permission, guard `web`):
  *
  *  - super-admin         : full control — system settings, security, backups,
  *                          audit logs, user/role management, approvals, and all
  *                          content. Bypasses every gate via Gate::before().
- *  - platform-admin      : day-to-day operations — users, organisations,
+ *  - platform-admin      : everything a super-admin can do EXCEPT system
+ *                          configuration (SYSTEM_ABILITIES) — Gate::before()
+ *                          lets it through every other gate, the audit trail
+ *                          included. It never sees or touches a super-admin
+ *                          account, which would be a way round that exception.
+ *  - organisation-admin  : day-to-day operations — users, organisations,
  *                          knowledge resources, events, opportunities,
  *                          dashboards and reports. May approve and publish
- *                          content, but NOT change core system settings.
+ *                          content, but has no audit trail, no system settings,
+ *                          and cannot hand out an administrator role. NREP
+ *                          staff; not to be confused with `partner-admin`,
+ *                          which administers one external organisation.
  *  - knowledge-manager   : curate the knowledge repository — review and publish
  *                          content, organise categories, manage metadata/tags,
  *                          uphold quality standards. No user or system settings.
@@ -60,6 +68,7 @@ final class Roles
 {
     public const SUPER_ADMIN = 'super-admin';
     public const PLATFORM_ADMIN = 'platform-admin';
+    public const ORGANISATION_ADMIN = 'organisation-admin';
     public const KNOWLEDGE_MANAGER = 'knowledge-manager';
     public const CONTENT_CONTRIBUTOR = 'content-contributor';
     public const REVIEWER = 'reviewer';
@@ -75,6 +84,7 @@ final class Roles
     public const ALL = [
         self::SUPER_ADMIN,
         self::PLATFORM_ADMIN,
+        self::ORGANISATION_ADMIN,
         self::KNOWLEDGE_MANAGER,
         self::CONTENT_CONTRIBUTOR,
         self::REVIEWER,
@@ -111,6 +121,7 @@ final class Roles
     public const CONTENT_MANAGERS = [
         self::SUPER_ADMIN,
         self::PLATFORM_ADMIN,
+        self::ORGANISATION_ADMIN,
         self::KNOWLEDGE_MANAGER,
     ];
 
@@ -122,6 +133,7 @@ final class Roles
     public const CONTENT_AUTHORS = [
         self::SUPER_ADMIN,
         self::PLATFORM_ADMIN,
+        self::ORGANISATION_ADMIN,
         self::KNOWLEDGE_MANAGER,
         self::CONTENT_CONTRIBUTOR,
         self::PARTNER,
@@ -134,7 +146,43 @@ final class Roles
     public const USER_MANAGERS = [
         self::SUPER_ADMIN,
         self::PLATFORM_ADMIN,
+        self::ORGANISATION_ADMIN,
     ];
+
+    /**
+     * The administrator tiers, highest first. An administrator never sees or
+     * acts on an account in a tier above their own (see outranking()), and
+     * only the top two may change who holds one (UserController::assertMayGrant).
+     */
+    public const ADMIN_TIERS = [
+        self::SUPER_ADMIN,
+        self::PLATFORM_ADMIN,
+        self::ORGANISATION_ADMIN,
+    ];
+
+    /**
+     * Abilities that stay with the super-admin alone. A platform-admin passes
+     * every other gate through Gate::before().
+     */
+    public const SYSTEM_ABILITIES = ['manage-settings'];
+
+    /**
+     * The administrator roles above the highest tier found in $roles — all of
+     * them for an account that holds none.
+     *
+     * @param  string[]  $roles
+     * @return string[]
+     */
+    public static function outranking(array $roles): array
+    {
+        foreach (self::ADMIN_TIERS as $i => $tier) {
+            if (in_array($tier, $roles, true)) {
+                return array_slice(self::ADMIN_TIERS, 0, $i);
+            }
+        }
+
+        return self::ADMIN_TIERS;
+    }
 
     /**
      * Roles that may work the review queue: approve a submission or return it
@@ -149,6 +197,7 @@ final class Roles
     public const REVIEWERS = [
         self::SUPER_ADMIN,
         self::PLATFORM_ADMIN,
+        self::ORGANISATION_ADMIN,
         self::KNOWLEDGE_MANAGER,
         self::REVIEWER,
     ];

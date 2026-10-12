@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import type { AdminUser } from "@/lib/data/admin";
 import { apiGet, apiSend } from "@/lib/api/client";
-import { NREP_ROLES, PARTNER_ACCOUNT_ROLES, ROLE, ROLE_LABELS, roleLockReason } from "@/lib/auth/token";
+import { PARTNER_ACCOUNT_ROLES, ROLE, ROLE_LABELS, roleLockReason } from "@/lib/auth/token";
 import { useSession } from "@/lib/auth/useSession";
 import NewUserForm, { type PartnerOption } from "./NewUserForm";
 import AdminTableFilters, { type SelectFilter } from "@/components/admin/AdminTableFilters";
@@ -12,14 +12,8 @@ import Pagination, { usePagination } from "@/components/admin/Pagination";
  * Users split into two populations that never share roles (the API refuses
  * an account holding both): NREP staff, who work in this admin panel, and
  * platform partners, who use the /partner portal on behalf of an organisation.
- * Each tab only offers the pills for its own population.
  */
 type Category = "nrep" | "partner";
-
-const CATEGORY_ROLES: Record<Category, readonly string[]> = {
-  nrep: NREP_ROLES,
-  partner: PARTNER_ACCOUNT_ROLES,
-};
 
 /** A partner role, or a link to an organisation, makes it a partner account. */
 function categoryOf(u: AdminUser): Category {
@@ -48,7 +42,7 @@ export default function UsersClient({
   const [error, setError] = useState("");
   const [category, setCategory] = useState<Category>("nrep");
   const [partners, setPartners] = useState<PartnerOption[]>([]);
-  const { isSuperAdmin } = useSession();
+  const { isSeniorAdmin } = useSession();
 
   useEffect(() => {
     apiGet<PartnerOption[]>("partners", [], { params: { admin: true } }).then((list) =>
@@ -74,10 +68,6 @@ export default function UsersClient({
 
   const suspend = (u: AdminUser) =>
     call(u.id, () => apiSend("POST", `users/${u.id}/suspend`));
-
-  /** One role per account: picking a new one replaces whatever it held. */
-  const changeRole = (u: AdminUser, role: string) =>
-    call(u.id, () => apiSend("PUT", `users/${u.id}/roles`, { roles: [role] }));
 
   /** Link an existing partner account to its organisation, keeping its roles. */
   const linkPartner = (u: AdminUser, partner: string) =>
@@ -213,12 +203,10 @@ export default function UsersClient({
           <UsersTable
             rows={shown}
             busy={busy}
-            isSuperAdmin={isSuperAdmin}
-            roles={CATEGORY_ROLES[category]}
+            isSeniorAdmin={isSeniorAdmin}
             partners={category === "partner" ? partners : null}
             approve={approve}
             suspend={suspend}
-            changeRole={changeRole}
             edit={(u) => {
               setCreating(false);
               setEditing(u);
@@ -240,24 +228,20 @@ export default function UsersClient({
 function UsersTable({
   rows,
   busy,
-  isSuperAdmin,
-  roles,
+  isSeniorAdmin,
   partners,
   approve,
   suspend,
-  changeRole,
   edit,
   linkPartner,
 }: {
   rows: AdminUser[];
   busy: number | null;
-  isSuperAdmin: boolean;
-  roles: readonly string[];
+  isSeniorAdmin: boolean;
   /** Organisations to link to; null on the staff tab, which has none. */
   partners: PartnerOption[] | null;
   approve: (u: AdminUser) => void;
   suspend: (u: AdminUser) => void;
-  changeRole: (u: AdminUser, role: string) => void;
   edit: (u: AdminUser) => void;
   linkPartner: (u: AdminUser, partner: string) => void;
 }) {
@@ -303,7 +287,7 @@ function UsersTable({
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <RoleCell u={u} roles={roles} busy={busy === u.id} isSuperAdmin={isSuperAdmin} changeRole={changeRole} />
+                  <RoleCell u={u} isSeniorAdmin={isSeniorAdmin} />
                   {partners && !u.partnerId && (
                     <select
                       className="form-input mt-2 text-xs py-1"
@@ -382,28 +366,15 @@ function UsersTable({
 }
 
 /**
- * The role(s) an account actually holds, as badges, with a dropdown to
- * replace it. The dropdown offers only roles the viewer may grant, and is
- * withheld entirely when the account holds a role the viewer may not take
- * away (a super-admin, or a platform admin seen by a platform admin).
+ * The role(s) an account actually holds, as badges. Changing a role is done
+ * from Edit; the note underneath says why that is unavailable when the
+ * account holds a role the viewer may not take away (a super-admin, or an
+ * organisation admin seen by another organisation admin).
  */
-function RoleCell({
-  u,
-  roles,
-  busy,
-  isSuperAdmin,
-  changeRole,
-}: {
-  u: AdminUser;
-  roles: readonly string[];
-  busy: boolean;
-  isSuperAdmin: boolean;
-  changeRole: (u: AdminUser, role: string) => void;
-}) {
+function RoleCell({ u, isSeniorAdmin }: { u: AdminUser; isSeniorAdmin: boolean }) {
   const lockReason = u.roles.includes(ROLE.SUPER_ADMIN)
     ? "Super administrator — managed on the server"
-    : u.roles.map((r) => roleLockReason(r, isSuperAdmin)).find(Boolean) ?? null;
-  const options = roles.filter((r) => roleLockReason(r, isSuperAdmin) === null);
+    : u.roles.map((r) => roleLockReason(r, isSeniorAdmin)).find(Boolean) ?? null;
 
   return (
     <div>
@@ -421,24 +392,7 @@ function RoleCell({
           ))
         )}
       </div>
-      {lockReason ? (
-        <p className="mt-1.5 text-[11px] text-ink-400">{lockReason}</p>
-      ) : (
-        <select
-          className="form-input mt-2 text-xs py-1"
-          value=""
-          disabled={busy}
-          onChange={(e) => e.target.value && changeRole(u, e.target.value)}
-          aria-label={`Change role for ${u.name}`}
-        >
-          <option value="">Change role…</option>
-          {options
-            .filter((r) => !(u.roles.length === 1 && u.roles[0] === r))
-            .map((r) => (
-              <option key={r} value={r}>{ROLE_LABELS[r] ?? r}</option>
-            ))}
-        </select>
-      )}
+      {lockReason && <p className="mt-1.5 text-[11px] text-ink-400">{lockReason}</p>}
     </div>
   );
 }
