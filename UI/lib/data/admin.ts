@@ -169,13 +169,12 @@ export interface NewUserInput {
   roles: string[];
   phone?: string;
   organisation?: string;
-  /** Partner slug — links a partner account to its organisation. */
-  partner?: string;
 }
 
 /**
- * Create an account directly. The API marks it approved and
- * email-verified, so the person can sign in straight away.
+ * Create an NREP staff account directly. The API marks it approved and
+ * email-verified, so the person can sign in straight away. Partner roles
+ * are refused — those accounts come from the partner portal.
  */
 export async function createUser(input: NewUserInput, token?: string) {
   return apiSend("POST", "users", input, { token });

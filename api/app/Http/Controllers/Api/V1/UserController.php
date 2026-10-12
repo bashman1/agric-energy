@@ -61,8 +61,12 @@ class UserController extends Controller
     }
 
     /**
-     * Create an account directly, instead of waiting for someone to
-     * self-register and then approving them.
+     * Create an NREP staff account directly.
+     *
+     * Staff only: an administrator does not create accounts for a partner
+     * organisation. Those come from the organisation registering itself, and
+     * its own administrator adding colleagues (PartnerTeamController). An
+     * existing partner account can still be edited or re-linked here.
      *
      * Admin-created accounts skip the pending state: the person creating it
      * is the same person who would otherwise approve it, so requiring a
@@ -81,18 +85,11 @@ class UserController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'phone' => ['nullable', 'string', 'max:50', new PhoneNumber],
             'organisation' => 'nullable|string|max:255',
-            // Slug of the organisation a partner account belongs to. Without
-            // it an organisation role has no team to act on — see
-            // assertCoherentRoles().
-            'partner' => 'nullable|string|exists:partners,slug',
             'roles' => 'required|array|min:1',
-            'roles.*' => 'in:' . implode(',', self::ASSIGNABLE_ROLES),
+            'roles.*' => 'in:' . implode(',', Roles::STAFF_ROLES),
+        ], [
+            'roles.*.in' => 'Only NREP staff accounts can be created here.',
         ]);
-
-        $partner = ! empty($data['partner'])
-            ? Partner::where('slug', $data['partner'])->first()
-            : null;
-        $this->assertCoherentRoles($data['roles'], $partner?->id);
 
         // Same escalation guard as setRoles().
         $this->assertMayGrant($request, $data['roles'], []);
@@ -104,11 +101,10 @@ class UserController extends Controller
             // idempotent — do not Hash::make() here as well.
             'password' => $data['password'],
             'phone' => $data['phone'] ?? null,
-            'organisation' => $data['organisation'] ?? $partner?->name,
+            'organisation' => $data['organisation'] ?? null,
             'status' => User::STATUS_APPROVED,
             'approved_at' => Carbon::now(),
-            'account_type' => $partner ? 'organization' : 'individual',
-            'partner_id' => $partner?->id,
+            'account_type' => 'individual',
         ]);
 
         $user->forceFill(['email_verified_at' => Carbon::now()])->save();

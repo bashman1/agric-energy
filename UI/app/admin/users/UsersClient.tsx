@@ -119,7 +119,7 @@ export default function UsersClient({
         <div>
           <h1 className="text-2xl font-display font-semibold text-ink-900">Users</h1>
           <p className="text-sm text-ink-500 mt-0.5">
-            Create accounts, approve registrations and manage roles.
+            Create staff accounts, approve registrations and manage roles.
             {pending.length > 0 && (
               <span className="ml-1 font-semibold text-secondary-700">
                 {pending.length} pending approval.
@@ -147,7 +147,6 @@ export default function UsersClient({
       {creating && !editing && (
         <NewUserForm
           partners={partners}
-          initialCategory={category}
           onCreated={() => { setCreating(false); onChanged(); }}
           onCancel={() => setCreating(false)}
         />

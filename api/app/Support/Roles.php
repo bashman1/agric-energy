@@ -95,6 +95,20 @@ final class Roles
     ];
 
     /**
+     * NREP staff roles — the only ones an administrator may create an account
+     * with (UserController::store). Partner accounts come from an
+     * organisation registering itself and then adding its own team.
+     */
+    public const STAFF_ROLES = [
+        self::SUPER_ADMIN,
+        self::PLATFORM_ADMIN,
+        self::ORGANISATION_ADMIN,
+        self::KNOWLEDGE_MANAGER,
+        self::CONTENT_CONTRIBUTOR,
+        self::REVIEWER,
+    ];
+
+    /**
      * Roles a partner administrator may grant inside their own organisation.
      * Every entry must be organisation-scoped — adding a staff role here is
      * a privilege-escalation hole, since the grantee would gain platform-wide
