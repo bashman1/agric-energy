@@ -3,6 +3,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { getToken } from "@/lib/auth/token";
 import AdminContentForm from "@/components/admin/AdminContentForm";
 import AdminEditPage from "@/components/admin/AdminEditPage";
 import { getThemeBySlug } from "@/lib/data/themes";
@@ -14,7 +15,7 @@ function Editor() {
       module="themes"
       listLabel="Themes"
       itemLabel="Theme"
-      load={(slug) => getThemeBySlug(slug)}
+      load={(slug) => getThemeBySlug(slug, getToken())}
       titleOf={(x) => x.name}
     >
       {({ item, mode }) => (

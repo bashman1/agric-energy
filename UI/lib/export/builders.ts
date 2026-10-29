@@ -151,6 +151,7 @@ async function buildTechnology(slug: string, origin: string) {
     heading: "Technology Details",
     fields: fields([
       ["Category", tech.category],
+      ["Sub-category", tech.subcategory],
       ["Related Projects", String(projects.length)],
       ["Last Updated", fmtDate(tech.updatedAt)],
     ]),

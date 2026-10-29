@@ -3,6 +3,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { getToken } from "@/lib/auth/token";
 import AdminContentForm from "@/components/admin/AdminContentForm";
 import AdminEditPage from "@/components/admin/AdminEditPage";
 import { getResourceBySlug } from "@/lib/data/resources";
@@ -14,7 +15,7 @@ function Editor() {
       module="resources"
       listLabel="Resources"
       itemLabel="Resource"
-      load={(slug) => getResourceBySlug(slug)}
+      load={(slug) => getResourceBySlug(slug, getToken())}
       titleOf={(x) => x.title}
     >
       {({ item, mode }) => (

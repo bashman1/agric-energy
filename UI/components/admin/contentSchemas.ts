@@ -259,6 +259,7 @@ export const CONTENT_SCHEMAS: Record<ContentModule, ContentModuleDef> = {
     fields: [
       { key: "name", label: "Name", type: "text", required: true, placeholder: "e.g. Solar Water Pumping" },
       { key: "category", label: "Category", type: "text", half: true, placeholder: "e.g. Solar Energy" },
+      { key: "subcategory", label: "Sub-category", type: "text", half: true, placeholder: "e.g. Solar water pumping" },
       { key: "summary", label: "Summary", type: "textarea", required: true, rows: 2, placeholder: "One to two sentence description" },
       { key: "description", label: "Description", type: "textarea", rows: 8 },
       { key: "applications", label: "Applications", type: "list", help: "One per line." },

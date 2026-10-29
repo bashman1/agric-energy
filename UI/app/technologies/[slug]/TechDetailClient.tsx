@@ -92,7 +92,10 @@ export default function TechDetailClient({ slug: routeSlug }: { slug: string }) 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-start justify-between gap-6">
               <div>
-                <Badge label={t.category} color="green" size="md" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge label={t.category} color="green" size="md" />
+                  {t.subcategory && <Badge label={t.subcategory} color="gray" size="md" />}
+                </div>
                 <h1 className="text-3xl lg:text-4xl font-extrabold mt-3 mb-3">{t.name}</h1>
                 <p className="text-green-200 text-lg max-w-3xl">{t.summary}</p>
               </div>

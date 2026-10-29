@@ -1,6 +1,7 @@
 "use client";
 
 import { getAllOpportunities } from "@/lib/data/opportunities";
+import { getToken } from "@/lib/auth/token";
 import AdminDataPage from "@/components/admin/AdminDataPage";
 import AdminContentListClient, { type ContentRow } from "@/components/admin/AdminContentListClient";
 
@@ -14,7 +15,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 export default function AdminOpportunitiesPage() {
   return (
-    <AdminDataPage title="Manage Opportunities" load={() => getAllOpportunities()}>
+    <AdminDataPage title="Manage Opportunities" load={() => getAllOpportunities(getToken())}>
       {(opportunities, reload) => {
       const rows: ContentRow[] = [...opportunities]
         .sort((a, b) => (a.deadline ?? "9999").localeCompare(b.deadline ?? "9999"))
@@ -27,6 +28,7 @@ export default function AdminOpportunitiesPage() {
           date: o.deadline?.slice(0, 10) ?? "",
           published: o.published,
           featured: o.featured,
+          createdBy: o.createdBy,
         }));
 
       return (

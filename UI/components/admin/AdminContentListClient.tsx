@@ -23,6 +23,8 @@ export interface ContentRow extends Record<string, unknown> {
   date: string;
   published: boolean;
   featured: boolean;
+  /** Name of the officer who created the record. */
+  createdBy?: string | null;
 }
 
 interface Props {
@@ -82,7 +84,7 @@ export default function AdminContentListClient({ module, rows, badgeLabel, dateL
 
       <AdminTableFilters
         items={rows}
-        searchFields={["title", "subtitle", "badge"]}
+        searchFields={["title", "subtitle", "badge", "createdBy"]}
         placeholder={`Search ${schema.plural.toLowerCase()}…`}
         filters={filters}
         dateField={{ key: "date", label: dateLabel }}
@@ -100,6 +102,7 @@ export default function AdminContentListClient({ module, rows, badgeLabel, dateL
               { label: "Title" },
               { label: badgeLabel },
               { label: dateLabel },
+              { label: "Created by" },
               { label: "Published" },
               { label: "Featured" },
               { label: "", className: "px-4 py-3" },
@@ -120,6 +123,7 @@ export default function AdminContentListClient({ module, rows, badgeLabel, dateL
                   )}
                 </td>
                 <td className="px-4 py-3 text-xs text-ink-500">{r.date || "—"}</td>
+                <td className="px-4 py-3 text-xs text-ink-500">{r.createdBy || "—"}</td>
                 <td className="px-4 py-3">
                   <span className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded-full ${r.published ? "text-primary-700 bg-primary-50" : "text-ink-500 bg-ink-100"}`}>
                     {r.published ? "Live" : "Draft"}

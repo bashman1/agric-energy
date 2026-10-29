@@ -70,6 +70,7 @@ export default function AdminProjectsClient({
               { label: "Title" },
               { label: "Location" },
               { label: "Status" },
+              { label: "Created by" },
               { label: "Published" },
               { label: "Featured" },
               { label: "", className: "px-4 py-3" },
@@ -90,6 +91,7 @@ export default function AdminProjectsClient({
                     : "bg-yellow-50 text-yellow-700 border-yellow-200"
                   }`}>{p.status}</span>
                 </td>
+                <td className="px-4 py-3 text-xs text-ink-500">{p.createdBy || "—"}</td>
                 <td className="px-4 py-3">
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.published ? "text-primary-700 bg-primary-50" : "text-ink-500 bg-ink-100"}`}>
                     {p.published ? "Live" : "Draft"}

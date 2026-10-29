@@ -17,6 +17,7 @@ class TechnologyController extends ContentController
     protected array $searchable = ['name', 'summary', 'description'];
     protected array $filters = [
         'category' => 'category',
+        'subcategory' => 'subcategory',
         'featured' => 'featured',
     ];
     protected array $relationFilters = [
@@ -38,6 +39,7 @@ class TechnologyController extends ContentController
         $map = [
             'name' => 'name',
             'category' => 'category',
+            'subcategory' => 'subcategory',
             'summary' => 'summary',
             'description' => 'description',
             'featuredImage' => 'featured_image',
@@ -57,11 +59,63 @@ class TechnologyController extends ContentController
             }
         }
 
+        foreach (self::LIST_COLUMNS as $col) {
+            if (array_key_exists($col, $attrs)) {
+                $attrs[$col] = $this->toList($attrs[$col]);
+            }
+        }
+
         if (! $updating && isset($data['name'])) {
             $attrs['slug'] = $data['slug'] ?? $data['name'];
         }
 
         return $attrs;
+    }
+
+    /** Columns the public page renders as bullet lists (string[]). */
+    private const LIST_COLUMNS = ['applications', 'benefits', 'limitations', 'operational_notes', 'maintenance_notes'];
+
+    /**
+     * Coerce a list field to string[].
+     *
+     * The admin form sends arrays, but the partner form sends these as free
+     * textareas (one string), and groups the operational fields into an
+     * object ({ amountUsed, technologyStatus, notes }). Stored as-is, the
+     * public page called .map() on a string and crashed. One line per item,
+     * and grouped fields become "Label: value" lines.
+     */
+    private function toList(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        if (is_string($value)) {
+            return array_values(array_filter(array_map('trim', preg_split('/\R/', $value))));
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        if (array_is_list($value)) {
+            return array_values(array_filter(array_map(fn ($v) => trim((string) $v), $value)));
+        }
+
+        $labels = ['amountUsed' => 'Amount used', 'technologyStatus' => 'Technology status'];
+        $out = [];
+        foreach ($value as $key => $v) {
+            if (is_array($v) || trim((string) $v) === '') {
+                continue;
+            }
+            if (isset($labels[$key])) {
+                $out[] = $labels[$key] . ': ' . ucfirst(trim((string) $v));
+            } else {
+                array_push($out, ...$this->toList((string) $v));
+            }
+        }
+
+        return $out;
     }
 
     /** Keys a pending revision must carry so approval can re-sync them. */

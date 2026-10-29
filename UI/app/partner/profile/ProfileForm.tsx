@@ -5,6 +5,7 @@ import { useState } from "react";
 import FileUpload from "@/components/shared/FileUpload";
 import { updateMyPartner } from "@/lib/data/partner-portal";
 import type { Partner } from "@/lib/types";
+import { MAX_EXPERTISE } from "@/lib/data/partnerOptions";
 import { validateEmail, validatePhone } from "@/lib/validation/contact";
 
 /**
@@ -20,9 +21,6 @@ const inputClass =
   "block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30";
 
 const labelClass = "block text-xs font-semibold text-gray-600 mb-1";
-
-/** Areas of expertise are capped to keep a profile a claim, not a catalogue. */
-const MAX_EXPERTISE = 3;
 
 interface Props {
   partner: Partner;

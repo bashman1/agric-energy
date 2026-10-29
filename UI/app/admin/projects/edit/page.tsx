@@ -3,6 +3,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { getToken } from "@/lib/auth/token";
 import AdminProjectForm from "@/components/admin/AdminProjectForm";
 import AdminEditPage from "@/components/admin/AdminEditPage";
 import { getProjectBySlug } from "@/lib/data/projects";
@@ -27,7 +28,7 @@ function Editor() {
       module="projects"
       listLabel="Projects"
       itemLabel="Project"
-      load={(slug) => getProjectBySlug(slug)}
+      load={(slug) => getProjectBySlug(slug, getToken())}
       titleOf={(p) => p.title}
     >
       {({ item, mode }) => (

@@ -48,7 +48,7 @@ abstract class ContentController extends Controller
         $admin = $this->wantsAdmin($request);
 
         /** @var Builder $query */
-        $query = $this->modelClass::query()->with($this->with);
+        $query = $this->modelClass::query()->with($this->withFor($admin));
 
         if (! $admin) {
             $query->where('published', true);
@@ -92,9 +92,10 @@ abstract class ContentController extends Controller
 
     public function show(Request $request, string $slug): JsonResponse
     {
-        $query = $this->modelClass::query()->with($this->with)->where('slug', $slug);
+        $admin = $this->wantsAdmin($request);
+        $query = $this->modelClass::query()->with($this->withFor($admin))->where('slug', $slug);
 
-        if (! $this->wantsAdmin($request)) {
+        if (! $admin) {
             $query->where('published', true);
         }
 
@@ -325,6 +326,16 @@ abstract class ContentController extends Controller
             ->whereKeyNot($user->id)
             ->whereHas('roles', fn ($q) => $q->whereIn('name', Roles::ORG_REVIEWERS))
             ->exists();
+    }
+
+    /**
+     * Relations to eager-load. Staff reads add the author, so the admin
+     * lists and editor can say who created a record; the public API never
+     * names the officer behind a record.
+     */
+    protected function withFor(bool $admin): array
+    {
+        return $admin ? [...$this->with, 'author'] : $this->with;
     }
 
     /**

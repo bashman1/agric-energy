@@ -9,7 +9,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import { useUrlFilters } from "@/lib/hooks/useUrlFilters";
 import type { Taxonomy, Technology } from "@/lib/types";
 
-const KEYS = ["search", "category"] as const;
+const KEYS = ["search", "category", "subcategory"] as const;
 
 export default function TechnologiesBrowser({
   technologies,
@@ -20,6 +20,28 @@ export default function TechnologiesBrowser({
 }) {
   const { filters, setFilters, clear } = useUrlFilters(KEYS);
 
+  // The taxonomy list plus whatever categories records actually carry: the
+  // admin form takes category as free text, so a taxonomy-only list left
+  // real categories unfilterable (and offered nothing at all when the
+  // taxonomy is empty).
+  const categories = useMemo(() => {
+    const names = new Set(taxonomy.technologyCategories.map((c) => c.name));
+    for (const t of technologies) if (t.category) names.add(t.category);
+    return [...names].sort((a, b) => a.localeCompare(b));
+  }, [taxonomy, technologies]);
+
+  // Sub-categories are free text, so the options come from the data —
+  // narrowed to the chosen category when there is one.
+  const subcategories = useMemo(() => {
+    const names = new Set<string>();
+    for (const t of technologies) {
+      if (!t.subcategory) continue;
+      if (filters.category && t.category?.toLowerCase() !== filters.category.toLowerCase()) continue;
+      names.add(t.subcategory);
+    }
+    return [...names].sort((a, b) => a.localeCompare(b));
+  }, [technologies, filters.category]);
+
   const results = useMemo(() => {
     let items = technologies;
     if (filters.search) {
@@ -27,12 +49,18 @@ export default function TechnologiesBrowser({
       items = items.filter(
         (t) =>
           t.name.toLowerCase().includes(q) ||
-          (t.summary ?? "").toLowerCase().includes(q)
+          (t.summary ?? "").toLowerCase().includes(q) ||
+          (t.subcategory ?? "").toLowerCase().includes(q)
       );
     }
     if (filters.category) {
       items = items.filter(
         (t) => t.category?.toLowerCase() === filters.category!.toLowerCase()
+      );
+    }
+    if (filters.subcategory) {
+      items = items.filter(
+        (t) => t.subcategory?.toLowerCase() === filters.subcategory!.toLowerCase()
       );
     }
     return items;
@@ -44,6 +72,7 @@ export default function TechnologiesBrowser({
     setFilters({
       search: String(data.get("search") ?? ""),
       category: String(data.get("category") ?? ""),
+      subcategory: String(data.get("subcategory") ?? ""),
     });
   };
 
@@ -59,12 +88,21 @@ export default function TechnologiesBrowser({
             <label htmlFor="tech-category" className="block text-xs font-semibold text-gray-600 mb-1">Category</label>
             <select id="tech-category" name="category" defaultValue={filters.category ?? ""} className="form-input">
               <option value="">All Categories</option>
-              {taxonomy.technologyCategories.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
+          {subcategories.length > 0 && (
+            <div className="min-w-48">
+              <label htmlFor="tech-subcategory" className="block text-xs font-semibold text-gray-600 mb-1">Sub-category</label>
+              <select id="tech-subcategory" name="subcategory" defaultValue={filters.subcategory ?? ""} className="form-input">
+                <option value="">All Sub-categories</option>
+                {subcategories.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          )}
           <div className="flex gap-2">
             <button type="submit" className="px-4 py-2 bg-primary-700 text-white text-sm font-semibold rounded-lg hover:bg-primary-800 transition-colors">Apply</button>
-            {(filters.search || filters.category) && (
+            {(filters.search || filters.category || filters.subcategory) && (
               <button type="button" onClick={clear} className="px-4 py-2 border border-gray-200 text-gray-500 text-sm font-medium rounded-lg hover:bg-gray-50">Clear</button>
             )}
           </div>

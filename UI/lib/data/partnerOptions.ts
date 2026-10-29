@@ -85,6 +85,13 @@ export const VALUE_CHAINS = [
   "Other",
 ] as const;
 
+/**
+ * Most areas of expertise a profile may claim — enough to describe a
+ * practice, not so many it reads as a catalogue. The API enforces the same
+ * number (AuthController `expertise` `max:5`); change them together.
+ */
+export const MAX_EXPERTISE = 5;
+
 /** Areas of Expertise — checkbox group. */
 export const EXPERTISE_AREAS = [
   "Research",

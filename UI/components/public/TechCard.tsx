@@ -38,9 +38,16 @@ export default function TechCard({ tech }: { tech: Technology }) {
           `flex-1` stretches it and the line clamp stops bounding it. */}
       <div className="flex flex-1 flex-col p-5">
         <div className="flex-1">
-          <span className="inline-block rounded-full border border-primary-100 bg-primary-50 px-2 py-0.5 text-[11px] font-semibold text-primary-700">
-            {tech.category}
-          </span>
+          <div className="flex flex-wrap gap-1.5">
+            <span className="inline-block rounded-full border border-primary-100 bg-primary-50 px-2 py-0.5 text-[11px] font-semibold text-primary-700">
+              {tech.category}
+            </span>
+            {tech.subcategory && (
+              <span className="inline-block rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 text-[11px] font-semibold text-ink-600">
+                {tech.subcategory}
+              </span>
+            )}
+          </div>
           <p className="mt-3 text-sm text-ink-500 leading-relaxed line-clamp-3">
             {tech.summary}
           </p>

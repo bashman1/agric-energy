@@ -37,6 +37,8 @@ class OpportunityResource extends JsonResource
             'featured' => (bool) $this->featured,
             'published' => (bool) $this->published,
             'workflowStatus' => $this->workflow_status,
+            // Staff reads only — loaded by ContentController::wantsAdmin().
+            'createdBy' => $this->whenLoaded('author', fn () => $this->author?->name),
             'updatedAt' => optional($this->updated_at)->toISOString(),
         ];
     }

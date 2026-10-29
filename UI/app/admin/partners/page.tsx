@@ -1,6 +1,7 @@
 "use client";
 
 import AdminDataPage from "@/components/admin/AdminDataPage";
+import { getToken } from "@/lib/auth/token";
 import { getAllPartners } from "@/lib/data/partners";
 import Link from "next/link";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
@@ -12,7 +13,7 @@ type Row = Partner & Record<string, unknown>;
 
 export default function AdminPartnersPage() {
   return (
-    <AdminDataPage title="Manage Partners" load={() => getAllPartners()}>
+    <AdminDataPage title="Manage Partners" load={() => getAllPartners(getToken())}>
       {(items, reload) => {
         const sorted = [...items].sort((a, b) => a.name.localeCompare(b.name)) as Row[];
 
@@ -76,6 +77,7 @@ export default function AdminPartnersPage() {
                     { label: "Kind" },
                     { label: "Type / Position" },
                     { label: "Regions" },
+                    { label: "Created by" },
                     { label: "Published" },
                     { label: "Actions" },
                   ]}
@@ -93,6 +95,7 @@ export default function AdminPartnersPage() {
                         {p.entityKind === "individual" ? p.position || "\u2014" : p.type}
                       </td>
                       <td className="text-xs text-ink-500">{p.regions?.join(", ") || "\u2014"}</td>
+                      <td className="text-xs text-ink-500">{p.createdBy || "\u2014"}</td>
                       <td>
                         <span
                           className={`text-xs font-semibold px-2 py-0.5 rounded-full ${

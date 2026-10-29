@@ -7,10 +7,13 @@ use App\Rules\PhoneNumber;
 use App\Http\Resources\UserResource;
 use App\Models\Partner;
 use App\Models\User;
+use App\Notifications\AccountApprovedNotification;
+use App\Notifications\AccountRejectedNotification;
 use App\Support\Roles;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
@@ -185,12 +188,72 @@ class UserController extends Controller
         $this->authorize('manage-users');
         $this->assertMayManage($request, $user);
 
+        // Only a decision on an application is news to its owner. Lifting a
+        // suspension goes through here too, and is not worth an email.
+        $wasApplication = in_array($user->status, [User::STATUS_PENDING, User::STATUS_REJECTED], true);
+
         $user->update([
             'status' => User::STATUS_APPROVED,
             'approved_at' => Carbon::now(),
+            'review_notes' => null,
         ]);
 
+        if ($wasApplication) {
+            $this->notifyApplicant($user, new AccountApprovedNotification);
+        }
+
         return response()->json(['data' => new UserResource($user->fresh('partner'))]);
+    }
+
+    /**
+     * Turn down a pending registration, with the reason the applicant is
+     * emailed. A pending directory profile created with the registration
+     * is returned with the same notes, so it does not sit in the review
+     * queue for an account that will never be let in.
+     */
+    public function reject(Request $request, User $user): JsonResponse
+    {
+        $this->authorize('manage-users');
+        $this->assertMayManage($request, $user);
+
+        $data = $request->validate(['notes' => 'required|string|max:2000']);
+
+        if ($user->status !== User::STATUS_PENDING) {
+            throw ValidationException::withMessages([
+                'status' => ['Only a pending registration can be rejected. Suspend an active account instead.'],
+            ]);
+        }
+
+        $user->update([
+            'status' => User::STATUS_REJECTED,
+            'review_notes' => $data['notes'],
+        ]);
+
+        $partner = $user->partner;
+        if ($partner && ! $partner->published && $partner->workflow_status === Partner::STATUS_PENDING) {
+            $partner->update([
+                'workflow_status' => Partner::STATUS_REJECTED,
+                'review_notes' => $data['notes'],
+                'reviewed_at' => Carbon::now(),
+            ]);
+        }
+
+        activity('users')->performedOn($user)->causedBy($request->user())
+            ->event('registration_rejected')->log('Registration rejected: ' . $data['notes']);
+
+        $this->notifyApplicant($user, new AccountRejectedNotification($data['notes'], $request->user()?->name));
+
+        return response()->json(['data' => new UserResource($user->fresh('partner'))]);
+    }
+
+    /** A mail outage must not undo, or block, the decision itself. */
+    private function notifyApplicant(User $user, Notification $notification): void
+    {
+        try {
+            $user->notify($notification);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     public function suspend(Request $request, User $user): JsonResponse

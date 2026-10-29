@@ -3,6 +3,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { getToken } from "@/lib/auth/token";
 import AdminPartnerForm from "@/components/admin/AdminPartnerForm";
 import AdminEditPage from "@/components/admin/AdminEditPage";
 import { getPartnerBySlug } from "@/lib/data/partners";
@@ -23,7 +24,7 @@ function Editor() {
       module="partners"
       listLabel="Partners"
       itemLabel="Partner"
-      load={(slug) => getPartnerBySlug(slug)}
+      load={(slug) => getPartnerBySlug(slug, getToken())}
       titleOf={(p) => p.name}
     >
       {({ item, mode }) => (

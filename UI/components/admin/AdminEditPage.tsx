@@ -55,6 +55,11 @@ export default function AdminEditPage<T>({
       ? titleOf(data)
       : `…`;
 
+  // Every content resource carries the author's name on staff reads.
+  const createdBy = !isNew && data
+    ? ((data as { createdBy?: string | null }).createdBy ?? null)
+    : null;
+
   const body = () => {
     if (isNew) return children({ item: {}, mode: "new" });
     if (loading) {
@@ -91,9 +96,12 @@ export default function AdminEditPage<T>({
           {crumb}
         </span>
       </nav>
-      <h1 className="text-2xl font-display font-semibold text-ink-900 mb-6">
+      <h1 className={`text-2xl font-display font-semibold text-ink-900 ${createdBy ? "mb-1" : "mb-6"}`}>
         {heading}
       </h1>
+      {createdBy && (
+        <p className="text-sm text-ink-500 mb-6">Created by {createdBy}</p>
+      )}
       {body()}
     </div>
   );

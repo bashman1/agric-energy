@@ -36,6 +36,8 @@ export interface AdminUser {
   partnerId?: string | null;
   emailVerified: boolean;
   approvedAt: string | null;
+  /** Why a registration was rejected (status "rejected"). */
+  reviewNotes?: string | null;
   createdAt: string | null;
 }
 

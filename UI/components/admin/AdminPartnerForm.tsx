@@ -18,7 +18,7 @@ import {
     toOptions,
 } from "@/lib/data/partnerOptions";
 import Link from "next/link";
-import { ApiError, apiSend } from "@/lib/api/client";
+import { ApiError, apiSend, apiSendWithMeta } from "@/lib/api/client";
 import { validateEmail, validatePhone } from "@/lib/validation/contact";
 import { mediaUrl } from "@/lib/utils/mediaUrl";
 
@@ -128,8 +128,14 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
             const isNew = mode === "new";
             const path = isNew ? "partners" : `partners/${partner.slug}`;
             const method = isNew ? "POST" : "PUT";
-            const saved = await apiSend<{ slug?: string }>(method, path, form);
-            setMsg({ type: "success", text: isNew ? "Partner created!" : "Partner updated!" });
+            // 202 = queued as a revision; see AdminContentForm.
+            const { status, data: saved, body } = await apiSendWithMeta<{ slug?: string }>(method, path, form);
+            setMsg({
+                type: "success",
+                text: status === 202
+                    ? String(body.message ?? "Your changes were submitted for review.")
+                    : isNew ? "Partner created!" : "Partner updated!",
+            });
             if (isNew && saved?.slug) {
                 router.replace(`/admin/partners/edit?slug=${encodeURIComponent(saved.slug)}`);
             }

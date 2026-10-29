@@ -26,6 +26,7 @@ const STATUS_STYLE: Record<string, string> = {
   pending: "bg-secondary-50 text-secondary-700 border-secondary-200",
   approved: "bg-primary-50 text-primary-700 border-primary-200",
   suspended: "bg-red-50 text-red-700 border-red-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
 };
 
 export default function UsersClient({
@@ -69,6 +70,13 @@ export default function UsersClient({
   const suspend = (u: AdminUser) =>
     call(u.id, () => apiSend("POST", `users/${u.id}/suspend`));
 
+  /** Turn down a registration. The reason is emailed to the applicant. */
+  const reject = (u: AdminUser) => {
+    const notes = window.prompt(`Reason for rejecting ${u.name}'s registration (emailed to the applicant):`);
+    if (!notes?.trim()) return;
+    call(u.id, () => apiSend("POST", `users/${u.id}/reject`, { notes: notes.trim() }));
+  };
+
   /** Link an existing partner account to its organisation, keeping its roles. */
   const linkPartner = (u: AdminUser, partner: string) =>
     call(u.id, () => apiSend("PUT", `users/${u.id}/roles`, { roles: u.roles, partner }));
@@ -92,6 +100,7 @@ export default function UsersClient({
         { value: "pending", label: "Pending approval" },
         { value: "approved", label: "Approved" },
         { value: "suspended", label: "Suspended" },
+        { value: "rejected", label: "Rejected" },
       ],
       match: (u, v) => u.status === v,
     },
@@ -119,7 +128,7 @@ export default function UsersClient({
         <div>
           <h1 className="text-2xl font-display font-semibold text-ink-900">Users</h1>
           <p className="text-sm text-ink-500 mt-0.5">
-            Create staff accounts, approve registrations and manage roles.
+            Create Platform Secretariat accounts, approve registrations and manage roles.
             {pending.length > 0 && (
               <span className="ml-1 font-semibold text-secondary-700">
                 {pending.length} pending approval.
@@ -160,7 +169,7 @@ export default function UsersClient({
 
       <div role="tablist" aria-label="User category" className="mb-4 flex gap-1 border-b border-ink-200">
         {([
-          ["nrep", "NREP staff"],
+          ["nrep", "Platform Secretariat"],
           ["partner", "Platform partners"],
         ] as const).map(([key, label]) => {
           const active = category === key;
@@ -205,6 +214,7 @@ export default function UsersClient({
             isSeniorAdmin={isSeniorAdmin}
             partners={category === "partner" ? partners : null}
             approve={approve}
+            reject={reject}
             suspend={suspend}
             edit={(u) => {
               setCreating(false);
@@ -230,6 +240,7 @@ function UsersTable({
   isSeniorAdmin,
   partners,
   approve,
+  reject,
   suspend,
   edit,
   linkPartner,
@@ -240,6 +251,7 @@ function UsersTable({
   /** Organisations to link to; null on the staff tab, which has none. */
   partners: PartnerOption[] | null;
   approve: (u: AdminUser) => void;
+  reject: (u: AdminUser) => void;
   suspend: (u: AdminUser) => void;
   edit: (u: AdminUser) => void;
   linkPartner: (u: AdminUser, partner: string) => void;
@@ -284,6 +296,11 @@ function UsersTable({
                   >
                     {u.status}
                   </span>
+                  {u.status === "rejected" && u.reviewNotes && (
+                    <p className="text-[11px] text-ink-500 mt-1 max-w-[14rem] whitespace-normal">
+                      {u.reviewNotes}
+                    </p>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <RoleCell u={u} isSeniorAdmin={isSeniorAdmin} />
@@ -314,7 +331,7 @@ function UsersTable({
                       Edit
                     </button>
                   )}
-                  {u.status === "pending" && (
+                  {(u.status === "pending" || u.status === "rejected") && (
                     <button
                       onClick={() => approve(u)}
                       disabled={busy === u.id}
@@ -323,7 +340,16 @@ function UsersTable({
                       Approve
                     </button>
                   )}
-                  {u.status !== "suspended" ? (
+                  {u.status === "pending" && (
+                    <button
+                      onClick={() => reject(u)}
+                      disabled={busy === u.id}
+                      className="ml-2 px-3 py-1.5 text-xs font-semibold rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      Reject
+                    </button>
+                  )}
+                  {u.status === "approved" && (
                     <button
                       onClick={() => suspend(u)}
                       disabled={busy === u.id}
@@ -331,7 +357,8 @@ function UsersTable({
                     >
                       Suspend
                     </button>
-                  ) : (
+                  )}
+                  {u.status === "suspended" && (
                     <button
                       onClick={() => approve(u)}
                       disabled={busy === u.id}

@@ -3,6 +3,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { getToken } from "@/lib/auth/token";
 import AdminContentForm from "@/components/admin/AdminContentForm";
 import AdminEditPage from "@/components/admin/AdminEditPage";
 import { getTechnologyBySlug } from "@/lib/data/technologies";
@@ -14,7 +15,7 @@ function Editor() {
       module="technologies"
       listLabel="Technologies"
       itemLabel="Technology"
-      load={(slug) => getTechnologyBySlug(slug)}
+      load={(slug) => getTechnologyBySlug(slug, getToken())}
       titleOf={(x) => x.name}
     >
       {({ item, mode }) => (

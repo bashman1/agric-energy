@@ -31,6 +31,8 @@ class ResourceResource extends JsonResource
             // which case it is in saves it guessing from the URL shape.
             'fileRestricted' => $this->file_downloadable === false && filled($this->file_path),
             'workflowStatus' => $this->workflow_status,
+            // Staff reads only — loaded by ContentController::wantsAdmin().
+            'createdBy' => $this->whenLoaded('author', fn () => $this->author?->name),
             'updatedAt' => optional($this->updated_at)->toISOString(),
         ];
     }

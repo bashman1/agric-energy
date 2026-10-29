@@ -1,12 +1,13 @@
 "use client";
 
 import { getAllPolicies } from "@/lib/data/policies";
+import { getToken } from "@/lib/auth/token";
 import AdminDataPage from "@/components/admin/AdminDataPage";
 import AdminContentListClient, { type ContentRow } from "@/components/admin/AdminContentListClient";
 
 export default function AdminPoliciesPage() {
   return (
-    <AdminDataPage title="Manage Policies" load={() => getAllPolicies()}>
+    <AdminDataPage title="Manage Policies" load={() => getAllPolicies(getToken())}>
       {(policies, reload) => {
       const rows: ContentRow[] = [...policies]
         .sort((a, b) => (b.publicationDate ?? "").localeCompare(a.publicationDate ?? ""))
@@ -19,6 +20,7 @@ export default function AdminPoliciesPage() {
           date: p.publicationDate?.slice(0, 10) ?? "",
           published: p.published,
           featured: p.featured,
+          createdBy: p.createdBy,
         }));
 
       return (

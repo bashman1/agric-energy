@@ -204,8 +204,12 @@ export async function apiUpload<T>(
   });
   if (!res.ok) {
     handleUnauthorized(res.status);
+    // nginx answers an oversized body with an HTML 413, not JSON.
+    if (res.status === 413) throw new ApiError(413, "That file is too large to upload.");
     const err = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, err?.message ?? "Upload failed", err);
+    // Validation failures carry `message`; the media endpoint's own
+    // file-type refusal carries `error`.
+    throw new ApiError(res.status, err?.message ?? err?.error ?? "Upload failed", err);
   }
   const json = await res.json().catch(() => ({}));
   return (json.data ?? json) as T;

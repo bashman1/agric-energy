@@ -41,8 +41,10 @@ class ProjectController extends ContentController
             // Required once a role is chosen — the address is the whole
             // reason the role is asked for.
             'partnerEmail' => ['required_with:partnerRole', 'nullable', 'string', 'max:255', new EmailAddress],
+            'gallery' => 'nullable|array|max:10',
         ], [
             'partnerEmail.required_with' => 'Enter the partner\'s email address.',
+            'gallery.max' => 'A gallery can hold at most 10 images.',
         ]);
 
         return $request->all();

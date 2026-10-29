@@ -216,7 +216,7 @@ export default function NewUserForm({
       {editing && (
       <div role="radiogroup" aria-label="Account type" className="mb-3 inline-flex rounded-lg border border-ink-200 p-0.5">
         {([
-          ["nrep", "NREP staff"],
+          ["nrep", "Platform Secretariat"],
           ["partner", "Platform partner"],
         ] as const).map(([key, label]) => (
           <button
@@ -290,7 +290,7 @@ export default function NewUserForm({
       </div>
       <p className="text-[11px] text-ink-400 mt-1.5">
         {category === "nrep"
-          ? "NREP staff sign in to this admin panel."
+          ? "Platform Secretariat accounts sign in to this admin panel."
           : "Partner accounts use the /partner portal. The Organisation Admin gets the Team menu there to add colleagues."}
       </p>
 
