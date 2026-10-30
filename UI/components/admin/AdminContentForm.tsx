@@ -153,7 +153,7 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
             <FileUpload kind="image" value={typeof value === "string" ? value : ""} onUploaded={(url) => set(field.key, url)} />
             <input
               id={id}
-              type="url"
+              type="text"
               className={inputClass}
               value={typeof value === "string" ? value : ""}
               onChange={(e) => set(field.key, e.target.value)}
@@ -169,7 +169,7 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
             <FileUpload kind="document" value={typeof value === "string" ? value : ""} onUploaded={(url) => set(field.key, url)} />
             <input
               id={id}
-              type="url"
+              type="text"
               className={inputClass}
               value={typeof value === "string" ? value : ""}
               onChange={(e) => set(field.key, e.target.value)}

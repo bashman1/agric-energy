@@ -282,7 +282,7 @@ export default function AdminPartnerForm({ partner, mode = "edit", technologies,
                                 <div className="mb-2">
                                     <FileUpload kind="image" value={form.logo ?? ""} onUploaded={(url) => set("logo", url)} />
                                 </div>
-                                <input id={`${uid}-logo`} type="url" className={inputClass} value={form.logo ?? ""} onChange={(e) => set("logo", e.target.value)} placeholder="…or paste an external image URL" />
+                                <input id={`${uid}-logo`} type="text" className={inputClass} value={form.logo ?? ""} onChange={(e) => set("logo", e.target.value)} placeholder="…or paste an external image URL" />
                                 {form.logo && (
                                     <div className="mt-2 flex items-center gap-3">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
