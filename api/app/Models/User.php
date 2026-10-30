@@ -18,6 +18,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public const STATUS_PENDING = 'pending';
     public const STATUS_APPROVED = 'approved';
     public const STATUS_SUSPENDED = 'suspended';
+    /** A registration turned down at review; `review_notes` says why. */
+    public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
         'name',
@@ -30,6 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'phone',
         'partner_id',
         'approved_at',
+        'review_notes',
     ];
 
     protected $hidden = [

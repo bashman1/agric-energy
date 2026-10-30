@@ -20,6 +20,7 @@ class UserResource extends JsonResource
             'partnerId' => $this->partner?->slug,
             'emailVerified' => $this->email_verified_at !== null,
             'approvedAt' => optional($this->approved_at)->toISOString(),
+            'reviewNotes' => $this->review_notes,
             'createdAt' => optional($this->created_at)->toISOString(),
         ];
     }

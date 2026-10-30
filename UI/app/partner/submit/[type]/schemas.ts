@@ -145,6 +145,7 @@ export const FIELD_SCHEMAS: Record<string, FieldDef[]> = {
   technologies: [
     { key: "name", label: "Technology name", type: "text", required: true },
     { key: "category", label: "Category", type: "select", optionsFrom: "taxonomy:technologyCategories" },
+    { key: "subcategory", label: "Sub-category", type: "text", help: "The more specific kind of technology, e.g. Solar water pumping." },
     { key: "summary", label: "Summary", type: "textarea", required: true },
     { key: "description", label: "Full description", type: "textarea" },
     { key: "applications", label: "Applications", type: "textarea" },

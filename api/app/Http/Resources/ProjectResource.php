@@ -53,6 +53,8 @@ class ProjectResource extends JsonResource
             'partnerRole' => $this->partner_role,
             'partnerEmail' => $this->partner_email,
             'workflowStatus' => $this->workflow_status,
+            // Staff reads only — loaded by ContentController::wantsAdmin().
+            'createdBy' => $this->whenLoaded('author', fn () => $this->author?->name),
             'updatedAt' => optional($this->updated_at)->toISOString(),
         ];
     }

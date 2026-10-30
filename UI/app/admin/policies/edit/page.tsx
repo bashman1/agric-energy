@@ -3,6 +3,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { getToken } from "@/lib/auth/token";
 import AdminContentForm from "@/components/admin/AdminContentForm";
 import AdminEditPage from "@/components/admin/AdminEditPage";
 import { getPolicyBySlug } from "@/lib/data/policies";
@@ -14,7 +15,7 @@ function Editor() {
       module="policies"
       listLabel="Policies"
       itemLabel="Policy"
-      load={(slug) => getPolicyBySlug(slug)}
+      load={(slug) => getPolicyBySlug(slug, getToken())}
       titleOf={(x) => x.title}
     >
       {({ item, mode }) => (

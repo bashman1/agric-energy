@@ -125,6 +125,7 @@ Route::prefix('v1')->group(function () {
         Route::post('users', [UserController::class, 'store']);
         Route::patch('users/{user}', [UserController::class, 'update']);
         Route::post('users/{user}/approve', [UserController::class, 'approve']);
+        Route::post('users/{user}/reject', [UserController::class, 'reject']);
         Route::post('users/{user}/suspend', [UserController::class, 'suspend']);
         Route::put('users/{user}/roles', [UserController::class, 'setRoles']);
 

@@ -1,12 +1,13 @@
 "use client";
 
 import { getAllEvents } from "@/lib/data/events";
+import { getToken } from "@/lib/auth/token";
 import AdminDataPage from "@/components/admin/AdminDataPage";
 import AdminContentListClient, { type ContentRow } from "@/components/admin/AdminContentListClient";
 
 export default function AdminEventsPage() {
   return (
-    <AdminDataPage title="Manage Events" load={() => getAllEvents()}>
+    <AdminDataPage title="Manage Events" load={() => getAllEvents(getToken())}>
       {(events, reload) => {
       const rows: ContentRow[] = [...events]
         .sort((a, b) => (b.startsAt ?? "").localeCompare(a.startsAt ?? ""))
@@ -19,6 +20,7 @@ export default function AdminEventsPage() {
           date: e.startsAt?.slice(0, 10) ?? "",
           published: e.published,
           featured: e.featured,
+          createdBy: e.createdBy,
         }));
 
       return (

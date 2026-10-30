@@ -30,8 +30,6 @@ export default function Footer() {
     ["aboutLink", "/about"],
     ["contact", "/contact"],
     ["submitInformation", "/contact"],
-    ["accessibility", "/accessibility"],
-    ["adminPortal", "/admin"],
   ];
 
   return (

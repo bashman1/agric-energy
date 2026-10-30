@@ -59,32 +59,45 @@ class UserCategoryTest extends TestCase
         ];
     }
 
-    public function test_partner_admin_created_by_admin_is_linked_and_can_manage_team(): void
+    public function test_admins_create_staff_accounts_only(): void
     {
         $org = $this->org();
 
+        // No partner role, linked to an organisation or not, for any tier.
+        foreach ([Roles::ORGANISATION_ADMIN, Roles::PLATFORM_ADMIN, Roles::SUPER_ADMIN] as $tier) {
+            Sanctum::actingAs($this->makeUser($tier));
+            foreach (Roles::PARTNER_ROLES as $role) {
+                $this->postJson('/api/v1/users', $this->payload([
+                    'roles' => [$role],
+                    'partner' => $org->slug,
+                ]))->assertStatus(422)->assertJsonValidationErrors('roles.0');
+            }
+        }
+        $this->assertSame(0, User::where('partner_id', $org->id)->count());
+
+        // A staff account is never tied to an organisation, even if asked.
         $res = $this->postJson('/api/v1/users', $this->payload([
-            'roles' => [Roles::PARTNER_ADMIN],
+            'roles' => [Roles::KNOWLEDGE_MANAGER],
             'partner' => $org->slug,
         ]))->assertCreated();
-
-        $user = User::find($res->json('data.id'));
-        $this->assertSame($org->id, $user->partner_id);
-        $this->assertSame('Test Org', $user->organisation);
-        $this->assertTrue($user->can('manage-partner-team'));
+        $this->assertNull(User::find($res->json('data.id'))->partner_id);
     }
 
     public function test_organisation_role_without_organisation_is_refused(): void
     {
-        $this->postJson('/api/v1/users', $this->payload(['roles' => [Roles::PARTNER_ADMIN]]))
+        $partner = $this->makeUser(Roles::PARTNER);
+
+        $this->putJson("/api/v1/users/{$partner->id}/roles", ['roles' => [Roles::PARTNER_ADMIN]])
             ->assertStatus(422)->assertJsonValidationErrors('roles');
     }
 
     public function test_staff_and_partner_roles_cannot_mix(): void
     {
-        $this->postJson('/api/v1/users', $this->payload([
+        $km = $this->makeUser(Roles::KNOWLEDGE_MANAGER);
+
+        $this->putJson("/api/v1/users/{$km->id}/roles", [
             'roles' => [Roles::KNOWLEDGE_MANAGER, Roles::PARTNER],
-        ]))->assertStatus(422)->assertJsonValidationErrors('roles');
+        ])->assertStatus(422)->assertJsonValidationErrors('roles');
     }
 
     public function test_existing_partner_can_be_linked_and_promoted(): void

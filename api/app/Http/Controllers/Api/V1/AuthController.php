@@ -71,7 +71,7 @@ class AuthController extends Controller
             'branchesBand' => 'required_if:accountType,organization|nullable|string|max:50',
             'beneficiariesBand' => 'nullable|string|max:50',
             'annualBudgetRange' => 'nullable|string|max:100',
-            'expertise' => 'required_if:accountType,organization|nullable|array|min:1|max:3',
+            'expertise' => 'required_if:accountType,organization|nullable|array|min:1|max:5',
             'contactName' => 'required_if:accountType,organization|nullable|string|max:255',
             'contactPosition' => 'required_if:accountType,organization|nullable|string|max:255',
             'contactPhone' => ['required_if:accountType,organization', 'nullable', 'string', 'max:50', new PhoneNumber],
@@ -88,7 +88,7 @@ class AuthController extends Controller
             'yearsExperience' => 'nullable|string|max:20',
             'bio' => 'required_if:accountType,individual|nullable|string|max:2000',
         ], [
-            'expertise.max' => 'Select at most 3 areas of expertise.',
+            'expertise.max' => 'Select at most 5 areas of expertise.',
             'position.required_if' => 'Your professional title or position is required.',
             'bio.required_if' => 'A short professional profile is required.',
             'sectors.required_if' => 'Please select at least one sector of operation.',
@@ -103,10 +103,10 @@ class AuthController extends Controller
         // them is invisible to anyone searching for a specialist.
         if ($data['accountType'] === 'individual') {
             $request->validate([
-                'expertise' => 'required|array|min:1|max:3',
+                'expertise' => 'required|array|min:1|max:5',
                 'sectors' => 'required|array|min:1',
             ], [
-                'expertise.max' => 'Select at most 3 areas of expertise.',
+                'expertise.max' => 'Select at most 5 areas of expertise.',
             ]);
         }
 
@@ -288,6 +288,12 @@ class AuthController extends Controller
         if ($user->status === User::STATUS_SUSPENDED) {
             throw ValidationException::withMessages([
                 'email' => ['Your account has been suspended.'],
+            ]);
+        }
+
+        if ($user->status === User::STATUS_REJECTED) {
+            throw ValidationException::withMessages([
+                'email' => ['Your registration was not approved. The reviewer\'s comments were sent to your email address.'],
             ]);
         }
 

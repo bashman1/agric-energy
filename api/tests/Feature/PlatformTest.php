@@ -121,7 +121,7 @@ class PlatformTest extends TestCase
             ->assertJsonValidationErrors(['position', 'bio']);
     }
 
-    public function test_individual_registration_caps_expertise_at_three(): void
+    public function test_individual_registration_caps_expertise_at_five(): void
     {
         $res = $this->postJson('/api/v1/auth/register', [
             'accountType' => 'individual',
@@ -131,7 +131,7 @@ class PlatformTest extends TestCase
             'password_confirmation' => 'secret123',
             'position' => 'Consultant',
             'bio' => 'Everything, apparently.',
-            'expertise' => ['One', 'Two', 'Three', 'Four'],
+            'expertise' => ['One', 'Two', 'Three', 'Four', 'Five', 'Six'],
             'sectors' => ['Agriculture'],
         ]);
 

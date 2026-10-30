@@ -24,6 +24,7 @@ import {
   SECTORS,
   VALUE_CHAINS,
   EXPERTISE_AREAS,
+  MAX_EXPERTISE,
   COVERAGE_SCOPES,
   EMPLOYEE_BANDS,
   BRANCH_BANDS,
@@ -234,7 +235,7 @@ export default function RegisterWizard() {
         if (!f.sectors.length) return "Please select at least one sector of operation.";
         if (!f.valueChains.length) return "Please select at least one value chain.";
         if (!f.expertise.length) return "Please select at least one area of expertise.";
-        if (f.expertise.length > 3) return "Select up to 3 areas of expertise.";
+        if (f.expertise.length > MAX_EXPERTISE) return `Select up to ${MAX_EXPERTISE} areas of expertise.`;
         return null;
       case "category":
         if (!f.category) return "Please select an organization category.";
@@ -272,7 +273,7 @@ export default function RegisterWizard() {
         }
         if (k === "expertise") {
           if (!f.expertise.length) return "Please select at least one area of expertise.";
-          if (f.expertise.length > 3) return "Select up to 3 areas of expertise.";
+          if (f.expertise.length > MAX_EXPERTISE) return `Select up to ${MAX_EXPERTISE} areas of expertise.`;
           return null;
         }
         return null;
@@ -600,8 +601,8 @@ function StepBody({
             options={EXPERTISE_AREAS}
             value={form.expertise}
             onChange={up("expertise")}
-            max={3}
-            help="Select up to 3 areas of expertise."
+            max={MAX_EXPERTISE}
+            help={`Select up to ${MAX_EXPERTISE} areas of expertise.`}
           />
           <RadioGroup
             label="Where you work"
@@ -793,8 +794,8 @@ function StepBody({
           options={EXPERTISE_AREAS}
           value={form.expertise}
           onChange={up("expertise")}
-          max={3}
-          help="Select up to 3 areas of expertise."
+          max={MAX_EXPERTISE}
+          help={`Select up to ${MAX_EXPERTISE} areas of expertise.`}
         />
       );
 

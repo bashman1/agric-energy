@@ -3,6 +3,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { getToken } from "@/lib/auth/token";
 import AdminContentForm from "@/components/admin/AdminContentForm";
 import AdminEditPage from "@/components/admin/AdminEditPage";
 import { getOpportunityBySlug } from "@/lib/data/opportunities";
@@ -14,7 +15,7 @@ function Editor() {
       module="opportunities"
       listLabel="Opportunities"
       itemLabel="Opportunity"
-      load={(slug) => getOpportunityBySlug(slug)}
+      load={(slug) => getOpportunityBySlug(slug, getToken())}
       titleOf={(x) => x.title}
     >
       {({ item, mode }) => (

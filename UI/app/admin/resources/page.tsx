@@ -1,6 +1,7 @@
 "use client";
 
 import AdminDataPage from "@/components/admin/AdminDataPage";
+import { getToken } from "@/lib/auth/token";
 import { getAllResources } from "@/lib/data/resources";
 import Link from "next/link";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
@@ -8,7 +9,7 @@ import AdminListTable from "@/components/admin/AdminListTable";
 
 export default function AdminResourcesPage() {
   return (
-    <AdminDataPage title="Manage Resources" load={() => getAllResources()}>
+    <AdminDataPage title="Manage Resources" load={() => getAllResources(getToken())}>
       {(items, reload) => {
       const sorted = [...items].sort((a, b) => a.title.localeCompare(b.title));
 
@@ -31,6 +32,7 @@ export default function AdminResourcesPage() {
               { label: "Title" },
               { label: "Type" },
               { label: "Date" },
+              { label: "Created by" },
               { label: "Published" },
               { label: "Featured" },
               { label: "Actions" },
@@ -40,6 +42,7 @@ export default function AdminResourcesPage() {
                 <td><div className="font-medium text-ink-900 text-sm max-w-xs truncate">{r.title}</div></td>
                 <td className="text-sm text-ink-600">{r.type}</td>
                 <td className="text-xs text-ink-500">{r.publicationDate?.slice(0, 7) ?? "—"}</td>
+                <td className="text-xs text-ink-500">{r.createdBy || "—"}</td>
                 <td><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${r.published ? "text-primary-700 bg-primary-50" : "text-ink-500 bg-ink-100"}`}>{r.published ? "Live" : "Draft"}</span></td>
                 <td className="text-xs text-ink-400">{r.featured ? "Yes" : "—"}</td>
                 <td>

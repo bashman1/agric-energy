@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FIELD_SCHEMAS, TYPE_LABELS, type FieldDef } from "./schemas";
 import FileUpload from "@/components/shared/FileUpload";
+import GalleryUpload from "@/components/shared/GalleryUpload";
 import AttachmentsUpload from "@/components/shared/AttachmentsUpload";
 import RichTextEditor from "@/components/shared/RichTextEditor";
 import LocationPicker, { type LocationValue } from "@/components/admin/LocationPicker";
@@ -139,7 +140,7 @@ export default function SubmitForm({ type, referenceData }: Props) {
       }
     }
     for (const [group, groupValues] of groups) {
-      delete payload[Object.keys(groupValues)[0]];
+      for (const key of Object.keys(groupValues)) delete payload[key];
       payload[group] = groupValues;
     }
 
@@ -234,30 +235,7 @@ export default function SubmitForm({ type, referenceData }: Props) {
               <div key={f.key}>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">{f.label}</label>
                 {f.help && <p className="text-[11px] text-gray-400 mb-2">{f.help}</p>}
-                {images.length > 0 && (
-                  <ul className="flex flex-wrap gap-2 mb-2">
-                    {images.map((url, i) => (
-                      <li key={`${url}-${i}`} className="relative">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={url} alt="" className="h-16 w-16 object-cover rounded border border-gray-200" />
-                        <button
-                          type="button"
-                          onClick={() => set(f.key, images.filter((_, idx) => idx !== i))}
-                          aria-label="Remove image"
-                          className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-white border border-gray-300 text-gray-600 text-xs leading-none hover:bg-red-50 hover:text-red-600"
-                        >
-                          ×
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <FileUpload
-                  kind="image"
-                  label="Add a photo"
-                  value=""
-                  onUploaded={(url) => set(f.key, [...images, url])}
-                />
+                <GalleryUpload value={images} onChange={(next) => set(f.key, next)} />
               </div>
             );
           }

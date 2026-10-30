@@ -1,6 +1,7 @@
 "use client";
 
 import AdminDataPage from "@/components/admin/AdminDataPage";
+import { getToken } from "@/lib/auth/token";
 import { getAllThemes } from "@/lib/data/themes";
 import Link from "next/link";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
@@ -8,7 +9,7 @@ import AdminListTable from "@/components/admin/AdminListTable";
 
 export default function AdminThemesPage() {
   return (
-    <AdminDataPage title="Manage Themes" load={() => getAllThemes()}>
+    <AdminDataPage title="Manage Themes" load={() => getAllThemes(getToken())}>
       {(items, reload) => {
       const sorted = [...items].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -29,6 +30,7 @@ export default function AdminThemesPage() {
             emptyMessage="No themes yet."
             columns={[
               { label: "Theme" },
+              { label: "Created by" },
               { label: "Published" },
               { label: "Featured" },
               { label: "Actions" },
@@ -38,6 +40,7 @@ export default function AdminThemesPage() {
                 <td>
                   <div className="font-medium text-ink-900 text-sm">{t.name}</div>
                 </td>
+                <td className="text-xs text-ink-500">{t.createdBy || "—"}</td>
                 <td><span className={`text-xs font-semibold ${t.published ? "text-primary-700" : "text-ink-400"}`}>{t.published ? "Live" : "Draft"}</span></td>
                 <td className="text-xs text-ink-400">{t.featured ? "Yes" : "—"}</td>
                 <td>

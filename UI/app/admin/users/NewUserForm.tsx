@@ -1,13 +1,14 @@
 "use client";
 
 // ============================================================
-// Create a user account from the admin panel.
+// Create an NREP staff account from the admin panel, or edit any account.
 //
-// Until now the only route to an account was self-registration through
-// /partner/register followed by an approval — which meant staff accounts
-// could not be made at all from here. This posts to the API's user-create
-// endpoint, which marks the account approved and email-verified so the
-// person can sign in immediately.
+// Creating posts to the API's user-create endpoint, which marks the account
+// approved and email-verified so the person can sign in immediately. It is
+// staff only: partner accounts come from an organisation registering itself
+// at /partner/register and its own admin adding colleagues on the portal's
+// Team page — the API refuses a partner role here. Editing still covers
+// partner accounts (role, organisation link, details).
 // ============================================================
 
 import { useState } from "react";
@@ -55,20 +56,18 @@ function fieldErrors(e: unknown): Record<string, string> {
 }
 
 /**
- * Create a user, or — given `editing` — edit one. In edit mode every field
+ * Create a staff user, or — given `editing` — edit any account. In edit mode every field
  * starts from the account, the password is optional (blank keeps it), and
  * the role is only sent when it actually changed. The parent keys this
  * component by the account id, so switching accounts starts a fresh form.
  */
 export default function NewUserForm({
   partners,
-  initialCategory = "nrep",
   editing,
   onCreated,
   onCancel,
 }: {
   partners: PartnerOption[];
-  initialCategory?: Category;
   editing?: AdminUser;
   onCreated: () => void;
   onCancel: () => void;
@@ -77,7 +76,7 @@ export default function NewUserForm({
     ? editing.partnerId || editing.roles.some((r) => (PARTNER_ACCOUNT_ROLES as readonly string[]).includes(r))
       ? "partner"
       : "nrep"
-    : initialCategory;
+    : "nrep";
   const [form, setForm] = useState(
     editing
       ? {
@@ -174,11 +173,7 @@ export default function NewUserForm({
         };
         await updateUser(editing.id, input);
       } else {
-        await createUser(
-          category === "partner"
-            ? { ...form, organisation: "", roles: [role], partner: partner || undefined }
-            : { ...form, roles: [role] }
-        );
+        await createUser({ ...form, roles: [role] });
       }
       reset();
       onCreated();
@@ -217,9 +212,11 @@ export default function NewUserForm({
         </div>
       )}
 
+      {/* Edit only: a new account is always NREP staff. */}
+      {editing && (
       <div role="radiogroup" aria-label="Account type" className="mb-3 inline-flex rounded-lg border border-ink-200 p-0.5">
         {([
-          ["nrep", "NREP staff"],
+          ["nrep", "Platform Secretariat"],
           ["partner", "Platform partner"],
         ] as const).map(([key, label]) => (
           <button
@@ -237,6 +234,7 @@ export default function NewUserForm({
           </button>
         ))}
       </div>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Full name" error={errors.name}>
@@ -292,7 +290,7 @@ export default function NewUserForm({
       </div>
       <p className="text-[11px] text-ink-400 mt-1.5">
         {category === "nrep"
-          ? "NREP staff sign in to this admin panel."
+          ? "Platform Secretariat accounts sign in to this admin panel."
           : "Partner accounts use the /partner portal. The Organisation Admin gets the Team menu there to add colleagues."}
       </p>
 

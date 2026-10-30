@@ -14,6 +14,7 @@ class TechnologyResource extends JsonResource
             'slug' => $this->slug,
             'name' => $this->name,
             'category' => $this->category ?? '',
+            'subcategory' => $this->subcategory ?? '',
             'summary' => $this->summary ?? '',
             'description' => $this->description ?? '',
             'featuredImage' => $this->featured_image ?? '',
@@ -27,6 +28,8 @@ class TechnologyResource extends JsonResource
             'featured' => (bool) $this->featured,
             'published' => (bool) $this->published,
             'workflowStatus' => $this->workflow_status,
+            // Staff reads only — loaded by ContentController::wantsAdmin().
+            'createdBy' => $this->whenLoaded('author', fn () => $this->author?->name),
             'updatedAt' => optional($this->updated_at)->toISOString(),
         ];
     }

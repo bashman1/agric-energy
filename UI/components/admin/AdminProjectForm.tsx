@@ -6,8 +6,9 @@ import LocationPicker, { type LocationValue } from "@/components/admin/LocationP
 import ComboSelect, { type ComboOption } from "@/components/admin/ComboSelect";
 import AttachmentsUpload from "@/components/shared/AttachmentsUpload";
 import FileUpload from "@/components/shared/FileUpload";
+import GalleryUpload from "@/components/shared/GalleryUpload";
 import Link from "next/link";
-import { ApiError, apiSend } from "@/lib/api/client";
+import { ApiError, apiSendWithMeta } from "@/lib/api/client";
 import { mediaUrl } from "@/lib/utils/mediaUrl";
 
 interface Props {
@@ -88,8 +89,14 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
       const isNew = mode === "new";
       const path = isNew ? "projects" : `projects/${project.slug}`;
       const method = isNew ? "POST" : "PUT";
-      const saved = await apiSend<{ slug?: string }>(method, path, payload);
-      setMsg({ type: "success", text: isNew ? "Project created successfully!" : "Project updated successfully!" });
+      // 202 = queued as a revision; see AdminContentForm.
+      const { status, data: saved, body } = await apiSendWithMeta<{ slug?: string }>(method, path, payload);
+      setMsg({
+        type: "success",
+        text: status === 202
+          ? String(body.message ?? "Your changes were submitted for review.")
+          : isNew ? "Project created successfully!" : "Project updated successfully!",
+      });
       // A new record has no page until it is loaded by slug, so send the
       // editor to its own URL rather than refreshing an inert route.
       if (isNew && saved?.slug) {
@@ -240,6 +247,18 @@ export default function AdminProjectForm({ project, mode = "edit", partners, tec
             <AttachmentsUpload
               value={form.attachments ?? []}
               onChange={(attachments) => set("attachments", attachments)}
+            />
+          </div>
+
+          {/* Photo gallery — shown under the description on the public page */}
+          <div className="bg-white rounded-xl border border-ink-200 shadow-card p-5">
+            <h2 className="font-bold text-ink-900 text-sm mb-1">Photo Gallery</h2>
+            <p className="text-xs text-ink-500 mb-4">
+              Additional photographs shown on the project page.
+            </p>
+            <GalleryUpload
+              value={form.gallery ?? []}
+              onChange={(gallery) => set("gallery", gallery)}
             />
           </div>
         </div>

@@ -5,6 +5,7 @@ import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import Badge from "@/components/shared/Badge";
 import DownloadDetail from "@/components/public/DownloadDetail";
+import Gallery from "@/components/shared/Gallery";
 import Link from "next/link";
 import { useAsync } from "@/lib/hooks/useAsync";
 import { useRouteSlug } from "@/lib/routing/useRouteSlug";
@@ -12,6 +13,7 @@ import { getProjectBySlug } from "@/lib/data/projects";
 import { getTechnologyBySlug } from "@/lib/data/technologies";
 import { getPartnerBySlug } from "@/lib/data/partners";
 import { DetailHero } from "@/components/public/CoverMedia";
+import { mediaUrl } from "@/lib/utils/mediaUrl";
 
 function fmtBudget(value: number, currency?: string): string {
   const amount = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 }).format(value);
@@ -193,6 +195,19 @@ export default function ProjectDetailClient({ slug: routeSlug }: { slug: string 
                     <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
                       {p.outcomes}
                     </div>
+                  </div>
+                )}
+
+                {/* Photo gallery */}
+                {(p.gallery ?? []).length > 0 && (
+                  <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-card">
+                    <Gallery
+                      title="Project photos"
+                      images={p.gallery.map((src, i) => ({
+                        src: mediaUrl(src),
+                        alt: `${p.title} — photo ${i + 1} of ${p.gallery.length}`,
+                      }))}
+                    />
                   </div>
                 )}
 

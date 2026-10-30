@@ -1,6 +1,7 @@
 "use client";
 
 import { getAllPosts } from "@/lib/data/posts";
+import { getToken } from "@/lib/auth/token";
 import AdminDataPage from "@/components/admin/AdminDataPage";
 import AdminContentListClient, { type ContentRow } from "@/components/admin/AdminContentListClient";
 
@@ -13,7 +14,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function AdminPostsPage() {
   return (
-    <AdminDataPage title="Manage Posts" load={() => getAllPosts()}>
+    <AdminDataPage title="Manage Posts" load={() => getAllPosts(getToken())}>
       {(posts, reload) => {
       const rows: ContentRow[] = [...posts]
         .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
@@ -26,6 +27,7 @@ export default function AdminPostsPage() {
           date: p.publishedAt?.slice(0, 10) ?? "",
           published: p.published,
           featured: p.featured,
+          createdBy: p.createdBy,
         }));
 
       return (

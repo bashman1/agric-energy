@@ -70,6 +70,8 @@ export interface Project {
   featured: boolean;
   published: boolean;
   updatedAt: string;
+  /** Author's name. Staff (?admin=true) reads only — absent on the public site. */
+  createdBy?: string | null;
 }
 
 // ─── Technology ───────────────────────────────────────────
@@ -78,6 +80,8 @@ export interface Technology {
   slug: string;
   name: string;
   category: string;
+  /** Second level under `category`, e.g. "Solar water pumping". */
+  subcategory?: string;
   summary: string;
   description: string;
   applications: string[];
@@ -91,6 +95,8 @@ export interface Technology {
   featured: boolean;
   published: boolean;
   updatedAt: string;
+  /** Author's name. Staff (?admin=true) reads only — absent on the public site. */
+  createdBy?: string | null;
 }
 
 // ─── Theme ────────────────────────────────────────────────
@@ -109,6 +115,8 @@ export interface Theme {
   featured: boolean;
   published: boolean;
   updatedAt: string;
+  /** Author's name. Staff (?admin=true) reads only — absent on the public site. */
+  createdBy?: string | null;
 }
 
 // ─── Partner ──────────────────────────────────────────────
@@ -131,6 +139,8 @@ export interface Partner {
   featured: boolean;
   published: boolean;
   updatedAt: string;
+  /** Author's name. Staff (?admin=true) reads only — absent on the public site. */
+  createdBy?: string | null;
   // ── Profile (from self-registration) ──
   /**
    * Which kind of directory entry this is. Organisations and individuals share
@@ -183,6 +193,8 @@ export interface Resource {
   published: boolean;
   fileDownloadable?: boolean;
   updatedAt: string;
+  /** Author's name. Staff (?admin=true) reads only — absent on the public site. */
+  createdBy?: string | null;
 }
 
 // ─── Event ────────────────────────────────────────────────
@@ -202,6 +214,8 @@ export interface Event {
   featured: boolean;
   published: boolean;
   updatedAt: string;
+  /** Author's name. Staff (?admin=true) reads only — absent on the public site. */
+  createdBy?: string | null;
 }
 
 // ─── Opportunity (funding / investment) ───────────────────
@@ -251,6 +265,8 @@ export interface Opportunity {
   featured: boolean;
   published: boolean;
   updatedAt: string;
+  /** Author's name. Staff (?admin=true) reads only — absent on the public site. */
+  createdBy?: string | null;
 }
 
 // ─── Policy ───────────────────────────────────────────────
@@ -266,6 +282,8 @@ export interface Policy {
   featured: boolean;
   published: boolean;
   updatedAt: string;
+  /** Author's name. Staff (?admin=true) reads only — absent on the public site. */
+  createdBy?: string | null;
 }
 
 // ─── Post (news / announcements) ──────────────────────────
@@ -283,6 +301,8 @@ export interface Post {
   featured: boolean;
   published: boolean;
   updatedAt: string;
+  /** Author's name. Staff (?admin=true) reads only — absent on the public site. */
+  createdBy?: string | null;
 }
 
 // ─── Taxonomy (non-geography lists) ───────────────────────

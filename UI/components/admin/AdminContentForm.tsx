@@ -3,8 +3,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import FileUpload from "@/components/shared/FileUpload";
+import GalleryUpload from "@/components/shared/GalleryUpload";
 import RichTextEditor from "@/components/shared/RichTextEditor";
-import { ApiError, apiSend } from "@/lib/api/client";
+import { ApiError, apiSendWithMeta } from "@/lib/api/client";
 import {
   CONTENT_SCHEMAS,
   type ContentFieldDef,
@@ -152,7 +153,7 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
             <FileUpload kind="image" value={typeof value === "string" ? value : ""} onUploaded={(url) => set(field.key, url)} />
             <input
               id={id}
-              type="url"
+              type="text"
               className={inputClass}
               value={typeof value === "string" ? value : ""}
               onChange={(e) => set(field.key, e.target.value)}
@@ -168,7 +169,7 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
             <FileUpload kind="document" value={typeof value === "string" ? value : ""} onUploaded={(url) => set(field.key, url)} />
             <input
               id={id}
-              type="url"
+              type="text"
               className={inputClass}
               value={typeof value === "string" ? value : ""}
               onChange={(e) => set(field.key, e.target.value)}
@@ -179,29 +180,7 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
         break;
 
       case "upload-gallery":
-        control = (
-          <div>
-            <FileUpload kind="image" onUploaded={(url) => set("gallery", [...gallery, url])} />
-            {gallery.length > 0 && (
-              <ul className="flex flex-wrap gap-3 mt-3">
-                {gallery.map((url, i) => (
-                  <li key={`${url}-${i}`} className="relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt={`Gallery item ${i + 1}`} className="h-16 w-16 object-cover rounded border border-ink-200" />
-                    <button
-                      type="button"
-                      aria-label={`Remove gallery image ${i + 1}`}
-                      onClick={() => set("gallery", gallery.filter((_, j) => j !== i))}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-ink-200 text-ink-500 text-xs leading-none hover:text-red-600 hover:border-red-200 transition-colors"
-                    >
-                      ×
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        );
+        control = <GalleryUpload value={gallery} onChange={(images) => set("gallery", images)} />;
         break;
 
       case "list": {
@@ -268,10 +247,15 @@ export default function AdminContentForm({ module, item, mode = "edit" }: Props)
       const isNew = mode === "new";
       const path = isNew ? schema.apiPath : `${schema.apiPath}/${slug}`;
       const method = isNew ? "POST" : "PUT";
-      const saved = await apiSend<{ slug?: string }>(method, path, form);
+      // An edit to a live record by an author who cannot publish is queued
+      // for review (202) and the response carries the UNCHANGED record — so
+      // "updated successfully" there reported a save that had not happened.
+      const { status, data: saved, body } = await apiSendWithMeta<{ slug?: string }>(method, path, form);
       setMsg({
         type: "success",
-        text: isNew ? `${schema.singular} created successfully!` : `${schema.singular} updated successfully!`,
+        text: status === 202
+          ? String(body.message ?? "Your changes were submitted for review.")
+          : isNew ? `${schema.singular} created successfully!` : `${schema.singular} updated successfully!`,
       });
       // A new record has no page until it is loaded by slug, so send the
       // editor to its own URL rather than refreshing an inert route.

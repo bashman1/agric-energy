@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { apiUpload } from "@/lib/api/client";
+import { MAX_UPLOAD_MB } from "@/lib/utils/uploadLimits";
 
 /**
  * Reusable upload widget. Uploads straight to Laravel's /api/v1/media with
@@ -29,6 +30,12 @@ export default function FileUpload({
 
   const upload = async (file: File) => {
     setError("");
+    // Checked here as well as by the API so a large phone photo fails
+    // instantly with a reason, rather than after a long upload.
+    if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      setError(`That file is ${(file.size / 1024 / 1024).toFixed(1)} MB. The limit is ${MAX_UPLOAD_MB} MB.`);
+      return;
+    }
     setUploading(true);
     try {
       const fd = new FormData();
@@ -62,6 +69,8 @@ export default function FileUpload({
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
+              // Reset so picking the same file again after an error retries.
+              e.target.value = "";
               if (f) upload(f);
             }}
           />
@@ -85,7 +94,11 @@ export default function FileUpload({
           </a>
         )}
       </div>
-      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+      {error ? (
+        <p className="text-xs text-red-600 mt-1">{error}</p>
+      ) : (
+        <p className="text-[11px] text-gray-400 mt-1">Max {MAX_UPLOAD_MB} MB.</p>
+      )}
     </div>
   );
 }

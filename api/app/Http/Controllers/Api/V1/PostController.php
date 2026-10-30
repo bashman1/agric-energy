@@ -23,6 +23,9 @@ class PostController extends ContentController
         $request->validate([
             'title' => ($updating ? 'sometimes' : 'required') . '|string|max:255',
             'publishedAt' => 'nullable|date',
+            'gallery' => 'nullable|array|max:10',
+        ], [
+            'gallery.max' => 'A gallery can hold at most 10 images.',
         ]);
 
         return $request->all();
