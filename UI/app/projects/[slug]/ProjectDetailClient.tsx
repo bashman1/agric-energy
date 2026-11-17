@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import Badge from "@/components/shared/Badge";
@@ -11,9 +11,45 @@ import { useAsync } from "@/lib/hooks/useAsync";
 import { useRouteSlug } from "@/lib/routing/useRouteSlug";
 import { getProjectBySlug } from "@/lib/data/projects";
 import { getTechnologyBySlug } from "@/lib/data/technologies";
+import { getThemeBySlug } from "@/lib/data/themes";
 import { getPartnerBySlug } from "@/lib/data/partners";
 import { DetailHero } from "@/components/public/CoverMedia";
 import { mediaUrl } from "@/lib/utils/mediaUrl";
+import QuickViewDialog, { QuickViewItem } from "@/components/public/QuickViewDialog";
+import type { Technology, Theme } from "@/lib/types";
+
+function technologyQuickView(t: Technology): QuickViewItem {
+  return {
+    eyebrow: [t.category, t.subcategory].filter(Boolean).join(" · ") || "Technology",
+    title: t.name,
+    image: t.featuredImage,
+    summary: t.summary,
+    sections: [
+      { title: "Overview", body: t.description },
+      { title: "Applications", body: t.applications ?? [] },
+      { title: "Benefits", body: t.benefits ?? [] },
+      { title: "Limitations", body: t.limitations ?? [] },
+    ],
+    href: `/technologies/${t.slug}`,
+    linkLabel: "View full technology page",
+  };
+}
+
+function themeQuickView(t: Theme): QuickViewItem {
+  return {
+    eyebrow: "Theme",
+    title: t.name,
+    icon: t.icon,
+    image: t.featuredImage,
+    summary: t.summary,
+    sections: [
+      { title: "Overview", body: t.description },
+      { title: "Why it matters", body: t.whyItMatters },
+    ],
+    href: `/themes/${t.slug}`,
+    linkLabel: "View full theme page",
+  };
+}
 
 function fmtBudget(value: number, currency?: string): string {
   const amount = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 }).format(value);
@@ -46,8 +82,13 @@ export default function ProjectDetailClient({ slug: routeSlug }: { slug: string 
       (p.implementingPartnerIds ?? []).map((id) => getPartnerBySlug(id))
     ).then((items) => items.filter(Boolean));
 
-    return { project: p, technologies, partners };
+    const themes = await Promise.all(
+      (p.themeIds ?? []).map((id) => getThemeBySlug(id))
+    ).then((items) => items.filter((t): t is Theme => Boolean(t)));
+
+    return { project: p, technologies, partners, themes };
   }, [slug], { enabled: slug !== null });
+  const [quickView, setQuickView] = useState<QuickViewItem | null>(null);
 
   useEffect(() => {
     if (project?.project) {
@@ -92,7 +133,7 @@ export default function ProjectDetailClient({ slug: routeSlug }: { slug: string 
     );
   }
 
-  const { project: p, technologies, partners } = project;
+  const { project: p, technologies, partners, themes } = project;
 
   const statusColor =
     p.status === "Active"
@@ -218,19 +259,49 @@ export default function ProjectDetailClient({ slug: routeSlug }: { slug: string 
                     <div className="grid sm:grid-cols-2 gap-3">
                       {technologies.map((tech) =>
                         tech ? (
-                          <Link
+                          <button
                             key={tech.id}
-                            href={`/technologies/${tech.slug}`}
-                            className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:border-primary-200 hover:bg-primary-50 transition-colors group"
+                            type="button"
+                            onClick={() => setQuickView(technologyQuickView(tech))}
+                            aria-haspopup="dialog"
+                            className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:border-primary-200 hover:bg-primary-50 transition-colors group text-left w-full"
                           >
                             <span className="text-xl">⚡</span>
-                            <div>
+                            <div className="flex-1 min-w-0">
                               <div className="font-semibold text-gray-800 text-sm group-hover:text-primary-700 transition-colors">{tech.name}</div>
                               <div className="text-xs text-primary-600 bg-primary-50 group-hover:bg-white px-1.5 py-0.5 rounded-full inline-block mt-0.5 transition-colors">{tech.category}</div>
+                              <div className="text-xs text-gray-400 group-hover:text-primary-600 mt-1.5 transition-colors">View details</div>
                             </div>
-                          </Link>
+                          </button>
                         ) : null
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Themes */}
+                {themes.length > 0 && (
+                  <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-card">
+                    <h2 className="font-bold text-gray-900 text-lg mb-4">Themes</h2>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {themes.map((theme) => (
+                        <button
+                          key={theme.id}
+                          type="button"
+                          onClick={() => setQuickView(themeQuickView(theme))}
+                          aria-haspopup="dialog"
+                          className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:border-primary-200 hover:bg-primary-50 transition-colors group text-left w-full"
+                        >
+                          <span className="text-xl">{theme.icon || "🏷️"}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-800 text-sm group-hover:text-primary-700 transition-colors">{theme.name}</div>
+                            {theme.summary && (
+                              <div className="text-xs text-gray-500 mt-0.5 line-clamp-2">{theme.summary}</div>
+                            )}
+                            <div className="text-xs text-gray-400 group-hover:text-primary-600 mt-1.5 transition-colors">View details</div>
+                          </div>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -267,6 +338,27 @@ export default function ProjectDetailClient({ slug: routeSlug }: { slug: string 
 
               {/* Sidebar */}
               <div className="space-y-5">
+                {/* Implementing Partners */}
+                {partners.length > 0 && (
+                  <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-card">
+                    <h3 className="font-bold text-gray-900 text-sm mb-3">Implementing Partners</h3>
+                    <div className="space-y-2">
+                      {partners.map((partner) =>
+                        partner ? (
+                          <Link
+                            key={partner.id}
+                            href={`/partners/${partner.slug}`}
+                            className="block p-2 rounded-lg border border-gray-50 hover:border-primary-100 hover:bg-primary-50 transition-colors"
+                          >
+                            <div className="font-semibold text-gray-800 text-xs">{partner.name}</div>
+                            <div className="text-xs text-gray-500 mt-0.5">{partner.type}</div>
+                          </Link>
+                        ) : null
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Project Details */}
                 <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-card">
                   <h3 className="font-bold text-gray-900 text-sm mb-4">Project Details</h3>
@@ -319,27 +411,6 @@ export default function ProjectDetailClient({ slug: routeSlug }: { slug: string 
                   </div>
                 )}
 
-                {/* Implementing Partners */}
-                {partners.length > 0 && (
-                  <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-card">
-                    <h3 className="font-bold text-gray-900 text-sm mb-3">Implementing Partners</h3>
-                    <div className="space-y-2">
-                      {partners.map((partner) =>
-                        partner ? (
-                          <Link
-                            key={partner.id}
-                            href={`/partners/${partner.slug}`}
-                            className="block p-2 rounded-lg border border-gray-50 hover:border-primary-100 hover:bg-primary-50 transition-colors"
-                          >
-                            <div className="font-semibold text-gray-800 text-xs">{partner.name}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">{partner.type}</div>
-                          </Link>
-                        ) : null
-                      )}
-                    </div>
-                  </div>
-                )}
-
                 {/* External link */}
                 {p.externalUrl && (
                   <a
@@ -356,6 +427,7 @@ export default function ProjectDetailClient({ slug: routeSlug }: { slug: string 
           </div>
         </section>
       </main>
+      <QuickViewDialog item={quickView} onClose={() => setQuickView(null)} />
       <Footer />
     </>
   );

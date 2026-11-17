@@ -251,13 +251,6 @@ export default function ContactPage() {
                     ))}
                   </ul>
                 </div>
-
-                <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
-                  <div className="text-emerald-700 font-semibold text-sm mb-1">📬 Submissions are tracked</div>
-                  <p className="text-emerald-600 text-xs leading-relaxed">
-                    Every submission is stored securely and visible to the Agri-Energy Desk team in the Admin Portal, where your enquiry can be reviewed and responded to.
-                  </p>
-                </div>
               </div>
             </div>
           </div>
